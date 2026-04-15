@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SWPdm.Sample.Data;
@@ -11,9 +12,11 @@ using SWPdm.Sample.Data;
 namespace SWPdm.Sample.Data.Migrations
 {
     [DbContext(typeof(PdmDbContext))]
-    partial class PdmDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260415160318_EnterpriseNumbering")]
+    partial class EnterpriseNumbering
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
