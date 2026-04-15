@@ -19,6 +19,15 @@ builder.Services
     .AddOptions<DatabaseOptions>()
     .Bind(builder.Configuration.GetSection(DatabaseOptions.SectionName));
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowWebFrontend",
+        policy => policy
+            .WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
+
 builder.Services
     .AddOptions<LocalStorageOptions>()
     .Bind(builder.Configuration.GetSection(LocalStorageOptions.SectionName));
@@ -59,6 +68,8 @@ builder.Services.AddSingleton<SolidWorksDocumentManagerServiceFactory>();
 
 var app = builder.Build();
 
+app.UseCors("AllowWebFrontend");
+
 app.MapGet("/", () => Results.Ok(new
 {
     service = "SWPdm.Api",
@@ -74,6 +85,7 @@ app.MapGet("/", () => Results.Ok(new
         "GET /api/versions/{versionId}/children",
         "GET /api/assemblies/{rootVersionId}/package-closure",
         "GET /api/assemblies/{rootVersionId}/download-zip",
+        "POST /api/web/upload-temp",
         "POST /api/ingest/cad",
         "POST /api/storage/upload",
         "POST /api/storage/download",
@@ -250,6 +262,36 @@ app.MapPost("/api/ingest/cad", async (
         return ToProblem(ex);
     }
 });
+
+app.MapPost("/api/web/upload-temp", async (
+    IFormFile file,
+    CancellationToken cancellationToken) =>
+{
+    if (file == null || file.Length == 0)
+    {
+        return ValidationError(nameof(file), "File is required.");
+    }
+
+    try
+    {
+        string tempDir = Path.Combine(Path.GetTempPath(), "swpdm_web_uploads");
+        Directory.CreateDirectory(tempDir);
+
+        string fileName = Path.GetFileName(file.FileName);
+        string tempFilePath = Path.Combine(tempDir, $"{Guid.NewGuid()}_{fileName}");
+
+        await using var stream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
+        await file.CopyToAsync(stream, cancellationToken);
+        
+        // 此處不關閉 stream 就回傳路徑會有問題，需確保 stream 透過 using 已被鎖定與釋放，因為 await using 會在 scope 結束時釋放。
+        
+        return Results.Ok(new { localFilePath = tempFilePath });
+    }
+    catch (Exception ex)
+    {
+        return ToProblem(ex);
+    }
+}).DisableAntiforgery(); // Disable AntiForgery for raw API usage in development
 
 app.MapPost("/api/storage/upload", async (
     UploadFileRequest request,
