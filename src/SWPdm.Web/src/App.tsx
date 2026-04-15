@@ -3,7 +3,8 @@ import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-do
 import { Layout } from './components/ui';
 import Dashboard from './pages/Dashboard';
 import UploadPage from './pages/Upload';
-import { Home, UploadCloud, FileBox } from 'lucide-react';
+import Documents from './pages/Documents';
+import { Home, UploadCloud, FileBox, Search } from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -22,6 +23,7 @@ const Sidebar = () => {
       <nav className="flex-1 space-y-2">
         <MenuLink to="/" icon={<Home size={20} />} label="系統概覽" active={isActive('/')} />
         <MenuLink to="/ingest" icon={<UploadCloud size={20} />} label="檔案入庫 (Ingest)" active={isActive('/ingest')} />
+        <MenuLink to="/documents" icon={<Search size={20} />} label="圖檔搜尋" active={isActive('/documents')} />
       </nav>
       
       <div className="pt-4 border-t border-gray-800 text-xs text-center text-gray-500">
@@ -55,6 +57,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/ingest" element={<UploadPage />} />
+          <Route path="/documents" element={<Documents />} />
         </Routes>
       </Layout>
     </BrowserRouter>
