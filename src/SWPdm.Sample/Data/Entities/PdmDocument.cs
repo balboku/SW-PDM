@@ -26,6 +26,10 @@ public sealed class PdmDocument
 
     public DateTimeOffset UpdatedAt { get; set; }
 
+    public string? CheckedOutBy { get; set; }
+
+    public DateTimeOffset? CheckedOutAt { get; set; }
+
     public PdmDocumentVersion? CurrentVersion { get; set; }
 
     public ICollection<PdmDocumentVersion> Versions { get; set; } = new List<PdmDocumentVersion>();

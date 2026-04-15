@@ -48,6 +48,8 @@ public sealed class PdmDbContext : DbContext
             entity.Property(x => x.IsActive).HasColumnName("is_active");
             entity.Property(x => x.CreatedAt).HasColumnName("created_at");
             entity.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+            entity.Property(x => x.CheckedOutBy).HasColumnName("checked_out_by").HasMaxLength(100);
+            entity.Property(x => x.CheckedOutAt).HasColumnName("checked_out_at");
 
             entity.HasMany(x => x.Versions)
                 .WithOne(x => x.Document)
@@ -65,7 +67,10 @@ public sealed class PdmDbContext : DbContext
     {
         modelBuilder.Entity<PdmDocumentVersion>(entity =>
         {
-            entity.ToTable("pdm_document_versions");
+            entity.ToTable("pdm_document_versions", table =>
+            {
+                table.HasCheckConstraint("ck_pdm_document_versions_lifecycle", "lifecycle_state IN ('WIP', 'InReview', 'Released', 'Obsolete')");
+            });
             entity.HasKey(x => x.VersionId);
             entity.Property(x => x.VersionId).HasColumnName("version_id");
             entity.Property(x => x.DocumentId).HasColumnName("document_id");
@@ -80,6 +85,7 @@ public sealed class PdmDbContext : DbContext
             entity.Property(x => x.SourceLastWriteUtc).HasColumnName("source_last_write_utc");
             entity.Property(x => x.ParsedAt).HasColumnName("parsed_at");
             entity.Property(x => x.CreatedAt).HasColumnName("created_at");
+            entity.Property(x => x.LifecycleState).HasColumnName("lifecycle_state").HasMaxLength(20).HasDefaultValue("WIP");
 
             entity.HasIndex(x => x.DocumentId)
                 .HasDatabaseName("idx_pdm_document_versions_document_id");

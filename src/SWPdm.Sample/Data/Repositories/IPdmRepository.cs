@@ -13,4 +13,6 @@ public interface IPdmRepository
     Task<IReadOnlyList<PdmBomLinkData>> GetImmediateChildrenAsync(long parentVersionId, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<PdmPackageFile>> GetPackageClosureAsync(long rootVersionId, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<PdmPackageFile>> GetWhereUsedAsync(long childVersionId, CancellationToken cancellationToken = default);
 }

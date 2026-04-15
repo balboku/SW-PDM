@@ -174,6 +174,45 @@ public sealed class PdmRepository : IPdmRepository
         return result;
     }
 
+    public async Task<IReadOnlyList<PdmPackageFile>> GetWhereUsedAsync(
+        long childVersionId,
+        CancellationToken cancellationToken = default)
+    {
+        string sql = ResolveWhereUsedSql();
+
+        await using var connection = _dbContext.Database.GetDbConnection();
+
+        if (connection.State != ConnectionState.Open)
+        {
+            await connection.OpenAsync(cancellationToken);
+        }
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = "@childVersionId";
+        parameter.Value = childVersionId;
+        command.Parameters.Add(parameter);
+
+        List<PdmPackageFile> result = new();
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            result.Add(new PdmPackageFile(
+                VersionId: reader.GetInt64(0),
+                DocumentType: reader.GetString(1),
+                StorageFileId: reader.GetString(2),
+                OriginalFileName: reader.GetString(3),
+                SourceFilePath: reader.GetString(4),
+                VaultRelativePath: reader.GetString(5),
+                Depth: reader.GetInt32(6)));
+        }
+
+        return result;
+    }
+
     private string ResolvePackageClosureSql()
     {
         string? provider = _dbContext.Database.ProviderName;
@@ -271,6 +310,123 @@ public sealed class PdmRepository : IPdmRepository
                 SELECT child_version_id AS version_id, depth
                 FROM bom_tree
                 WHERE child_version_id IS NOT NULL
+            ),
+            min_depths AS (
+                SELECT
+                    version_id,
+                    MIN(depth) AS depth
+                FROM needed_versions
+                GROUP BY version_id
+            )
+            SELECT
+                md.version_id,
+                d.document_type,
+                v.storage_file_id,
+                v.original_file_name,
+                v.source_file_path,
+                v.vault_relative_path,
+                md.depth
+            FROM min_depths md
+            INNER JOIN pdm_document_versions v
+                ON v.version_id = md.version_id
+            INNER JOIN pdm_documents d
+                ON d.document_id = v.document_id
+            """;
+    }
+
+    private string ResolveWhereUsedSql()
+    {
+        string? provider = _dbContext.Database.ProviderName;
+
+        if (provider?.Contains("SqlServer", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return
+                """
+                WITH bom_tree AS (
+                    SELECT
+                        b.parent_version_id,
+                        b.child_version_id,
+                        1 AS depth,
+                        CAST(CONCAT(',', COALESCE(CAST(b.parent_version_id AS varchar(30)), '-1'), ',', CAST(b.child_version_id AS varchar(30)), ',') AS varchar(max)) AS visited_chain
+                    FROM pdm_bom_occurrences b
+                    WHERE b.child_version_id = @childVersionId
+                      AND b.reference_status = 'Resolved'
+                      AND b.is_suppressed = 0
+
+                    UNION ALL
+
+                    SELECT
+                        b.parent_version_id,
+                        b.child_version_id,
+                        bt.depth + 1 AS depth,
+                        CONCAT(bt.visited_chain, COALESCE(CAST(b.parent_version_id AS varchar(30)), '-1'), ',') AS visited_chain
+                    FROM pdm_bom_occurrences b
+                    INNER JOIN bom_tree bt
+                        ON b.child_version_id = bt.parent_version_id
+                    WHERE b.reference_status = 'Resolved'
+                      AND b.is_suppressed = 0
+                      AND CHARINDEX(CONCAT(',', COALESCE(CAST(b.parent_version_id AS varchar(30)), '-1'), ','), bt.visited_chain) = 0
+                ),
+                needed_versions AS (
+                    SELECT parent_version_id AS version_id, depth
+                    FROM bom_tree
+                    WHERE parent_version_id IS NOT NULL
+                ),
+                min_depths AS (
+                    SELECT
+                        version_id,
+                        MIN(depth) AS depth
+                    FROM needed_versions
+                    GROUP BY version_id
+                )
+                SELECT
+                    md.version_id,
+                    d.document_type,
+                    v.storage_file_id,
+                    v.original_file_name,
+                    v.source_file_path,
+                    v.vault_relative_path,
+                    md.depth
+                FROM min_depths md
+                INNER JOIN pdm_document_versions v
+                    ON v.version_id = md.version_id
+                INNER JOIN pdm_documents d
+                    ON d.document_id = v.document_id
+                ORDER BY md.depth, md.version_id;
+                """;
+        }
+
+        return
+            """
+            WITH RECURSIVE bom_tree AS (
+                SELECT
+                    b.parent_version_id,
+                    b.child_version_id,
+                    1 AS depth,
+                    ARRAY[COALESCE(b.parent_version_id, -1), b.child_version_id] AS visited_chain
+                FROM pdm_bom_occurrences b
+                WHERE b.child_version_id = @childVersionId
+                  AND b.reference_status = 'Resolved'
+                  AND b.is_suppressed = FALSE
+
+                UNION ALL
+
+                SELECT
+                    b.parent_version_id,
+                    b.child_version_id,
+                    bt.depth + 1 AS depth,
+                    bt.visited_chain || COALESCE(b.parent_version_id, -1) AS visited_chain
+                FROM pdm_bom_occurrences b
+                INNER JOIN bom_tree bt
+                    ON b.child_version_id = bt.parent_version_id
+                WHERE b.reference_status = 'Resolved'
+                  AND b.is_suppressed = FALSE
+                  AND NOT COALESCE(b.parent_version_id, -1) = ANY(bt.visited_chain)
+            ),
+            needed_versions AS (
+                SELECT parent_version_id AS version_id, depth
+                FROM bom_tree
+                WHERE parent_version_id IS NOT NULL
             ),
             min_depths AS (
                 SELECT

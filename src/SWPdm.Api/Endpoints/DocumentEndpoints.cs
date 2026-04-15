@@ -253,6 +253,110 @@ public static class DocumentEndpoints
                 return EndpointHelpers.ToProblem(ex);
             }
         });
+
+        // ==========================================
+        // 任務一：Where-Used
+        // ==========================================
+        app.MapGet("/api/versions/{versionId:long}/where-used", async (
+            long versionId,
+            IPdmRepository repository,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var parents = await repository.GetWhereUsedAsync(versionId, cancellationToken);
+                return Results.Ok(parents);
+            }
+            catch (Exception ex)
+            {
+                return EndpointHelpers.ToProblem(ex);
+            }
+        });
+
+        // ==========================================
+        // 任務二：Check-in / Check-out 機制
+        // ==========================================
+        app.MapPost("/api/documents/{documentId:long}/checkout", async (
+            long documentId,
+            CheckOutRequest request,
+            PdmDbContext dbContext,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(request.CheckOutBy))
+            {
+                return EndpointHelpers.ValidationError(nameof(request.CheckOutBy), "CheckOutBy provider is required.");
+            }
+
+            var document = await dbContext.Documents.FindAsync(new object[] { documentId }, cancellationToken);
+            if (document is null) return Results.NotFound();
+
+            if (!string.IsNullOrWhiteSpace(document.CheckedOutBy))
+            {
+                return Results.BadRequest($"Document is already checked out by {document.CheckedOutBy}.");
+            }
+
+            document.CheckedOutBy = request.CheckOutBy;
+            document.CheckedOutAt = DateTimeOffset.UtcNow;
+            
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.Ok(new { message = "Checked out successfully", checkedOutBy = document.CheckedOutBy });
+        });
+
+        app.MapPost("/api/documents/{documentId:long}/undo-checkout", async (
+            long documentId,
+            PdmDbContext dbContext,
+            CancellationToken cancellationToken) =>
+        {
+            var document = await dbContext.Documents.FindAsync(new object[] { documentId }, cancellationToken);
+            if (document is null) return Results.NotFound();
+
+            document.CheckedOutBy = null;
+            document.CheckedOutAt = null;
+            
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.Ok(new { message = "Undo check-out successfully" });
+        });
+
+        app.MapPost("/api/documents/{documentId:long}/checkin", async (
+            long documentId,
+            PdmDbContext dbContext,
+            CancellationToken cancellationToken) =>
+        {
+            var document = await dbContext.Documents.FindAsync(new object[] { documentId }, cancellationToken);
+            if (document is null) return Results.NotFound();
+
+            // Check-in normally accompanies a new version upload, 
+            // but as an explicit action it just unlocks it.
+            document.CheckedOutBy = null;
+            document.CheckedOutAt = null;
+            
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.Ok(new { message = "Checked in successfully" });
+        });
+
+        // ==========================================
+        // 任務四：Lifecycle State
+        // ==========================================
+        app.MapPost("/api/versions/{versionId:long}/change-state", async (
+            long versionId,
+            ChangeStateRequest request,
+            PdmDbContext dbContext,
+            CancellationToken cancellationToken) =>
+        {
+            var validStates = new[] { "WIP", "InReview", "Released", "Obsolete" };
+            if (!validStates.Contains(request.State))
+            {
+                return EndpointHelpers.ValidationError(nameof(request.State), "Invalid lifecycle state.");
+            }
+
+            var version = await dbContext.DocumentVersions.FindAsync(new object[] { versionId }, cancellationToken);
+            if (version is null) return Results.NotFound();
+
+            version.LifecycleState = request.State;
+            
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.Ok(new { message = "State changed successfully", newState = request.State });
+        });
     }
 
     private static string SanitizeFileName(string fileName)

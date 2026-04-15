@@ -28,6 +28,8 @@ public sealed class PdmDocumentVersion
 
     public DateTimeOffset CreatedAt { get; set; }
 
+    public string LifecycleState { get; set; } = "WIP";
+
     public PdmDocument Document { get; set; } = null!;
 
     public ICollection<PdmCustomProperty> CustomProperties { get; set; } = new List<PdmCustomProperty>();

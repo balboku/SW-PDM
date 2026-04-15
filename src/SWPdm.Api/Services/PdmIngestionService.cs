@@ -7,6 +7,7 @@ using SWPdm.Api.Contracts;
 using SWPdm.Sample.Data;
 using SWPdm.Sample.Data.Entities;
 using SWPdm.Sample.Services;
+using System.Security.Cryptography;
 
 public sealed class PdmIngestionService
 {
@@ -162,6 +163,16 @@ public sealed class PdmIngestionService
         }
 
         PdmDocument? existingDocument = await FindDocumentForIngestAsync(documentType, partNumber, normalizedPath, cancellationToken);
+
+        if (existingDocument is null)
+        {
+            // Will create a new one
+        }
+        else if (!string.IsNullOrWhiteSpace(existingDocument.CheckedOutBy))
+        {
+            throw new InvalidOperationException($"Document '{existingDocument.FileName}' cannot be updated because it is checked out by {existingDocument.CheckedOutBy}.");
+        }
+
         bool createdDocument = existingDocument is null;
 
         PdmDocument document = existingDocument ?? new PdmDocument
@@ -194,7 +205,29 @@ public sealed class PdmIngestionService
             .Select(x => (int?)x.VersionNo)
             .MaxAsync(cancellationToken) + 1 ?? 1;
 
-        string storageFileId = await _localStorageService.UploadFileAsync(normalizedPath, documentType, cancellationToken);
+        string checksumSha256;
+        using (var stream = File.OpenRead(normalizedPath))
+        using (var sha256 = SHA256.Create())
+        {
+            byte[] hash = await sha256.ComputeHashAsync(stream, cancellationToken);
+            checksumSha256 = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+        }
+
+        string storageFileId;
+        var existingVersionStorageId = await _dbContext.DocumentVersions
+            .Where(x => x.ChecksumSha256 == checksumSha256)
+            .Select(x => x.StorageFileId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (!string.IsNullOrWhiteSpace(existingVersionStorageId))
+        {
+            storageFileId = existingVersionStorageId;
+            _logger.LogInformation("File dedup matched for {Path}, reusing storage file {StorageFileId}", normalizedPath, storageFileId);
+        }
+        else
+        {
+            storageFileId = await _localStorageService.UploadFileAsync(normalizedPath, documentType, cancellationToken);
+        }
 
         PdmDocumentVersion version = new()
         {
@@ -205,9 +238,11 @@ public sealed class PdmIngestionService
             OriginalFileName = Path.GetFileName(normalizedPath),
             SourceFilePath = normalizedPath,
             VaultRelativePath = BuildVaultRelativePath(documentType, normalizedPath, partNumber),
+            ChecksumSha256 = checksumSha256,
             FileSizeBytes = new FileInfo(normalizedPath).Length,
             SourceLastWriteUtc = File.GetLastWriteTimeUtc(normalizedPath),
             ParsedAt = DateTimeOffset.UtcNow,
+            LifecycleState = "WIP",
             CreatedAt = DateTimeOffset.UtcNow
         };
 
