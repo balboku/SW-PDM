@@ -1,0 +1,32 @@
+# Visual Studio / .NET Core
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vscode/
+
+# Local configuration files
+appsettings.Development.json
+appsettings.*.json
+
+# Local .NET installation & Nuget packages
+.dotnet/
+.dotnet-cli-home/
+.nuget/
+
+# Mac OS
+.DS_Store
+
+# User generated files / Vault Storage
+vault_storage/
+*.json
+!global.json
+!gen-lang-client-*.json
+gen-lang-client-*.json
+
+# Credentials / Secrets
+secrets/
+*.pem
+*.key
