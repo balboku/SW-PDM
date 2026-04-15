@@ -95,6 +95,52 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
         }
     }
 
+    /// <summary>
+    /// Writes a top-level document custom property to the file.
+    /// Opens the file with readOnly = false.
+    /// </summary>
+    public void WriteCustomProperty(string filePath, string propertyName, string propertyValue)
+    {
+        ThrowIfDisposed();
+
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            throw new ArgumentException("File path is required.", nameof(filePath));
+        }
+
+        if (!File.Exists(filePath))
+        {
+            throw new FileNotFoundException("SolidWorks file was not found.", filePath);
+        }
+
+        SwDmDocumentType documentType = ResolveInteropDocumentType(filePath);
+        SwDMDocument18? document = null;
+
+        try
+        {
+            document = (SwDMDocument18)_documentManager.GetDocument(
+                filePath,
+                documentType,
+                false, // false = not read only -> writable
+                out SwDmDocumentOpenError openError);
+
+            if (document is null || (openError != SwDmDocumentOpenError.swDmDocumentOpenErrorNone && openError != SwDmDocumentOpenError.swDmDocumentOpenErrorFileReadOnly))
+            {
+                throw new InvalidOperationException(
+                    $"Unable to open SolidWorks document '{filePath}' for writing. OpenError={openError}");
+            }
+
+            // swDmCustomInfoText = 30
+            document.AddCustomProperty(propertyName, (SwDmCustomInfoType)30, propertyValue);
+            document.SetCustomProperty(propertyName, propertyValue);
+            _ = document.Save();
+        }
+        finally
+        {
+            CloseAndRelease(document);
+        }
+    }
+
     private IReadOnlyDictionary<string, SolidWorksCustomProperty> ReadDocumentCustomProperties(
         SwDMDocument18 document)
     {
@@ -345,6 +391,11 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
 
     public void Dispose()
     {
+    }
+
+    public void WriteCustomProperty(string filePath, string propertyName, string propertyValue)
+    {
+        // No-Op since the SolidWorks Document Manager interop is not referenced
     }
 }
 #endif

@@ -18,12 +18,17 @@ public sealed class PdmDbContext : DbContext
 
     public DbSet<PdmBomOccurrence> BomOccurrences => Set<PdmBomOccurrence>();
 
+    public DbSet<PdmNumberingRule> NumberingRules => Set<PdmNumberingRule>();
+
+    public DbSet<PdmNumberSequence> NumberSequences => Set<PdmNumberSequence>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ConfigureDocuments(modelBuilder);
         ConfigureDocumentVersions(modelBuilder);
         ConfigureCustomProperties(modelBuilder);
         ConfigureBomOccurrences(modelBuilder);
+        ConfigureNumbering(modelBuilder);
     }
 
     private static void ConfigureDocuments(ModelBuilder modelBuilder)
@@ -178,6 +183,37 @@ public sealed class PdmDbContext : DbContext
             entity.HasIndex(x => new { x.ParentVersionId, x.OccurrencePath })
                 .IsUnique()
                 .HasDatabaseName("uq_pdm_bom_occurrences_parent_path");
+        });
+    }
+
+    private static void ConfigureNumbering(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<PdmNumberingRule>(entity =>
+        {
+            entity.ToTable("pdm_numbering_rules");
+            entity.HasKey(x => x.RuleId);
+            entity.Property(x => x.RuleId).HasColumnName("rule_id");
+            entity.Property(x => x.DocumentType).HasColumnName("document_type").HasMaxLength(20);
+            entity.Property(x => x.Pattern).HasColumnName("pattern").HasMaxLength(100);
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at");
+
+            entity.HasIndex(x => x.DocumentType)
+                .IsUnique()
+                .HasDatabaseName("uq_pdm_numbering_rules_document_type");
+        });
+
+        modelBuilder.Entity<PdmNumberSequence>(entity =>
+        {
+            entity.ToTable("pdm_number_sequences");
+            entity.HasKey(x => x.SequenceId);
+            entity.Property(x => x.SequenceId).HasColumnName("sequence_id");
+            entity.Property(x => x.Prefix).HasColumnName("prefix").HasMaxLength(100);
+            entity.Property(x => x.CurrentValue).HasColumnName("current_value");
+            entity.Property(x => x.LastUpdatedAt).HasColumnName("last_updated_at");
+
+            entity.HasIndex(x => x.Prefix)
+                .IsUnique()
+                .HasDatabaseName("uq_pdm_number_sequences_prefix");
         });
     }
 }

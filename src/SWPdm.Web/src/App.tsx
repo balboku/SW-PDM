@@ -4,7 +4,8 @@ import { Layout } from './components/ui';
 import Dashboard from './pages/Dashboard';
 import UploadPage from './pages/Upload';
 import Documents from './pages/Documents';
-import { Home, UploadCloud, FileBox, Search } from 'lucide-react';
+import SettingsPage from './pages/Settings';
+import { Home, UploadCloud, FileBox, Search, Settings } from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -24,6 +25,7 @@ const Sidebar = () => {
         <MenuLink to="/" icon={<Home size={20} />} label="系統概覽" active={isActive('/')} />
         <MenuLink to="/ingest" icon={<UploadCloud size={20} />} label="檔案入庫 (Ingest)" active={isActive('/ingest')} />
         <MenuLink to="/documents" icon={<Search size={20} />} label="圖檔搜尋" active={isActive('/documents')} />
+        <MenuLink to="/settings" icon={<Settings size={20} />} label="系統設定" active={isActive('/settings')} />
       </nav>
       
       <div className="pt-4 border-t border-gray-800 text-xs text-center text-gray-500">
@@ -58,6 +60,7 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/ingest" element={<UploadPage />} />
           <Route path="/documents" element={<Documents />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </Layout>
     </BrowserRouter>

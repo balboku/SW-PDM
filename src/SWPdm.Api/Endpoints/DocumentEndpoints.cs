@@ -356,6 +356,132 @@ public static class DocumentEndpoints
             
             await dbContext.SaveChangesAsync(cancellationToken);
             return Results.Ok(new { message = "State changed successfully", newState = request.State });
+        // ==========================================
+        // 任務五：編碼規則維護與派號
+        // ==========================================
+        app.MapGet("/api/settings/numbering-rules", async (
+            PdmDbContext dbContext,
+            CancellationToken cancellationToken) =>
+        {
+            var rules = await dbContext.NumberingRules
+                .OrderBy(x => x.DocumentType)
+                .ToListAsync(cancellationToken);
+            return Results.Ok(rules);
+        });
+
+        app.MapPost("/api/settings/numbering-rules", async (
+            PdmNumberingRule request,
+            PdmDbContext dbContext,
+            CancellationToken cancellationToken) =>
+        {
+            var existing = await dbContext.NumberingRules
+                .FirstOrDefaultAsync(x => x.DocumentType == request.DocumentType, cancellationToken);
+
+            if (existing is not null)
+            {
+                existing.Pattern = request.Pattern;
+            }
+            else
+            {
+                dbContext.NumberingRules.Add(new PdmNumberingRule
+                {
+                    DocumentType = request.DocumentType,
+                    Pattern = request.Pattern,
+                    CreatedAt = DateTimeOffset.UtcNow
+                });
+            }
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.Ok(new { message = "Rules updated successfully." });
+        });
+
+        app.MapPost("/api/documents/allocate-number", async (
+            AllocateNumberRequest request,
+            PdmDbContext dbContext,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(request.DocumentType))
+            {
+                return EndpointHelpers.ValidationError(nameof(request.DocumentType), "DocumentType is required.");
+            }
+
+            var rule = await dbContext.NumberingRules
+                .FirstOrDefaultAsync(x => x.DocumentType == request.DocumentType, cancellationToken);
+            
+            if (rule is null)
+            {
+                // Fallback default rules if not found
+                rule = new PdmNumberingRule
+                {
+                    DocumentType = request.DocumentType,
+                    Pattern = request.DocumentType == "Part" ? "PRT-{YYMM}-{SEQ:4}" :
+                              request.DocumentType == "Assembly" ? "ASM-{YYMM}-{SEQ:4}" : "DRW-{YYMM}-{SEQ:4}",
+                    CreatedAt = DateTimeOffset.UtcNow
+                };
+            }
+
+            // Parse pattern
+            string yymm = DateTimeOffset.UtcNow.ToString("yyMM");
+            string pattern = rule.Pattern.Replace("{YYMM}", yymm);
+
+            int seqLength = 4;
+            int seqIndex = pattern.IndexOf("{SEQ:", StringComparison.OrdinalIgnoreCase);
+            if (seqIndex >= 0)
+            {
+                int endBracket = pattern.IndexOf('}', seqIndex);
+                if (endBracket > seqIndex)
+                {
+                    string lengthStr = pattern.Substring(seqIndex + 5, endBracket - seqIndex - 5);
+                    if (int.TryParse(lengthStr, out int parsedLength))
+                    {
+                        seqLength = parsedLength;
+                    }
+                    pattern = pattern.Substring(0, seqIndex) + "{SEQ}" + pattern.Substring(endBracket + 1);
+                }
+            }
+            else if (pattern.Contains("{SEQ}"))
+            {
+                seqLength = 4; // Default to 4
+            }
+
+            string[] parts = pattern.Split("{SEQ}");
+            string prefix = parts[0];
+            string suffix = parts.Length > 1 ? parts[1] : string.Empty;
+
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+            // Row-level lock on sequence using raw SQL
+            // First check if sequence exists
+            var seqExists = await dbContext.NumberSequences
+                .AnyAsync(x => x.Prefix == prefix, cancellationToken);
+
+            if (!seqExists)
+            {
+                dbContext.NumberSequences.Add(new PdmNumberSequence 
+                {
+                    Prefix = prefix,
+                    CurrentValue = 0,
+                    LastUpdatedAt = DateTimeOffset.UtcNow
+                });
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+
+            // In EF Core 7+, retrieving by raw SQL requires the query to map all properties.
+            // PostgreSQL specific lock
+            FormattableString query = $"SELECT * FROM pdm_number_sequences WHERE prefix = {prefix} FOR UPDATE";
+            var lockedSeq = await dbContext.NumberSequences
+                .FromSql(query)
+                .SingleAsync(cancellationToken);
+
+            lockedSeq.CurrentValue += 1;
+            lockedSeq.LastUpdatedAt = DateTimeOffset.UtcNow;
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            string allocatedNumber = $"{prefix}{lockedSeq.CurrentValue.ToString($"D{seqLength}")}{suffix}";
+
+            return Results.Ok(new { allocatedNumber });
         });
     }
 

@@ -60,6 +60,11 @@ public sealed class PdmIngestionService
         List<string> issues = new();
         Dictionary<string, IngestedCadNode> cache = new(StringComparer.OrdinalIgnoreCase);
 
+        if (!string.IsNullOrWhiteSpace(request.AllocatedPartNumber) && !string.IsNullOrWhiteSpace(request.ExistingPartNumber))
+        {
+            throw new ArgumentException("Cannot specify both AllocatedPartNumber and ExistingPartNumber.");
+        }
+
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         IngestedCadNode root = await IngestFileInternalAsync(
@@ -69,6 +74,9 @@ public sealed class PdmIngestionService
             documentManager,
             cache,
             issues,
+            true, // isRoot
+            request.AllocatedPartNumber,
+            request.ExistingPartNumber,
             cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
@@ -103,6 +111,9 @@ public sealed class PdmIngestionService
         SolidWorksDocumentManagerService documentManager,
         IDictionary<string, IngestedCadNode> cache,
         ICollection<string> issues,
+        bool isRoot,
+        string? rootAllocatedPartNumber,
+        string? rootExistingPartNumber,
         CancellationToken cancellationToken)
     {
         string normalizedPath = Path.GetFullPath(filePath);
@@ -122,6 +133,48 @@ public sealed class PdmIngestionService
         SolidWorksParseResult parseResult = documentManager.Parse(normalizedPath, effectiveSearchPaths);
         string documentType = MapDocumentType(parseResult.DocumentType);
         string? partNumber = ExtractProperty(parseResult, "PartNumber", "Number", "Part No", "PartNo");
+
+        if (isRoot)
+        {
+            if (!string.IsNullOrWhiteSpace(rootAllocatedPartNumber))
+            {
+                // New document creation override
+                partNumber = rootAllocatedPartNumber;
+                
+                // Write-back CAD attribute to file before saving!
+                try
+                {
+                    documentManager.WriteCustomProperty(normalizedPath, "PartNumber", partNumber);
+                    _logger.LogInformation("Successfully wrote-back custom property PartNumber = {PartNumber} to file {FilePath}", partNumber, normalizedPath);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to write-back PartNumber to CAD file: {FilePath}", normalizedPath);
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(rootExistingPartNumber))
+            {
+                partNumber = rootExistingPartNumber;
+            }
+        }
+
+        // Defensive check: If rule says it's an update, ensure it exists.
+        if (isRoot && !string.IsNullOrWhiteSpace(rootExistingPartNumber))
+        {
+            var exists = await FindDocumentForIngestAsync(documentType, rootExistingPartNumber, normalizedPath, cancellationToken);
+            if (exists is null) {
+                throw new InvalidOperationException($"Document update failed: Could not find existing document mapping to Part Number '{rootExistingPartNumber}'.");
+            }
+        }
+
+        if (isRoot && !string.IsNullOrWhiteSpace(rootAllocatedPartNumber))
+        {
+            var exists = await FindDocumentForIngestAsync(documentType, rootAllocatedPartNumber, normalizedPath, cancellationToken);
+            if (exists is not null) {
+                throw new InvalidOperationException($"Document creation failed: The Allocated Part Number '{rootAllocatedPartNumber}' is already in use.");
+            }
+        }
+
         string? material = ExtractProperty(parseResult, "Material");
         string? designer = ExtractProperty(parseResult, "Designer", "DesignedBy", "Author");
         string? revision = ExtractProperty(parseResult, "Revision", "Rev");
@@ -150,6 +203,9 @@ public sealed class PdmIngestionService
                         documentManager,
                         cache,
                         issues,
+                        false, // not root
+                        null,
+                        null,
                         cancellationToken);
 
                     childNodesByPath[childPath] = childNode;
