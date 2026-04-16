@@ -7,6 +7,8 @@ using SWPdm.Api.Services;
 using SWPdm.Sample.Data;
 using SWPdm.Sample.Data.Models;
 using SWPdm.Sample.Data.Repositories;
+using SWPdm.Sample.Data.Entities;
+using SWPdm.Sample.Services;
 
 namespace SWPdm.Api.Endpoints;
 
@@ -45,7 +47,7 @@ public static class DocumentEndpoints
                         d.DocumentType,
                         d.RevisionLabel,
                         d.Material,
-                        d.CurrentVersionNo,
+                        CurrentVersionNo = d.CurrentVersion != null ? d.CurrentVersion.VersionNo : (int?)null,
                         d.UpdatedAt
                     })
                     .ToListAsync(cancellationToken);
@@ -356,6 +358,8 @@ public static class DocumentEndpoints
             
             await dbContext.SaveChangesAsync(cancellationToken);
             return Results.Ok(new { message = "State changed successfully", newState = request.State });
+        });
+
         // ==========================================
         // 任務五：編碼規則維護與派號
         // ==========================================

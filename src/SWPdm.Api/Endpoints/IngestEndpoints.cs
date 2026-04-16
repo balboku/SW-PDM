@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SWPdm.Api.Contracts;
 using SWPdm.Api.Services;
+using SWPdm.Sample.Services;
 
 namespace SWPdm.Api.Endpoints;
 

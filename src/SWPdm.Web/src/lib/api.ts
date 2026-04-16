@@ -1,8 +1,9 @@
 import axios from 'axios';
 
-// 建立 Axios 實例，對應 .NET 後端預設連接埠 (若有更改請自行替換)
+// 動態取得 API 位址，支援區域網路分享
+const API_HOST = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
 export const api = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: `http://${API_HOST}:5000`,
   headers: {
     'Content-Type': 'application/json',
   },
