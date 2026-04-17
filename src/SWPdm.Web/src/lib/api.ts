@@ -13,11 +13,9 @@ export const uploadTempFile = async (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
   
-  const response = await api.post('/api/web/upload-temp', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  // Use a completely clean axios instance or omit the Content-Type header 
+  // so the browser automatically handles the multipart boundary.
+  const response = await axios.post(`http://${API_HOST}:5000/api/web/upload-temp`, formData);
   return response.data;
 };
 

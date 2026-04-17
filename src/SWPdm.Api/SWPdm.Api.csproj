@@ -14,4 +14,16 @@
     </PackageReference>
     <ProjectReference Include="../SWPdm.Sample/SWPdm.Sample.csproj" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <SolidWorksDocumentManagerDll>$(MSBuildProjectDirectory)/../../lib/SolidWorks.Interop.swdocumentmgr.dll</SolidWorksDocumentManagerDll>
+  </PropertyGroup>
+
+  <ItemGroup Condition="Exists('$(SolidWorksDocumentManagerDll)')">
+    <Reference Include="SolidWorks.Interop.swdocumentmgr">
+      <HintPath>$(SolidWorksDocumentManagerDll)</HintPath>
+      <EmbedInteropTypes>false</EmbedInteropTypes>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
 </Project>

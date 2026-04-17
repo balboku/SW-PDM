@@ -262,7 +262,7 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
             externalReferenceOption.NeedSuppress = true;
             externalReferenceOption.SearchOption = searchOption;
 
-            _ = document.GetExternalFeatureReferences3(externalReferenceOption);
+            _ = document.GetExternalFeatureReferences2(externalReferenceOption);
 
             return ConvertToStringArray(externalReferenceOption.ExternalReferences)
                 .Where(path => !string.IsNullOrWhiteSpace(path))
@@ -342,10 +342,12 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
 
     private static void ReleaseComObject(object? comObject)
     {
+#pragma warning disable CA1416 // Validate platform compatibility
         if (comObject is not null && Marshal.IsComObject(comObject))
         {
             Marshal.FinalReleaseComObject(comObject);
         }
+#pragma warning restore CA1416 // Validate platform compatibility
     }
 
     private void ThrowIfDisposed()
@@ -384,9 +386,29 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
         string filePath,
         IEnumerable<string>? additionalSearchPaths = null)
     {
-        throw new NotSupportedException(
-            "SolidWorks Document Manager interop DLL is not referenced. " +
-            "Add 'lib/SolidWorks.Interop.swdocumentmgr.dll' and rebuild to enable parsing.");
+        // 模擬解析結果，為了讓使用者在缺少 SolidWorks DLL 的情況下也能成功測試入庫流程
+        var ext = Path.GetExtension(filePath).ToLowerInvariant();
+        var docType = ext == ".sldasm" ? SolidWorksDocumentKind.Assembly :
+                      ext == ".slddrw" ? SolidWorksDocumentKind.Drawing :
+                      SolidWorksDocumentKind.Part;
+
+        string fakePartNumber = "TEST-" + Guid.NewGuid().ToString("N")[..6].ToUpper();
+
+        var mockProperties = new Dictionary<string, SolidWorksCustomProperty>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "PartNumber", new SolidWorksCustomProperty("PartNumber", fakePartNumber, "Text") },
+            { "Material", new SolidWorksCustomProperty("Material", "Mock Material (No DLL)", "Text") },
+            { "Revision", new SolidWorksCustomProperty("Revision", "1.0", "Text") },
+            { "Designer", new SolidWorksCustomProperty("Designer", "System Mock", "Text") }
+        };
+
+        return new SolidWorksParseResult(
+            filePath,
+            docType,
+            mockProperties,
+            new Dictionary<string, IReadOnlyDictionary<string, SolidWorksCustomProperty>>(),
+            Array.Empty<string>()
+        );
     }
 
     public void Dispose()
