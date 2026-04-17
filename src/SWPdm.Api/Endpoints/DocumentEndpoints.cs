@@ -361,7 +361,8 @@ public static class DocumentEndpoints
         });
 
         // ==========================================
-        // 任務五：編碼規則維護與派號
+        // 任務五：編碼規則維護 (派號功能已移除)
+        // 系統改為完全依賴 SolidWorks CAD 檔案內部的 PartNumber 屬性。
         // ==========================================
         app.MapGet("/api/settings/numbering-rules", async (
             PdmDbContext dbContext,
@@ -399,94 +400,8 @@ public static class DocumentEndpoints
             return Results.Ok(new { message = "Rules updated successfully." });
         });
 
-        app.MapPost("/api/documents/allocate-number", async (
-            AllocateNumberRequest request,
-            PdmDbContext dbContext,
-            CancellationToken cancellationToken) =>
-        {
-            if (string.IsNullOrWhiteSpace(request.DocumentType))
-            {
-                return EndpointHelpers.ValidationError(nameof(request.DocumentType), "DocumentType is required.");
-            }
-
-            var rule = await dbContext.NumberingRules
-                .FirstOrDefaultAsync(x => x.DocumentType == request.DocumentType, cancellationToken);
-            
-            if (rule is null)
-            {
-                // Fallback default rules if not found
-                rule = new PdmNumberingRule
-                {
-                    DocumentType = request.DocumentType,
-                    Pattern = request.DocumentType == "Part" ? "PRT-{YYMM}-{SEQ:4}" :
-                              request.DocumentType == "Assembly" ? "ASM-{YYMM}-{SEQ:4}" : "DRW-{YYMM}-{SEQ:4}",
-                    CreatedAt = DateTimeOffset.UtcNow
-                };
-            }
-
-            // Parse pattern
-            string yymm = DateTimeOffset.UtcNow.ToString("yyMM");
-            string pattern = rule.Pattern.Replace("{YYMM}", yymm);
-
-            int seqLength = 4;
-            int seqIndex = pattern.IndexOf("{SEQ:", StringComparison.OrdinalIgnoreCase);
-            if (seqIndex >= 0)
-            {
-                int endBracket = pattern.IndexOf('}', seqIndex);
-                if (endBracket > seqIndex)
-                {
-                    string lengthStr = pattern.Substring(seqIndex + 5, endBracket - seqIndex - 5);
-                    if (int.TryParse(lengthStr, out int parsedLength))
-                    {
-                        seqLength = parsedLength;
-                    }
-                    pattern = pattern.Substring(0, seqIndex) + "{SEQ}" + pattern.Substring(endBracket + 1);
-                }
-            }
-            else if (pattern.Contains("{SEQ}"))
-            {
-                seqLength = 4; // Default to 4
-            }
-
-            string[] parts = pattern.Split("{SEQ}");
-            string prefix = parts[0];
-            string suffix = parts.Length > 1 ? parts[1] : string.Empty;
-
-            await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-
-            // Row-level lock on sequence using raw SQL
-            // First check if sequence exists
-            var seqExists = await dbContext.NumberSequences
-                .AnyAsync(x => x.Prefix == prefix, cancellationToken);
-
-            if (!seqExists)
-            {
-                dbContext.NumberSequences.Add(new PdmNumberSequence 
-                {
-                    Prefix = prefix,
-                    CurrentValue = 0,
-                    LastUpdatedAt = DateTimeOffset.UtcNow
-                });
-                await dbContext.SaveChangesAsync(cancellationToken);
-            }
-
-            // In EF Core 7+, retrieving by raw SQL requires the query to map all properties.
-            // PostgreSQL specific lock
-            FormattableString query = $"SELECT * FROM pdm_number_sequences WHERE prefix = {prefix} FOR UPDATE";
-            var lockedSeq = await dbContext.NumberSequences
-                .FromSql(query)
-                .SingleAsync(cancellationToken);
-
-            lockedSeq.CurrentValue += 1;
-            lockedSeq.LastUpdatedAt = DateTimeOffset.UtcNow;
-
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-
-            string allocatedNumber = $"{prefix}{lockedSeq.CurrentValue.ToString($"D{seqLength}")}{suffix}";
-
-            return Results.Ok(new { allocatedNumber });
-        });
+        // POST /api/documents/allocate-number 已移除。
+        // 系統不再自動派發圖號；料號由 SolidWorks CAD 自訂屬性 (PartNumber) 決定。
     }
 
     private static string SanitizeFileName(string fileName)

@@ -21,27 +21,22 @@ export const uploadTempFile = async (file: File) => {
   return response.data;
 };
 
+/**
+ * 發起 CAD 檔案入庫。
+ * 系統將直接讀取 CAD 檔案內部的 PartNumber 自訂屬性作為料號；
+ * 若 CAD 檔案未填寫 PartNumber，後端將拒絕入庫並回傳錯誤。
+ */
 export const ingestCad = async (
-  localFilePath: string, 
-  ingestReferencedFiles: boolean = true,
-  allocatedPartNumber?: string,
-  existingPartNumber?: string
+  localFilePath: string,
+  ingestReferencedFiles: boolean = true
 ) => {
-  const payload: any = {
+  const payload = {
     localFilePath,
     ingestReferencedFiles,
     additionalSearchPaths: []
   };
 
-  if (allocatedPartNumber) payload.allocatedPartNumber = allocatedPartNumber;
-  if (existingPartNumber) payload.existingPartNumber = existingPartNumber;
-
   const response = await api.post('/api/ingest/cad', payload);
-  return response.data;
-};
-
-export const allocateNumber = async (documentType: string) => {
-  const response = await api.post('/api/documents/allocate-number', { documentType });
   return response.data;
 };
 
