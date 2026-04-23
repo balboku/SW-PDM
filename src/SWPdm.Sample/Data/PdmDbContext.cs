@@ -100,8 +100,7 @@ public sealed class PdmDbContext : DbContext
                 .HasDatabaseName("uq_pdm_document_versions_doc_ver");
 
             entity.HasIndex(x => x.StorageFileId)
-                .IsUnique()
-                .HasDatabaseName("uq_pdm_document_versions_storage_file_id");
+                .HasDatabaseName("idx_pdm_document_versions_storage_file_id");
         });
     }
 

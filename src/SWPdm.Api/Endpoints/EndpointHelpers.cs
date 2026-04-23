@@ -2,6 +2,18 @@ namespace SWPdm.Api.Endpoints;
 
 public static class EndpointHelpers
 {
+    private static string BuildErrorDetail(Exception ex)
+    {
+        Exception current = ex;
+
+        while (current.InnerException is not null)
+        {
+            current = current.InnerException;
+        }
+
+        return current == ex ? ex.Message : $"{ex.Message} Inner: {current.Message}";
+    }
+
     public static IResult ValidationError(string fieldName, string message)
     {
         return Results.ValidationProblem(new Dictionary<string, string[]>
@@ -16,31 +28,31 @@ public static class EndpointHelpers
         {
             ArgumentException argumentException => Results.Problem(
                 title: "Invalid request",
-                detail: argumentException.Message,
+                detail: BuildErrorDetail(argumentException),
                 statusCode: StatusCodes.Status400BadRequest),
             FileNotFoundException fileNotFoundException => Results.Problem(
                 title: "File not found",
-                detail: fileNotFoundException.Message,
+                detail: BuildErrorDetail(fileNotFoundException),
                 statusCode: StatusCodes.Status404NotFound),
             UnauthorizedAccessException unauthorizedAccessException => Results.Problem(
                 title: "Access denied",
-                detail: unauthorizedAccessException.Message,
+                detail: BuildErrorDetail(unauthorizedAccessException),
                 statusCode: StatusCodes.Status403Forbidden),
             TimeoutException timeoutException => Results.Problem(
                 title: "Operation timed out",
-                detail: timeoutException.Message,
+                detail: BuildErrorDetail(timeoutException),
                 statusCode: StatusCodes.Status504GatewayTimeout),
             InvalidOperationException invalidOperationException => Results.Problem(
                 title: "Operation failed",
-                detail: invalidOperationException.Message,
+                detail: BuildErrorDetail(invalidOperationException),
                 statusCode: StatusCodes.Status500InternalServerError),
             NotSupportedException notSupportedException => Results.Problem(
                 title: "Not supported",
-                detail: notSupportedException.Message,
+                detail: BuildErrorDetail(notSupportedException),
                 statusCode: StatusCodes.Status501NotImplemented),
             _ => Results.Problem(
                 title: "Unexpected error",
-                detail: ex.Message,
+                detail: BuildErrorDetail(ex),
                 statusCode: StatusCodes.Status500InternalServerError)
         };
     }
