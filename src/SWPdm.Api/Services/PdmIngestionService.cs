@@ -123,13 +123,13 @@ public sealed class PdmIngestionService
 
         SolidWorksParseResult parseResult = documentManager.Parse(normalizedPath, effectiveSearchPaths);
         string documentType = MapDocumentType(parseResult.DocumentType);
-        string? partNumber = ExtractProperty(parseResult, "PartNumber", "Number", "Part No", "PartNo");
+        string? partNumber = ExtractProperty(parseResult, "PartNumber", "Number", "Part No", "PartNo", "品號");
 
-        // 強制驗證：PartNumber 必須存在於 CAD 檔案的自訂屬性中
+        // 強制驗證：PartNumber / 品號 必須存在於 CAD 檔案的自訂屬性中
         if (string.IsNullOrWhiteSpace(partNumber))
         {
             throw new InvalidOperationException(
-                $"解析失敗：CAD 檔案內部未設定 PartNumber 屬性，請在 SolidWorks 填寫後再上傳。(檔案：{Path.GetFileName(normalizedPath)})");
+                $"解析失敗：CAD 檔案內部未設定 PartNumber 或 品號 屬性，請在 SolidWorks 填寫後再上傳。(檔案：{Path.GetFileName(normalizedPath)})");
         }
 
         // 防呆檢查：建立新文件時，確保 PartNumber 尚未被使用

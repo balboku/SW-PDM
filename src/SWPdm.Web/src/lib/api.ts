@@ -21,8 +21,8 @@ export const uploadTempFile = async (file: File) => {
 
 /**
  * 發起 CAD 檔案入庫。
- * 系統將直接讀取 CAD 檔案內部的 PartNumber 自訂屬性作為料號；
- * 若 CAD 檔案未填寫 PartNumber，後端將拒絕入庫並回傳錯誤。
+ * 系統將直接讀取 CAD 檔案內部的 PartNumber 或 品號 自訂屬性作為料號；
+ * 若 CAD 檔案未填寫 PartNumber / 品號，後端將拒絕入庫並回傳錯誤。
  */
 export const ingestCad = async (
   localFilePath: string,
@@ -35,6 +35,17 @@ export const ingestCad = async (
   };
 
   const response = await api.post('/api/ingest/cad', payload);
+  return response.data;
+};
+
+export const parseSolidWorksFile = async (
+  filePath: string,
+  additionalSearchPaths: string[] = []
+) => {
+  const response = await api.post('/api/solidworks/parse', {
+    filePath,
+    additionalSearchPaths
+  });
   return response.data;
 };
 
