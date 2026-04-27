@@ -143,4 +143,23 @@ public sealed class LocalStorageService
 
         return destinationFilePath;
     }
+
+    /// <summary>
+    /// Gets the absolute physical file path for a given storage file ID.
+    /// </summary>
+    public string GetFilePath(string storageFileId)
+    {
+        if (string.IsNullOrWhiteSpace(storageFileId))
+        {
+            throw new ArgumentException("Storage File ID is required.", nameof(storageFileId));
+        }
+
+        string sourcePath = Path.Combine(_vaultPath, storageFileId);
+        if (!File.Exists(sourcePath))
+        {
+            throw new FileNotFoundException($"Vault file '{sourcePath}' was not found.");
+        }
+
+        return sourcePath;
+    }
 }

@@ -48,6 +48,7 @@ public static class DocumentEndpoints
                         d.RevisionLabel,
                         d.Material,
                         CurrentVersionNo = d.CurrentVersion != null ? d.CurrentVersion.VersionNo : (int?)null,
+                        CurrentVersionId = d.CurrentVersion != null ? d.CurrentVersion.VersionId : (long?)null,
                         d.UpdatedAt
                     })
                     .ToListAsync(cancellationToken);
@@ -101,6 +102,26 @@ public static class DocumentEndpoints
             {
                 var children = await repository.GetImmediateChildrenAsync(versionId, cancellationToken);
                 return Results.Ok(children);
+            }
+            catch (Exception ex)
+            {
+                return EndpointHelpers.ToProblem(ex);
+            }
+        });
+
+        app.MapGet("/api/versions/{versionId:long}/download", async (
+            long versionId,
+            IPdmRepository repository,
+            LocalStorageService storageService,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var version = await repository.GetVersionAsync(versionId, cancellationToken);
+                if (version is null) return Results.NotFound(new { title = "Version not found" });
+
+                var filePath = storageService.GetFilePath(version.StorageFileId);
+                return Results.File(filePath, "application/octet-stream", version.OriginalFileName);
             }
             catch (Exception ex)
             {

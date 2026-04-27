@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, ChevronDown, File, Archive, Loader2 } from 'lucide-react';
-import { getVersionChildren } from '../lib/api';
+import { ChevronRight, ChevronDown, File, Archive, Loader2, Download } from 'lucide-react';
+import { getVersionChildren, downloadVersion } from '../lib/api';
 
 interface BomNode {
-  childVersionId: number;
-  childOriginalFileName: string;
+  childVersionId?: number;
+  childOriginalFileName?: string;
+  packageRelativePath?: string;
   quantity: number;
   childDocumentType?: string; // 根據實際 API 回傳欄位
 }
@@ -23,10 +24,11 @@ const BomTreeNode: React.FC<{
   const [hasLoaded, setHasLoaded] = useState(false);
 
   // 判斷是否為組合件 (透過附檔名或 API 欄位)
-  const isAssembly = node.childOriginalFileName?.toLowerCase().endsWith('.sldasm') || node.childDocumentType === 'Assembly';
+  const displayFileName = node.childOriginalFileName || node.packageRelativePath || 'Unknown File';
+  const isAssembly = displayFileName.toLowerCase().endsWith('.sldasm') || node.childDocumentType === 'Assembly';
 
   const toggleExpand = async () => {
-    if (!isAssembly) return;
+    if (!isAssembly || !node.childVersionId) return;
 
     if (!isExpanded && !hasLoaded) {
       setIsLoading(true);
@@ -69,14 +71,27 @@ const BomTreeNode: React.FC<{
           {isAssembly ? <Archive size={16} className="text-yellow-500" /> : <File size={16} className="text-blue-400" />}
         </div>
         
-        <span className="flex-1 font-medium text-gray-200 truncate" title={node.childOriginalFileName}>
-          {node.childOriginalFileName}
+        <span className="flex-1 font-medium text-gray-200 truncate" title={displayFileName}>
+          {displayFileName}
         </span>
         
         {node.quantity > 0 && (
           <span className="text-gray-500 bg-gray-800 px-2 py-0.5 rounded text-xs ml-3 font-mono">
             Qty: {node.quantity}
           </span>
+        )}
+        
+        {node.childVersionId && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              downloadVersion(node.childVersionId!);
+            }}
+            className="ml-2 p-1 text-gray-500 hover:text-[#D4AF37] hover:bg-gray-700/50 rounded transition-all"
+            title="下載此檔案"
+          >
+            <Download size={14} />
+          </button>
         )}
       </div>
 

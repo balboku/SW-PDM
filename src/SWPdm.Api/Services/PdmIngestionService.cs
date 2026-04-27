@@ -160,7 +160,7 @@ public sealed class PdmIngestionService
 
         Dictionary<string, IngestedCadNode?> childNodesByPath = new(StringComparer.OrdinalIgnoreCase);
 
-        if (ingestReferencedFiles && parseResult.DocumentType == SolidWorksDocumentKind.Assembly)
+        if (ingestReferencedFiles && (parseResult.DocumentType == SolidWorksDocumentKind.Assembly || parseResult.DocumentType == SolidWorksDocumentKind.Drawing))
         {
             foreach (string referencedPath in parseResult.ReferencedFilePaths)
             {
@@ -394,7 +394,7 @@ public sealed class PdmIngestionService
     {
         List<PdmBomOccurrence> bomRows = new();
 
-        if (parseResult.DocumentType == SolidWorksDocumentKind.Assembly)
+        if (parseResult.DocumentType == SolidWorksDocumentKind.Assembly || parseResult.DocumentType == SolidWorksDocumentKind.Drawing)
         {
             for (int index = 0; index < parseResult.ReferencedFilePaths.Count; index++)
             {

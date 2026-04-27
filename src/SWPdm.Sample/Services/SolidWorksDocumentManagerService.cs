@@ -75,11 +75,13 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
                 ReadDocumentCustomProperties(document);
 
             IReadOnlyDictionary<string, IReadOnlyDictionary<string, SolidWorksCustomProperty>> configurationProperties =
-                ReadConfigurationCustomProperties(document);
+                documentType == SwDmDocumentType.swDmDocumentDrawing
+                    ? new Dictionary<string, IReadOnlyDictionary<string, SolidWorksCustomProperty>>(StringComparer.OrdinalIgnoreCase)
+                    : ReadConfigurationCustomProperties(document);
 
             IReadOnlyList<string> referencedFiles =
-                documentType == SwDmDocumentType.swDmDocumentAssembly
-                    ? ReadAssemblyReferences(document, filePath, additionalSearchPaths)
+                documentType == SwDmDocumentType.swDmDocumentAssembly || documentType == SwDmDocumentType.swDmDocumentDrawing
+                    ? ReadExternalReferences(document, filePath, additionalSearchPaths, documentType)
                     : Array.Empty<string>();
 
             return new SolidWorksParseResult(
@@ -220,10 +222,11 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
         }
     }
 
-    private IReadOnlyList<string> ReadAssemblyReferences(
+    private IReadOnlyList<string> ReadExternalReferences(
         SwDMDocument18 document,
         string filePath,
-        IEnumerable<string>? additionalSearchPaths)
+        IEnumerable<string>? additionalSearchPaths,
+        SwDmDocumentType documentType)
     {
         SwDMConfigurationMgr? configurationManager = null;
         SwDMSearchOption? searchOption = null;
@@ -231,9 +234,12 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
 
         try
         {
-            configurationManager = document.ConfigurationManager;
-            string activeConfigurationName =
-                configurationManager?.GetActiveConfigurationName() ?? string.Empty;
+            string activeConfigurationName = string.Empty;
+            if (documentType != SwDmDocumentType.swDmDocumentDrawing)
+            {
+                configurationManager = document.ConfigurationManager;
+                activeConfigurationName = configurationManager?.GetActiveConfigurationName() ?? string.Empty;
+            }
 
             searchOption = _documentManager.GetSearchOptionObject();
             searchOption.SearchFilters =

@@ -65,7 +65,11 @@ export const getSystemStatus = async () => {
 };
 
 export const downloadAssemblyZip = (rootVersionId: number) => {
-  window.open(`http://localhost:5000/api/assemblies/${rootVersionId}/download-zip`, '_blank');
+  window.open(`http://${API_HOST}:5000/api/assemblies/${rootVersionId}/download-zip`, '_blank');
+};
+
+export const downloadVersion = (versionId: number) => {
+  window.open(`http://${API_HOST}:5000/api/versions/${versionId}/download`, '_blank');
 };
 
 export const searchDocuments = async (query: string = '') => {

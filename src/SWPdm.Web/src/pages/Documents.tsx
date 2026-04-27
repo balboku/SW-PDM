@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Loader2, Download, PackageOpen, Server, FileText } from 'lucide-react';
-import { searchDocuments, downloadAssemblyZip } from '../lib/api';
+import { searchDocuments, downloadAssemblyZip, downloadVersion } from '../lib/api';
 import { BomTreeView } from '../components/BomTreeView';
 
 export default function Documents() {
@@ -103,7 +103,9 @@ export default function Documents() {
                     <td className="px-6 py-4 whitespace-nowrap text-gray-400">{doc.partNumber || '-'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-md ${
-                        doc.documentType === 'Assembly' ? 'bg-yellow-900/40 text-yellow-500' : 'bg-blue-900/40 text-blue-400'
+                        doc.documentType === 'Assembly' ? 'bg-yellow-900/40 text-yellow-500' : 
+                        doc.documentType === 'Drawing' ? 'bg-purple-900/40 text-purple-400' : 
+                        'bg-blue-900/40 text-blue-400'
                       }`}>
                         {doc.documentType}
                       </span>
@@ -139,28 +141,36 @@ export default function Documents() {
             </div>
 
             <div className="p-4 flex-1 overflow-auto">
-              {selectedDoc.documentType === 'Assembly' && selectedDoc.currentVersionNo ? (
+              {['Assembly', 'Drawing'].includes(selectedDoc.documentType) && selectedDoc.currentVersionId ? (
                 <div className="h-full flex flex-col">
                   <div className="flex justify-between items-center mb-3">
                     <h4 className="text-white font-medium flex items-center">
                       <PackageOpen size={16} className="mr-2 text-[#D4AF37]" />
-                      BOM 結構預覽
+                      關聯結構預覽
                     </h4>
                     <button 
-                      onClick={() => downloadAssemblyZip(selectedDoc.currentVersionNo)}
+                      onClick={() => downloadAssemblyZip(selectedDoc.currentVersionId)}
                       className="text-xs flex items-center text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded transition-colors"
                     >
                       <Download size={12} className="mr-1" /> Pack & Go
                     </button>
                   </div>
                   
-                  <BomTreeView rootVersionId={selectedDoc.currentVersionNo} />
+                  <BomTreeView rootVersionId={selectedDoc.currentVersionId} />
                 </div>
               ) : (
                 <div className="h-full flex flex-col items-center justify-center text-gray-500 bg-gray-900/30 rounded-lg border border-gray-800/50 p-6">
                   <FileText size={48} className="mb-4 text-gray-700" />
-                  <p className="text-center text-sm">此為零件檔案，無 BOM 結構可顯示。</p>
-                  <p className="text-center text-xs mt-2 text-gray-600">BOM 檢視僅支援組合件 (Assembly)</p>
+                  <p className="text-center text-sm">此為零件檔案，無 BOM 或關聯結構可顯示。</p>
+                  <p className="text-center text-xs mt-2 text-gray-600">檢視僅支援組合件 (Assembly) 與工程圖 (Drawing)</p>
+                  {selectedDoc.currentVersionId && (
+                    <button 
+                      onClick={() => downloadVersion(selectedDoc.currentVersionId)}
+                      className="mt-4 text-sm flex items-center text-gray-200 hover:text-white bg-[#D4AF37] hover:bg-[#c2a033] px-4 py-2 rounded shadow transition-colors"
+                    >
+                      <Download size={16} className="mr-2" /> 下載檔案
+                    </button>
+                  )}
                 </div>
               )}
             </div>
