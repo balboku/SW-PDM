@@ -25,6 +25,7 @@ vault_storage/
 !global.json
 !gen-lang-client-*.json
 gen-lang-client-*.json
+*.log
 
 # Credentials / Secrets
 secrets/

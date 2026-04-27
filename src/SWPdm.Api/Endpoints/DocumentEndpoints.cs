@@ -31,9 +31,9 @@ public static class DocumentEndpoints
                 if (!string.IsNullOrWhiteSpace(query))
                 {
                     string searchPattern = $"%{query}%";
-                    queryable = queryable.Where(d => 
-                        EF.Functions.ILike(d.FileName, searchPattern) || 
-                        EF.Functions.ILike(d.PartNumber, searchPattern));
+                    queryable = queryable.Where(d =>
+                        EF.Functions.ILike(d.FileName, searchPattern) ||
+                        (d.PartNumber != null && EF.Functions.ILike(d.PartNumber, searchPattern)));
                 }
 
                 var results = await queryable
