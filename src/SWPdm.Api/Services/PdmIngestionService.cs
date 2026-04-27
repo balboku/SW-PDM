@@ -11,6 +11,13 @@ using System.Security.Cryptography;
 
 public sealed class PdmIngestionService
 {
+    private static readonly HashSet<string> SupportedExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".sldprt",
+        ".sldasm",
+        ".slddrw"
+    };
+
     private readonly PdmDbContext _dbContext;
     private readonly IOptions<LocalStorageOptions> _localStorageOptions;
     private readonly IOptions<SolidWorksDocumentManagerOptions> _solidWorksOptions;
@@ -48,6 +55,8 @@ public sealed class PdmIngestionService
         {
             throw new FileNotFoundException("The SolidWorks file to ingest was not found.", rootFilePath);
         }
+
+        EnsureSupportedExtension(rootFilePath);
 
         string[] baseSearchPaths = _solidWorksOptions.Value.ReferenceSearchPaths
             .Concat(request.AdditionalSearchPaths ?? Array.Empty<string>())
@@ -198,18 +207,19 @@ public sealed class PdmIngestionService
         }
 
         bool createdDocument = existingDocument is null;
+        string normalizedExtension = NormalizeExtension(normalizedPath);
 
         PdmDocument document = existingDocument ?? new PdmDocument
         {
             FileName = Path.GetFileNameWithoutExtension(normalizedPath),
-            FileExtension = Path.GetExtension(normalizedPath),
+            FileExtension = normalizedExtension,
             DocumentType = documentType,
             IsActive = true,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
         document.FileName = Path.GetFileNameWithoutExtension(normalizedPath);
-        document.FileExtension = Path.GetExtension(normalizedPath);
+        document.FileExtension = normalizedExtension;
         document.DocumentType = documentType;
         document.PartNumber = partNumber;
         document.RevisionLabel = revision;
@@ -499,6 +509,21 @@ public sealed class PdmIngestionService
         }
 
         return null;
+    }
+
+    private static void EnsureSupportedExtension(string filePath)
+    {
+        string extension = NormalizeExtension(filePath);
+        if (!SupportedExtensions.Contains(extension))
+        {
+            throw new NotSupportedException(
+                $"Unsupported SolidWorks file type: '{Path.GetExtension(filePath)}'. Supported types: .sldprt, .sldasm, .slddrw.");
+        }
+    }
+
+    private static string NormalizeExtension(string filePath)
+    {
+        return Path.GetExtension(filePath).ToLowerInvariant();
     }
 
     private sealed record IngestedCadNode(

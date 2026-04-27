@@ -7,6 +7,13 @@ namespace SWPdm.Api.Endpoints;
 
 public static class IngestEndpoints
 {
+    private static readonly HashSet<string> SupportedExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".sldprt",
+        ".sldasm",
+        ".slddrw"
+    };
+
     public static void MapIngestEndpoints(this WebApplication app)
     {
         app.MapPost("/api/ingest/cad", async (
@@ -45,6 +52,14 @@ public static class IngestEndpoints
                 Directory.CreateDirectory(tempDir);
 
                 string fileName = Path.GetFileName(file.FileName);
+                string extension = Path.GetExtension(fileName);
+                if (!SupportedExtensions.Contains(extension))
+                {
+                    return EndpointHelpers.ValidationError(
+                        nameof(file),
+                        $"Unsupported file type '{extension}'. Supported types: .sldprt, .sldasm, .slddrw.");
+                }
+
                 string tempFilePath = Path.Combine(tempDir, $"{Guid.NewGuid()}_{fileName}");
 
                 await using var stream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None);

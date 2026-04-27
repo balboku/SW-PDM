@@ -246,7 +246,7 @@ export default function UploadPage() {
                 type="file"
                 className="hidden"
                 id="file-upload"
-                accept=".SLDPRT,.sldprt,.SLDASM,.sldasm"
+                accept=".SLDPRT,.sldprt,.SLDASM,.sldasm,.SLDDRW,.slddrw"
                 onChange={(e) => handleFileSelected(e.target.files ? e.target.files[0] : null)}
               />
               <label htmlFor="file-upload" className="flex cursor-pointer flex-col items-center">
