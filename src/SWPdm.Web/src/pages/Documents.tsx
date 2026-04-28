@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Loader2, Download, PackageOpen, Server, FileText } from 'lucide-react';
-import { searchDocuments, downloadAssemblyZip, downloadVersion } from '../lib/api';
+import { searchDocuments, downloadAssemblyZip, downloadVersion, undoCheckOutDocument } from '../lib/api';
 import { BomTreeView } from '../components/BomTreeView';
+import { CheckOutModal } from '../components/CheckOutModal';
+import { Lock, Unlock, LogOut, LogIn, AlertCircle } from 'lucide-react';
 
 export default function Documents() {
   const [query, setQuery] = useState('');
   const [documents, setDocuments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
+  const [isCheckOutModalOpen, setIsCheckOutModalOpen] = useState(false);
 
   const fetchDocuments = async (searchQuery: string = '') => {
     setIsLoading(true);
@@ -78,6 +81,7 @@ export default function Documents() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">料號</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">類型</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">版次</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">狀態</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">更新時間</th>
                 </tr>
               </thead>
@@ -111,6 +115,17 @@ export default function Documents() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-400 text-center">{doc.revisionLabel}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {doc.checkedOutBy ? (
+                        <span className="flex items-center gap-1 text-[10px] text-orange-400 bg-orange-400/10 px-1.5 py-0.5 rounded border border-orange-400/20">
+                          <Lock size={10} /> {doc.checkedOutBy}
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-[10px] text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded border border-green-400/20">
+                          <Unlock size={10} /> 可用
+                        </span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-xs">
                       {new Date(doc.updatedAt).toLocaleString('zh-TW', {
                          year: 'numeric', month: '2-digit', day: '2-digit',
@@ -137,6 +152,39 @@ export default function Documents() {
               <div className="flex items-center text-xs text-gray-400 mt-2 space-x-4">
                 <span>Rev: <span className="text-gray-200 font-medium">{selectedDoc.revisionLabel}</span></span>
                 <span>Type: <span className="text-gray-200">{selectedDoc.documentType}</span></span>
+              </div>
+
+              {/* Checkout Controls */}
+              <div className="mt-4 flex gap-2">
+                {!selectedDoc.checkedOutBy ? (
+                  <button 
+                    onClick={() => setIsCheckOutModalOpen(true)}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-xs font-medium flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <LogOut size={14} /> 出庫 (Check-out)
+                  </button>
+                ) : (
+                  <>
+                    <button 
+                      onClick={() => alert('請至「圖檔入庫」頁面選擇檔案進行 Check-in')}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-xs font-medium flex items-center justify-center gap-2 transition-colors"
+                    >
+                      <LogIn size={14} /> 入庫 (Check-in)
+                    </button>
+                    <button 
+                      onClick={async () => {
+                        if (confirm('確定要復原出庫嗎？您的修改將不會被儲存。')) {
+                          await undoCheckOutDocument(selectedDoc.documentId);
+                          fetchDocuments(query);
+                        }
+                      }}
+                      className="bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white border border-gray-700 px-3 py-2 rounded text-xs transition-colors"
+                      title="Undo Checkout"
+                    >
+                      復原
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -177,6 +225,17 @@ export default function Documents() {
           </div>
         )}
       </div>
+
+      <CheckOutModal 
+        isOpen={isCheckOutModalOpen}
+        onClose={() => setIsCheckOutModalOpen(false)}
+        documentId={selectedDoc?.documentId}
+        fileName={selectedDoc?.fileName}
+        onSuccess={() => {
+          fetchDocuments(query);
+          setIsCheckOutModalOpen(false);
+        }}
+      />
     </div>
   );
 }

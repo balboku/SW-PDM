@@ -299,6 +299,34 @@ public static class DocumentEndpoints
         // ==========================================
         // 任務二：Check-in / Check-out 機制
         // ==========================================
+        app.MapGet("/api/documents/{documentId:long}/checkout-references", async (
+            long documentId,
+            IPdmRepository repository,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var document = await repository.GetDocumentAsync(documentId, cancellationToken);
+                if (document == null || document.CurrentVersionId == null) return Results.NotFound();
+
+                // 1. 取得所有子零件 (Recursive Children)
+                var children = await repository.GetPackageClosureAsync(document.CurrentVersionId.Value, cancellationToken);
+                
+                // 2. 取得所有父階或相關圖面 (Where-Used / Drawings)
+                var parents = await repository.GetWhereUsedAsync(document.CurrentVersionId.Value, cancellationToken);
+
+                return Results.Ok(new {
+                    document = document,
+                    references = children.Where(x => x.VersionId != document.CurrentVersionId).OrderBy(x => x.Depth).ToList(),
+                    whereUsed = parents
+                });
+            }
+            catch (Exception ex)
+            {
+                return EndpointHelpers.ToProblem(ex);
+            }
+        });
+
         app.MapPost("/api/documents/{documentId:long}/checkout", async (
             long documentId,
             CheckOutRequest request,

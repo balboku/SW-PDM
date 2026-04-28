@@ -62,16 +62,18 @@ const BomTreeNode: React.FC<{
             ) : (
               <ChevronRight size={14} />
             )
+          ) : !node.childVersionId ? (
+            <span className="text-red-500 font-bold text-[10px] bg-red-900/20 px-1 rounded border border-red-900/30">M</span>
           ) : (
             <span className="w-3.5" /> // Empty space alignment
           )}
         </div>
         
         <div className="mr-2 text-gray-400">
-          {isAssembly ? <Archive size={16} className="text-yellow-500" /> : <File size={16} className="text-blue-400" />}
+          {isAssembly ? <Archive size={16} className={node.childVersionId ? "text-yellow-500" : "text-gray-600"} /> : <File size={16} className={node.childVersionId ? "text-blue-400" : "text-gray-600"} />}
         </div>
         
-        <span className="flex-1 font-medium text-gray-200 truncate" title={displayFileName}>
+        <span className={`flex-1 font-medium truncate ${node.childVersionId ? 'text-gray-200' : 'text-gray-500 italic'}`} title={displayFileName}>
           {displayFileName}
         </span>
         

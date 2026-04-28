@@ -26,12 +26,14 @@ export const uploadTempFile = async (file: File) => {
  */
 export const ingestCad = async (
   localFilePath: string,
-  ingestReferencedFiles: boolean = true
+  ingestReferencedFiles: boolean = true,
+  uploadedBy: string = 'User'
 ) => {
   const payload = {
     localFilePath,
     ingestReferencedFiles,
-    additionalSearchPaths: []
+    additionalSearchPaths: [],
+    uploadedBy
   };
 
   const response = await api.post('/api/ingest/cad', payload);
@@ -81,5 +83,25 @@ export const searchDocuments = async (query: string = '') => {
 
 export const getVersionChildren = async (versionId: number) => {
   const response = await api.get(`/api/versions/${versionId}/children`);
+  return response.data;
+};
+
+export const getCheckoutReferences = async (documentId: number) => {
+  const response = await api.get(`/api/documents/${documentId}/checkout-references`);
+  return response.data;
+};
+
+export const checkOutDocument = async (documentId: number, checkOutBy: string) => {
+  const response = await api.post(`/api/documents/${documentId}/checkout`, { checkOutBy });
+  return response.data;
+};
+
+export const checkInDocument = async (documentId: number) => {
+  const response = await api.post(`/api/documents/${documentId}/checkin`);
+  return response.data;
+};
+
+export const undoCheckOutDocument = async (documentId: number) => {
+  const response = await api.post(`/api/documents/${documentId}/undo-checkout`);
   return response.data;
 };

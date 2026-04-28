@@ -111,11 +111,12 @@ public sealed class PdmRepository : IPdmRepository
         long parentVersionId,
         CancellationToken cancellationToken = default)
     {
-        return await _dbContext.BomOccurrences
+        var rawLinks = await _dbContext.BomOccurrences
             .AsNoTracking()
             .Where(x => x.ParentVersionId == parentVersionId)
             .OrderBy(x => x.OccurrencePath)
-            .Select(x => new PdmBomLinkData(
+            .Select(x => new
+            {
                 x.BomOccurrenceId,
                 x.ParentVersionId,
                 x.ChildVersionId,
@@ -129,10 +130,63 @@ public sealed class PdmRepository : IPdmRepository
                 x.ReferenceStatus,
                 x.IsSuppressed,
                 x.IsVirtual,
-                x.ChildVersion != null ? x.ChildVersion.Document.DocumentType : null,
-                x.ChildVersion != null ? x.ChildVersion.OriginalFileName : null,
-                x.ChildVersion != null ? x.ChildVersion.StorageFileId : null))
+                ChildDocumentType = x.ChildVersion != null ? x.ChildVersion.Document.DocumentType : null,
+                ChildOriginalFileName = x.ChildVersion != null ? x.ChildVersion.OriginalFileName : null,
+                ChildStorageFileId = x.ChildVersion != null ? x.ChildVersion.StorageFileId : null
+            })
             .ToListAsync(cancellationToken);
+
+        var result = new List<PdmBomLinkData>();
+
+        foreach (var link in rawLinks)
+        {
+            var childVersionId = link.ChildVersionId;
+            var docType = link.ChildDocumentType;
+            var fileName = link.ChildOriginalFileName;
+            var storageId = link.ChildStorageFileId;
+            var status = link.ReferenceStatus;
+
+            if (childVersionId == null)
+            {
+                // 嘗試動態關聯：依據檔名在資料庫中尋找
+                string lookupName = Path.GetFileName(link.SourceReferencePath).ToLower();
+                var resolved = await _dbContext.DocumentVersions
+                    .AsNoTracking()
+                    .Where(v => v.OriginalFileName.ToLower() == lookupName)
+                    .OrderByDescending(v => v.VersionNo)
+                    .Select(v => new { v.VersionId, v.Document.DocumentType, v.OriginalFileName, v.StorageFileId })
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (resolved != null)
+                {
+                    childVersionId = resolved.VersionId;
+                    docType = resolved.DocumentType;
+                    fileName = resolved.OriginalFileName;
+                    storageId = resolved.StorageFileId;
+                    status = "Resolved";
+                }
+            }
+
+            result.Add(new PdmBomLinkData(
+                link.BomOccurrenceId,
+                link.ParentVersionId,
+                childVersionId,
+                link.OccurrencePath,
+                link.ParentConfigurationName,
+                link.ChildConfigurationName,
+                link.Quantity,
+                link.FindNumber,
+                link.SourceReferencePath,
+                link.PackageRelativePath,
+                status,
+                link.IsSuppressed,
+                link.IsVirtual,
+                docType,
+                fileName,
+                storageId));
+        }
+
+        return result;
     }
 
     public async Task<IReadOnlyList<PdmPackageFile>> GetPackageClosureAsync(
@@ -164,10 +218,10 @@ public sealed class PdmRepository : IPdmRepository
             result.Add(new PdmPackageFile(
                 VersionId: reader.GetInt64(0),
                 DocumentType: reader.GetString(1),
-                StorageFileId: reader.GetString(2),
+                StorageFileId: reader.IsDBNull(2) ? null : reader.GetString(2),
                 OriginalFileName: reader.GetString(3),
-                SourceFilePath: reader.GetString(4),
-                VaultRelativePath: reader.GetString(5),
+                SourceFilePath: reader.IsDBNull(4) ? null : reader.GetString(4),
+                VaultRelativePath: reader.IsDBNull(5) ? null : reader.GetString(5),
                 Depth: reader.GetInt32(6)));
         }
 
@@ -203,10 +257,10 @@ public sealed class PdmRepository : IPdmRepository
             result.Add(new PdmPackageFile(
                 VersionId: reader.GetInt64(0),
                 DocumentType: reader.GetString(1),
-                StorageFileId: reader.GetString(2),
+                StorageFileId: reader.IsDBNull(2) ? null : reader.GetString(2),
                 OriginalFileName: reader.GetString(3),
-                SourceFilePath: reader.GetString(4),
-                VaultRelativePath: reader.GetString(5),
+                SourceFilePath: reader.IsDBNull(4) ? null : reader.GetString(4),
+                VaultRelativePath: reader.IsDBNull(5) ? null : reader.GetString(5),
                 Depth: reader.GetInt32(6)));
         }
 
@@ -216,6 +270,66 @@ public sealed class PdmRepository : IPdmRepository
     private string ResolvePackageClosureSql()
     {
         string? provider = _dbContext.Database.ProviderName;
+
+        if (provider?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return
+                """
+                WITH RECURSIVE bom_tree AS (
+                    SELECT
+                        b.parent_version_id,
+                        b.child_version_id,
+                        1 AS depth,
+                        ',' || COALESCE(b.parent_version_id, -1) || ',' || COALESCE(b.child_version_id, -1) || ',' AS visited_chain
+                    FROM pdm_bom_occurrences b
+                    WHERE b.parent_version_id = @rootVersionId
+                      AND b.reference_status = 'Resolved'
+                      AND b.is_suppressed = 0
+
+                    UNION ALL
+
+                    SELECT
+                        b.parent_version_id,
+                        b.child_version_id,
+                        bt.depth + 1 AS depth,
+                        bt.visited_chain || COALESCE(b.child_version_id, -1) || ',' AS visited_chain
+                    FROM pdm_bom_occurrences b
+                    INNER JOIN bom_tree bt
+                        ON b.parent_version_id = bt.child_version_id
+                    WHERE b.reference_status = 'Resolved'
+                      AND b.is_suppressed = 0
+                      AND INSTR(bt.visited_chain, ',' || COALESCE(b.child_version_id, -1) || ',') = 0
+                ),
+                needed_versions AS (
+                    SELECT CAST(@rootVersionId AS BIGINT) AS version_id, 0 AS depth
+                    UNION ALL
+                    SELECT child_version_id AS version_id, depth
+                    FROM bom_tree
+                    WHERE child_version_id IS NOT NULL
+                ),
+                min_depths AS (
+                    SELECT
+                        version_id,
+                        MIN(depth) AS depth
+                    FROM needed_versions
+                    GROUP BY version_id
+                )
+                SELECT
+                    md.version_id,
+                    d.document_type,
+                    v.storage_file_id,
+                    v.original_file_name,
+                    v.source_file_path,
+                    v.vault_relative_path,
+                    md.depth
+                FROM min_depths md
+                INNER JOIN pdm_document_versions v
+                    ON v.version_id = md.version_id
+                INNER JOIN pdm_documents d
+                    ON d.document_id = v.document_id
+                ORDER BY md.depth, md.version_id;
+                """;
+        }
 
         if (provider?.Contains("SqlServer", StringComparison.OrdinalIgnoreCase) == true)
         {
@@ -337,6 +451,64 @@ public sealed class PdmRepository : IPdmRepository
     private string ResolveWhereUsedSql()
     {
         string? provider = _dbContext.Database.ProviderName;
+
+        if (provider?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return
+                """
+                WITH RECURSIVE bom_tree AS (
+                    SELECT
+                        b.parent_version_id,
+                        b.child_version_id,
+                        1 AS depth,
+                        ',' || COALESCE(b.parent_version_id, -1) || ',' || COALESCE(b.child_version_id, -1) || ',' AS visited_chain
+                    FROM pdm_bom_occurrences b
+                    WHERE b.child_version_id = @childVersionId
+                      AND b.reference_status = 'Resolved'
+                      AND b.is_suppressed = 0
+
+                    UNION ALL
+
+                    SELECT
+                        b.parent_version_id,
+                        b.child_version_id,
+                        bt.depth + 1 AS depth,
+                        bt.visited_chain || COALESCE(b.parent_version_id, -1) || ',' AS visited_chain
+                    FROM pdm_bom_occurrences b
+                    INNER JOIN bom_tree bt
+                        ON b.child_version_id = bt.parent_version_id
+                    WHERE b.reference_status = 'Resolved'
+                      AND b.is_suppressed = 0
+                      AND INSTR(bt.visited_chain, ',' || COALESCE(b.parent_version_id, -1) || ',') = 0
+                ),
+                needed_versions AS (
+                    SELECT parent_version_id AS version_id, depth
+                    FROM bom_tree
+                    WHERE parent_version_id IS NOT NULL
+                ),
+                min_depths AS (
+                    SELECT
+                        version_id,
+                        MIN(depth) AS depth
+                    FROM needed_versions
+                    GROUP BY version_id
+                )
+                SELECT
+                    md.version_id,
+                    d.document_type,
+                    v.storage_file_id,
+                    v.original_file_name,
+                    v.source_file_path,
+                    v.vault_relative_path,
+                    md.depth
+                FROM min_depths md
+                INNER JOIN pdm_document_versions v
+                    ON v.version_id = md.version_id
+                INNER JOIN pdm_documents d
+                    ON d.document_id = v.document_id
+                ORDER BY md.depth, md.version_id;
+                """;
+        }
 
         if (provider?.Contains("SqlServer", StringComparison.OrdinalIgnoreCase) == true)
         {

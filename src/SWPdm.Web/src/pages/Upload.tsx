@@ -40,6 +40,7 @@ export default function UploadPage() {
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [cachedLocalPath, setCachedLocalPath] = useState<string | null>(null);
+  const [userName, setUserName] = useState('User');
 
   const documentProperties = parseResult?.documentProperties || parseResult?.DocumentProperties || {};
   const configurationProperties = parseResult?.configurationProperties || parseResult?.ConfigurationProperties || {};
@@ -163,7 +164,7 @@ export default function UploadPage() {
 
       setStatus('processing');
       const isAssembly = file.name.toLowerCase().endsWith('.sldasm');
-      const ingestRes = await ingestCad(serverLocalPath, isAssembly);
+      const ingestRes = await ingestCad(serverLocalPath, isAssembly, userName);
 
       setResult(ingestRes);
       setStatus('success');
@@ -235,6 +236,18 @@ export default function UploadPage() {
           </div>
         ) : (
           <div className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">上傳/入庫人員</label>
+                <input 
+                  type="text" 
+                  value={userName} 
+                  onChange={(e) => setUserName(e.target.value)}
+                  className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent"
+                />
+              </div>
+            </div>
+
             <div
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleFileDrop}
