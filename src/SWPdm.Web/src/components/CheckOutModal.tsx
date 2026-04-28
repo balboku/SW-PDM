@@ -37,7 +37,8 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
       const res = await getCheckoutReferences(documentId);
       setData(res);
     } catch (err: any) {
-      setError(err.response?.data?.title || '無法載入關聯資料');
+      const errorData = err.response?.data;
+      setError(typeof errorData === 'string' ? errorData : (errorData?.title || errorData?.detail || '無法載入關聯資料'));
     } finally {
       setLoading(false);
     }
@@ -46,11 +47,20 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
   const handleConfirm = async () => {
     setSubmitting(true);
     try {
-      const res = await checkOutDocument(documentId, userName);
+      await checkOutDocument(documentId, userName);
       onSuccess(userName);
       onClose();
     } catch (err: any) {
-      alert(err.response?.data || '出庫失敗');
+      const errorData = err.response?.data;
+      const errorMsg = typeof errorData === 'string' ? errorData : (errorData?.detail || errorData?.title || '出庫失敗');
+      
+      alert(errorMsg);
+
+      // 如果已經被出庫了，我們還是更新一下前端狀態並關閉視窗，讓使用者看到正確的鎖定狀態
+      if (typeof errorMsg === 'string' && errorMsg.includes('already checked out')) {
+        onSuccess(userName);
+        onClose();
+      }
     } finally {
       setSubmitting(false);
     }

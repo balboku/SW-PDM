@@ -136,6 +136,41 @@ public sealed class PdmRepository : IPdmRepository
             })
             .ToListAsync(cancellationToken);
 
+        // Batch resolve missing children
+        var unresolvedFilenames = rawLinks
+            .Where(x => x.ChildVersionId == null && !string.IsNullOrEmpty(x.SourceReferencePath))
+            .Select(x => Path.GetFileName(x.SourceReferencePath).ToLower())
+            .Distinct()
+            .ToList();
+
+        var resolutionMap = new Dictionary<string, (long VersionId, string DocumentType, string OriginalFileName, string? StorageFileId)>();
+
+        if (unresolvedFilenames.Any())
+        {
+            var resolvedVersions = await _dbContext.DocumentVersions
+                .AsNoTracking()
+                .Where(v => unresolvedFilenames.Contains(v.OriginalFileName.ToLower()))
+                .Select(v => new
+                {
+                    v.VersionId,
+                    v.Document.DocumentType,
+                    v.OriginalFileName,
+                    v.StorageFileId,
+                    v.VersionNo
+                })
+                .ToListAsync(cancellationToken);
+
+            resolutionMap = resolvedVersions
+                .GroupBy(v => v.OriginalFileName.ToLower())
+                .ToDictionary(
+                    g => g.Key,
+                    g =>
+                    {
+                        var latest = g.OrderByDescending(v => v.VersionNo).First();
+                        return (latest.VersionId, latest.DocumentType, latest.OriginalFileName, (string?)latest.StorageFileId);
+                    });
+        }
+
         var result = new List<PdmBomLinkData>();
 
         foreach (var link in rawLinks)
@@ -146,18 +181,11 @@ public sealed class PdmRepository : IPdmRepository
             var storageId = link.ChildStorageFileId;
             var status = link.ReferenceStatus;
 
-            if (childVersionId == null)
+            if (childVersionId == null && !string.IsNullOrEmpty(link.SourceReferencePath))
             {
-                // 嘗試動態關聯：依據檔名在資料庫中尋找
+                // Try to resolve dynamically from the batch map
                 string lookupName = Path.GetFileName(link.SourceReferencePath).ToLower();
-                var resolved = await _dbContext.DocumentVersions
-                    .AsNoTracking()
-                    .Where(v => v.OriginalFileName.ToLower() == lookupName)
-                    .OrderByDescending(v => v.VersionNo)
-                    .Select(v => new { v.VersionId, v.Document.DocumentType, v.OriginalFileName, v.StorageFileId })
-                    .FirstOrDefaultAsync(cancellationToken);
-
-                if (resolved != null)
+                if (resolutionMap.TryGetValue(lookupName, out var resolved))
                 {
                     childVersionId = resolved.VersionId;
                     docType = resolved.DocumentType;
@@ -193,12 +221,16 @@ public sealed class PdmRepository : IPdmRepository
         long rootVersionId,
         CancellationToken cancellationToken = default)
     {
+        Console.WriteLine($"[DEBUG] GetPackageClosureAsync called for VersionId: {rootVersionId}");
         string sql = ResolvePackageClosureSql();
+        Console.WriteLine($"[DEBUG] SQL Resolved (length: {sql.Length})");
 
-        await using var connection = _dbContext.Database.GetDbConnection();
+        var connection = _dbContext.Database.GetDbConnection();
+        Console.WriteLine($"[DEBUG] Connection state: {connection.State}");
 
         if (connection.State != ConnectionState.Open)
         {
+            Console.WriteLine("[DEBUG] Opening connection...");
             await connection.OpenAsync(cancellationToken);
         }
 
@@ -212,7 +244,9 @@ public sealed class PdmRepository : IPdmRepository
 
         List<PdmPackageFile> result = new();
 
+        Console.WriteLine("[DEBUG] Executing reader (PackageClosure)...");
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        Console.WriteLine("[DEBUG] Reader executed. Reading results...");
         while (await reader.ReadAsync(cancellationToken))
         {
             result.Add(new PdmPackageFile(
@@ -232,14 +266,12 @@ public sealed class PdmRepository : IPdmRepository
         long childVersionId,
         CancellationToken cancellationToken = default)
     {
+        Console.WriteLine($"[DEBUG] GetWhereUsedAsync called for ChildVersionId: {childVersionId}");
         string sql = ResolveWhereUsedSql();
+        Console.WriteLine($"[DEBUG] SQL Resolved (length: {sql.Length})");
 
-        await using var connection = _dbContext.Database.GetDbConnection();
-
-        if (connection.State != ConnectionState.Open)
-        {
-            await connection.OpenAsync(cancellationToken);
-        }
+        var connection = _dbContext.Database.GetDbConnection();
+        if (connection.State != ConnectionState.Open) await connection.OpenAsync(cancellationToken);
 
         await using var command = connection.CreateCommand();
         command.CommandText = sql;
@@ -250,7 +282,7 @@ public sealed class PdmRepository : IPdmRepository
         command.Parameters.Add(parameter);
 
         List<PdmPackageFile> result = new();
-
+        Console.WriteLine("[DEBUG] Executing reader (WhereUsed)...");
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
         {

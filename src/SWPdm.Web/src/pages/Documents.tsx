@@ -3,6 +3,7 @@ import { Search, Filter, Loader2, Download, PackageOpen, Server, FileText } from
 import { searchDocuments, downloadAssemblyZip, downloadVersion, undoCheckOutDocument } from '../lib/api';
 import { BomTreeView } from '../components/BomTreeView';
 import { CheckOutModal } from '../components/CheckOutModal';
+import { CheckInModal } from '../components/CheckInModal';
 import { Lock, Unlock, LogOut, LogIn, AlertCircle } from 'lucide-react';
 
 export default function Documents() {
@@ -11,6 +12,7 @@ export default function Documents() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
   const [isCheckOutModalOpen, setIsCheckOutModalOpen] = useState(false);
+  const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
 
   const fetchDocuments = async (searchQuery: string = '') => {
     setIsLoading(true);
@@ -166,7 +168,7 @@ export default function Documents() {
                 ) : (
                   <>
                     <button 
-                      onClick={() => alert('請至「圖檔入庫」頁面選擇檔案進行 Check-in')}
+                      onClick={() => setIsCheckInModalOpen(true)}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-xs font-medium flex items-center justify-center gap-2 transition-colors"
                     >
                       <LogIn size={14} /> 入庫 (Check-in)
@@ -234,6 +236,16 @@ export default function Documents() {
         onSuccess={() => {
           fetchDocuments(query);
           setIsCheckOutModalOpen(false);
+        }}
+      />
+      <CheckInModal 
+        isOpen={isCheckInModalOpen}
+        onClose={() => setIsCheckInModalOpen(false)}
+        documentId={selectedDoc?.documentId}
+        fileName={selectedDoc?.fileName}
+        onSuccess={() => {
+          fetchDocuments(query);
+          setIsCheckInModalOpen(false);
         }}
       />
     </div>

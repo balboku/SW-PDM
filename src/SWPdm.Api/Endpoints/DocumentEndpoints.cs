@@ -49,7 +49,9 @@ public static class DocumentEndpoints
                         d.Material,
                         CurrentVersionNo = d.CurrentVersion != null ? d.CurrentVersion.VersionNo : (int?)null,
                         CurrentVersionId = d.CurrentVersion != null ? d.CurrentVersion.VersionId : (long?)null,
-                        d.UpdatedAt
+                        d.UpdatedAt,
+                        d.CheckedOutBy,
+                        d.CheckedOutAt
                     })
                     .ToListAsync(cancellationToken);
 
@@ -119,6 +121,11 @@ public static class DocumentEndpoints
             {
                 var version = await repository.GetVersionAsync(versionId, cancellationToken);
                 if (version is null) return Results.NotFound(new { title = "Version not found" });
+
+                if (string.IsNullOrEmpty(version.StorageFileId))
+                {
+                    return Results.BadRequest(new { title = "File has no storage ID (not uploaded)" });
+                }
 
                 var filePath = storageService.GetFilePath(version.StorageFileId);
                 return Results.File(filePath, "application/octet-stream", version.OriginalFileName);
@@ -190,6 +197,12 @@ public static class DocumentEndpoints
 
                     try
                     {
+                        if (string.IsNullOrEmpty(file.StorageFileId))
+                        {
+                            downloadIssues.Add($"File '{file.OriginalFileName}' has no storage ID.");
+                            continue;
+                        }
+
                         await storageService.DownloadFileAsync(
                             file.StorageFileId,
                             destPath,
