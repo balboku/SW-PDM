@@ -91,8 +91,15 @@ export const getCheckoutReferences = async (documentId: number) => {
   return response.data;
 };
 
-export const checkOutDocument = async (documentId: number, checkOutBy: string) => {
-  const response = await api.post(`/api/documents/${documentId}/checkout`, { checkOutBy });
+export const checkOutDocument = async (
+  documentId: number,
+  checkOutBy: string,
+  forceIncludeRelations: boolean = false
+) => {
+  const response = await api.post(
+    `/api/documents/${documentId}/checkout?forceIncludeRelations=${forceIncludeRelations}`,
+    { checkOutBy }
+  );
   return response.data;
 };
 

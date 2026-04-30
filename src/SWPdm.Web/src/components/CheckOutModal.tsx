@@ -47,7 +47,7 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
   const handleConfirm = async () => {
     setSubmitting(true);
     try {
-      await checkOutDocument(documentId, userName);
+      await checkOutDocument(documentId, userName, true);
       onSuccess(userName);
       onClose();
     } catch (err: any) {
@@ -71,8 +71,7 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
       <div className="space-y-4">
         <div className="p-4 bg-blue-900/20 border border-blue-900/30 rounded-lg">
           <p className="text-sm text-blue-200">
-            您即將出庫 <span className="font-bold text-white">{fileName}</span>。
-            出庫後，其他使用者將無法修改此圖檔，直到您入庫為止。
+            您即將出庫 <span className="font-bold text-white">{fileName}</span>。出庫後，系統將自動強制出庫所有關聯的工程圖與子零件，以確保設計變更的一致性。
           </p>
         </div>
 

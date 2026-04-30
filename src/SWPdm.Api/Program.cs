@@ -56,10 +56,15 @@ builder.Services.AddDbContext<PdmDbContext>((serviceProvider, options) =>
 
 builder.Services.AddScoped<IPdmRepository, PdmRepository>();
 builder.Services.AddScoped<PdmIngestionService>();
+
+string solutionRoot = FindSolutionRoot(AppContext.BaseDirectory);
+string apiProjectRoot = Path.Combine(solutionRoot, "src", "SWPdm.Api");
+
 builder.Services.AddSingleton<LocalStorageService>(sp =>
 {
     var options = sp.GetRequiredService<IOptions<LocalStorageOptions>>().Value;
-    return new LocalStorageService(options.VaultPath, sp.GetRequiredService<ILogger<LocalStorageService>>());
+    string vaultPath = ResolveVaultPath(options.VaultPath, apiProjectRoot);
+    return new LocalStorageService(vaultPath, sp.GetRequiredService<ILogger<LocalStorageService>>());
 });
 builder.Services.AddSingleton<SolidWorksDocumentManagerServiceFactory>();
 
@@ -99,4 +104,37 @@ app.MapIngestEndpoints();
 if (!EF.IsDesignTime)
 {
     app.Run();
+}
+
+static string FindSolutionRoot(string startPath)
+{
+    DirectoryInfo? directory = new DirectoryInfo(Path.GetFullPath(startPath));
+
+    while (directory is not null)
+    {
+        if (directory.EnumerateFiles("*.sln").Any())
+        {
+            return directory.FullName;
+        }
+
+        directory = directory.Parent;
+    }
+
+    throw new DirectoryNotFoundException(
+        $"Could not locate the solution root by walking up from '{startPath}'.");
+}
+
+static string ResolveVaultPath(string configuredVaultPath, string apiProjectRoot)
+{
+    if (string.IsNullOrWhiteSpace(configuredVaultPath))
+    {
+        throw new InvalidOperationException("LocalStorage:VaultPath is required.");
+    }
+
+    if (Path.IsPathRooted(configuredVaultPath))
+    {
+        return Path.GetFullPath(configuredVaultPath);
+    }
+
+    return Path.GetFullPath(Path.Combine(apiProjectRoot, configuredVaultPath));
 }

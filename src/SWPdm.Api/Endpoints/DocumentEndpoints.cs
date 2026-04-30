@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SWPdm.Api.Configuration;
@@ -342,7 +343,9 @@ public static class DocumentEndpoints
 
         app.MapPost("/api/documents/{documentId:long}/checkout", async (
             long documentId,
+            [FromQuery] bool forceIncludeRelations,
             CheckOutRequest request,
+            IPdmRepository repository,
             PdmDbContext dbContext,
             CancellationToken cancellationToken) =>
         {
@@ -351,19 +354,59 @@ public static class DocumentEndpoints
                 return EndpointHelpers.ValidationError(nameof(request.CheckOutBy), "CheckOutBy provider is required.");
             }
 
-            var document = await dbContext.Documents.FindAsync(new object[] { documentId }, cancellationToken);
-            if (document is null) return Results.NotFound();
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-            if (!string.IsNullOrWhiteSpace(document.CheckedOutBy))
+            try
             {
-                return Results.BadRequest($"Document is already checked out by {document.CheckedOutBy}.");
-            }
+                var document = await dbContext.Documents.FindAsync(new object[] { documentId }, cancellationToken);
+                if (document is null) return Results.NotFound();
 
-            document.CheckedOutBy = request.CheckOutBy;
-            document.CheckedOutAt = DateTimeOffset.UtcNow;
-            
-            await dbContext.SaveChangesAsync(cancellationToken);
-            return Results.Ok(new { message = "Checked out successfully", checkedOutBy = document.CheckedOutBy });
+                if (!string.IsNullOrWhiteSpace(document.CheckedOutBy))
+                {
+                    return Results.BadRequest($"Document is already checked out by {document.CheckedOutBy}.");
+                }
+
+                var checkedOutAt = DateTimeOffset.UtcNow;
+                document.CheckedOutBy = request.CheckOutBy;
+                document.CheckedOutAt = checkedOutAt;
+
+                if (forceIncludeRelations && document.CurrentVersionId.HasValue)
+                {
+                    var children = await repository.GetPackageClosureAsync(document.CurrentVersionId.Value, cancellationToken);
+                    var parents = await repository.GetWhereUsedAsync(document.CurrentVersionId.Value, cancellationToken);
+
+                    var relationVersionIds = children
+                        .Select(x => x.VersionId)
+                        .Concat(parents.Select(x => x.VersionId))
+                        .Where(versionId => versionId != document.CurrentVersionId.Value)
+                        .Distinct()
+                        .ToList();
+
+                    if (relationVersionIds.Count > 0)
+                    {
+                        var relatedDocuments = await dbContext.Documents
+                            .Where(x => x.CurrentVersionId.HasValue && relationVersionIds.Contains(x.CurrentVersionId.Value))
+                            .Where(x => string.IsNullOrWhiteSpace(x.CheckedOutBy))
+                            .ToListAsync(cancellationToken);
+
+                        foreach (var relatedDocument in relatedDocuments)
+                        {
+                            relatedDocument.CheckedOutBy = request.CheckOutBy;
+                            relatedDocument.CheckedOutAt = checkedOutAt;
+                        }
+                    }
+                }
+
+                await dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+
+                return Results.Ok(new { message = "Checked out successfully", checkedOutBy = document.CheckedOutBy });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return EndpointHelpers.ToProblem(ex);
+            }
         });
 
         app.MapPost("/api/documents/{documentId:long}/undo-checkout", async (

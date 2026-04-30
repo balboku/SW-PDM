@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Loader2, Download, PackageOpen, Server, FileText } from 'lucide-react';
-import { searchDocuments, downloadAssemblyZip, downloadVersion, undoCheckOutDocument } from '../lib/api';
+import { Search, Filter, Loader2, Download, PackageOpen, Server, FileText, Archive, History } from 'lucide-react';
+import { api, searchDocuments, downloadAssemblyZip, downloadVersion, undoCheckOutDocument } from '../lib/api';
 import { BomTreeView } from '../components/BomTreeView';
 import { CheckOutModal } from '../components/CheckOutModal';
 import { CheckInModal } from '../components/CheckInModal';
-import { Lock, Unlock, LogOut, LogIn, AlertCircle } from 'lucide-react';
+import { Lock, Unlock, LogOut, LogIn } from 'lucide-react';
 
 export default function Documents() {
   const [query, setQuery] = useState('');
@@ -13,6 +13,7 @@ export default function Documents() {
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
   const [isCheckOutModalOpen, setIsCheckOutModalOpen] = useState(false);
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
+  const [detailTab, setDetailTab] = useState<'structure' | 'history'>('structure');
 
   const fetchDocuments = async (searchQuery: string = '') => {
     setIsLoading(true);
@@ -34,6 +35,27 @@ export default function Documents() {
     e.preventDefault();
     fetchDocuments(query);
   };
+
+  const handleSelectDocument = async (doc: any) => {
+    setSelectedDoc(doc);
+    setDetailTab('structure');
+
+    try {
+      const response = await api.get(`/api/documents/${doc.documentId}`);
+      setSelectedDoc((current: any) => (
+        current?.documentId === doc.documentId
+          ? { ...doc, ...response.data }
+          : current
+      ));
+    } catch (error) {
+      console.error('Failed to load document details', error);
+    }
+  };
+
+  const canPackAndGo = selectedDoc && ['Assembly', 'Drawing'].includes(selectedDoc.documentType);
+  const versionHistory = Array.isArray(selectedDoc?.versions)
+    ? [...selectedDoc.versions].sort((a: any, b: any) => (b.versionNo ?? 0) - (a.versionNo ?? 0))
+    : [];
 
   return (
     <div className="flex h-full flex-col p-6 animate-in fade-in duration-500">
@@ -99,7 +121,7 @@ export default function Documents() {
                 {documents.map((doc) => (
                   <tr 
                     key={doc.documentId} 
-                    onClick={() => setSelectedDoc(doc)}
+                    onClick={() => handleSelectDocument(doc)}
                     className={`cursor-pointer transition-colors ${selectedDoc?.documentId === doc.documentId ? 'bg-gray-800/80 border-l-2 border-[#D4AF37]' : 'hover:bg-gray-800/40 border-l-2 border-transparent'}`}
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-gray-200 font-medium flex items-center">
@@ -190,39 +212,129 @@ export default function Documents() {
               </div>
             </div>
 
-            <div className="p-4 flex-1 overflow-auto">
-              {['Assembly', 'Drawing'].includes(selectedDoc.documentType) && selectedDoc.currentVersionId ? (
-                <div className="h-full flex flex-col">
-                  <div className="flex justify-between items-center mb-3">
-                    <h4 className="text-white font-medium flex items-center">
-                      <PackageOpen size={16} className="mr-2 text-[#D4AF37]" />
-                      關聯結構預覽
-                    </h4>
-                    <button 
-                      onClick={() => downloadAssemblyZip(selectedDoc.currentVersionId)}
-                      className="text-xs flex items-center text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded transition-colors"
-                    >
-                      <Download size={12} className="mr-1" /> Pack & Go
-                    </button>
+            <div className="p-4 flex-1 min-h-0 flex flex-col">
+              <div className="grid grid-cols-2 gap-2 mb-4 rounded-lg bg-gray-900/70 border border-gray-800 p-1">
+                <button
+                  onClick={() => setDetailTab('structure')}
+                  className={`flex items-center justify-center gap-2 rounded-md px-3 py-2 text-xs font-medium transition-colors ${
+                    detailTab === 'structure'
+                      ? 'bg-gray-800 text-white shadow'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800/60'
+                  }`}
+                >
+                  <PackageOpen size={14} className={detailTab === 'structure' ? 'text-[#D4AF37]' : ''} />
+                  結構預覽
+                </button>
+                <button
+                  onClick={() => setDetailTab('history')}
+                  className={`flex items-center justify-center gap-2 rounded-md px-3 py-2 text-xs font-medium transition-colors ${
+                    detailTab === 'history'
+                      ? 'bg-gray-800 text-white shadow'
+                      : 'text-gray-400 hover:text-white hover:bg-gray-800/60'
+                  }`}
+                >
+                  <History size={14} className={detailTab === 'history' ? 'text-[#D4AF37]' : ''} />
+                  版本歷史
+                </button>
+              </div>
+
+              <div className="flex-1 min-h-0 overflow-auto">
+                {detailTab === 'structure' ? (
+                  canPackAndGo && selectedDoc.currentVersionId ? (
+                    <div className="h-full flex flex-col">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="text-white font-medium flex items-center">
+                          <PackageOpen size={16} className="mr-2 text-[#D4AF37]" />
+                          關聯結構預覽
+                        </h4>
+                        <button
+                          onClick={() => downloadAssemblyZip(selectedDoc.currentVersionId)}
+                          className="text-xs flex items-center text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded transition-colors"
+                        >
+                          <Download size={12} className="mr-1" /> Pack & Go
+                        </button>
+                      </div>
+
+                      <BomTreeView rootVersionId={selectedDoc.currentVersionId} />
+                    </div>
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-gray-500 bg-gray-900/30 rounded-lg border border-gray-800/50 p-6">
+                      <FileText size={48} className="mb-4 text-gray-700" />
+                      <p className="text-center text-sm">此為零件檔案，無 BOM 或關聯結構可顯示。</p>
+                      <p className="text-center text-xs mt-2 text-gray-600">檢視僅支援組合件 (Assembly) 與工程圖 (Drawing)</p>
+                      {selectedDoc.currentVersionId && (
+                        <button
+                          onClick={() => downloadVersion(selectedDoc.currentVersionId)}
+                          className="mt-4 text-sm flex items-center text-gray-200 hover:text-white bg-[#D4AF37] hover:bg-[#c2a033] px-4 py-2 rounded shadow transition-colors"
+                        >
+                          <Download size={16} className="mr-2" /> 下載檔案
+                        </button>
+                      )}
+                    </div>
+                  )
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-white font-medium flex items-center">
+                        <History size={16} className="mr-2 text-[#D4AF37]" />
+                        版本歷史
+                      </h4>
+                      <span className="text-xs text-gray-500">{versionHistory.length} versions</span>
+                    </div>
+
+                    {versionHistory.length === 0 ? (
+                      <div className="rounded-lg border border-gray-800 bg-gray-900/30 p-6 text-center">
+                        <History size={36} className="mx-auto mb-3 text-gray-700" />
+                        <p className="text-sm text-gray-400">尚無版本歷史資料。</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {versionHistory.map((v: any) => (
+                          <div
+                            key={v.versionId}
+                            className="rounded-lg border border-gray-800 bg-gray-900/40 p-3 hover:bg-gray-800/50 transition-colors"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="text-sm font-semibold text-white">Ver. {v.versionNo}</span>
+                                  <span className="rounded border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-2 py-0.5 text-[11px] font-medium text-[#D4AF37]">
+                                    Rev. {v.revisionLabel || '-'}
+                                  </span>
+                                </div>
+                                <p className="mt-1 text-xs text-gray-400">
+                                  {v.createdAt ? new Date(v.createdAt).toLocaleString() : '-'}
+                                </p>
+                              </div>
+
+                              <div className="flex shrink-0 items-center gap-1.5">
+                                <button
+                                  onClick={() => downloadVersion(v.versionId)}
+                                  className="inline-flex h-8 w-8 items-center justify-center rounded border border-gray-700 bg-gray-800 text-gray-400 hover:border-[#D4AF37]/60 hover:text-white transition-colors"
+                                  title="單檔下載"
+                                  aria-label={`下載 Ver. ${v.versionNo} 單檔`}
+                                >
+                                  <Download size={14} />
+                                </button>
+                                {canPackAndGo && (
+                                  <button
+                                    onClick={() => downloadAssemblyZip(v.versionId)}
+                                    className="inline-flex h-8 w-8 items-center justify-center rounded border border-gray-700 bg-gray-800 text-gray-400 hover:border-[#D4AF37]/60 hover:text-[#D4AF37] transition-colors"
+                                    title="Pack & Go"
+                                    aria-label={`下載 Ver. ${v.versionNo} Pack & Go`}
+                                  >
+                                    <Archive size={14} />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  
-                  <BomTreeView rootVersionId={selectedDoc.currentVersionId} />
-                </div>
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center text-gray-500 bg-gray-900/30 rounded-lg border border-gray-800/50 p-6">
-                  <FileText size={48} className="mb-4 text-gray-700" />
-                  <p className="text-center text-sm">此為零件檔案，無 BOM 或關聯結構可顯示。</p>
-                  <p className="text-center text-xs mt-2 text-gray-600">檢視僅支援組合件 (Assembly) 與工程圖 (Drawing)</p>
-                  {selectedDoc.currentVersionId && (
-                    <button 
-                      onClick={() => downloadVersion(selectedDoc.currentVersionId)}
-                      className="mt-4 text-sm flex items-center text-gray-200 hover:text-white bg-[#D4AF37] hover:bg-[#c2a033] px-4 py-2 rounded shadow transition-colors"
-                    >
-                      <Download size={16} className="mr-2" /> 下載檔案
-                    </button>
-                  )}
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         )}
