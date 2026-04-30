@@ -84,6 +84,41 @@ public sealed class LocalStorageService
     }
 
     /// <summary>
+    /// Uploads in-memory content to the Vault and returns the unique relative file ID.
+    /// </summary>
+    public async Task<string> UploadBytesAsync(
+        byte[] content,
+        string fileName,
+        string documentType,
+        CancellationToken cancellationToken = default)
+    {
+        if (content.Length == 0)
+        {
+            throw new ArgumentException("Content is required.", nameof(content));
+        }
+
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            throw new ArgumentException("File name is required.", nameof(fileName));
+        }
+
+        string fileId = Guid.NewGuid().ToString("N");
+        string safeFileName = Path.GetFileName(fileName);
+        string relativeFilePath = Path.Combine(fileId, safeFileName);
+        string destinationPath = Path.Combine(_vaultPath, relativeFilePath);
+
+        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+        await File.WriteAllBytesAsync(destinationPath, content, cancellationToken);
+
+        _logger?.LogInformation(
+            "Uploaded in-memory content to Local Vault. DocumentType={DocumentType}, StorageFileId={FileId}",
+            documentType,
+            relativeFilePath);
+
+        return relativeFilePath;
+    }
+
+    /// <summary>
     /// Downloads a Vault file to the specified absolute destination path.
     /// Returns the saved local path for convenience.
     /// </summary>

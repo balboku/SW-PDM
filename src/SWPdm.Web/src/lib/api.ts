@@ -74,6 +74,10 @@ export const downloadVersion = (versionId: number) => {
   window.open(`http://${API_HOST}:5000/api/versions/${versionId}/download`, '_blank');
 };
 
+export const getVersionThumbnailUrl = (versionId: number) => {
+  return `http://${API_HOST}:5000/api/versions/${versionId}/thumbnail`;
+};
+
 export const searchDocuments = async (query: string = '') => {
   const response = await api.get('/api/documents/search', {
     params: { query }

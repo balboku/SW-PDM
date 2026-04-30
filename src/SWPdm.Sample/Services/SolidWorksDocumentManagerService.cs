@@ -84,12 +84,54 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
                     ? ReadExternalReferences(document, filePath, additionalSearchPaths, documentType)
                     : Array.Empty<string>();
 
+            byte[]? thumbnailData = ReadThumbnailData(document);
+
             return new SolidWorksParseResult(
                 filePath,
                 MapDocumentKind(documentType),
                 documentProperties,
                 configurationProperties,
-                referencedFiles);
+                referencedFiles,
+                thumbnailData);
+        }
+        finally
+        {
+            CloseAndRelease(document);
+        }
+    }
+
+    public byte[]? GetThumbnail(string filePath)
+    {
+        ThrowIfDisposed();
+
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            throw new ArgumentException("File path is required.", nameof(filePath));
+        }
+
+        if (!File.Exists(filePath))
+        {
+            throw new FileNotFoundException("SolidWorks file was not found.", filePath);
+        }
+
+        SwDmDocumentType documentType = ResolveInteropDocumentType(filePath);
+        SwDMDocument18? document = null;
+
+        try
+        {
+            document = (SwDMDocument18)_documentManager.GetDocument(
+                filePath,
+                documentType,
+                true,
+                out SwDmDocumentOpenError openError);
+
+            if (document is null || openError != SwDmDocumentOpenError.swDmDocumentOpenErrorNone)
+            {
+                throw new InvalidOperationException(
+                    $"Unable to open SolidWorks document '{filePath}'. OpenError={openError}");
+            }
+
+            return ReadThumbnailData(document);
         }
         finally
         {
@@ -282,6 +324,99 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
         }
     }
 
+    private static byte[]? ReadThumbnailData(SwDMDocument18 document)
+    {
+        byte[]? previewBytes = TryReadPreviewBytesByName(
+            document,
+            "GetPreviewPNGBitmapBytes");
+
+        if (previewBytes is not null)
+        {
+            return previewBytes;
+        }
+
+        if (document is not ISwDMDocument18 previewDocument)
+        {
+            return null;
+        }
+
+        try
+        {
+            object? pngPreview = previewDocument.GetPreviewPNGBitmap(out SwDmPreviewError pngError);
+            return pngError == SwDmPreviewError.swDmPreviewErrorNone
+                ? ConvertPreviewObjectToByteArray(pngPreview)
+                : null;
+        }
+        catch (COMException)
+        {
+            return null;
+        }
+    }
+
+    private static byte[]? TryReadPreviewBytesByName(object document, params string[] methodNames)
+    {
+        foreach (string methodName in methodNames)
+        {
+            var method = document.GetType().GetMethod(methodName);
+            if (method is null)
+            {
+                continue;
+            }
+
+            object?[] parameters = method.GetParameters().Length == 0
+                ? Array.Empty<object?>()
+                : new object?[] { null };
+
+            try
+            {
+                object? result = method.Invoke(document, parameters);
+                byte[]? previewBytes = ConvertPreviewObjectToByteArray(result);
+                if (previewBytes is not null)
+                {
+                    return previewBytes;
+                }
+            }
+            catch (COMException)
+            {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    private static byte[]? ConvertPreviewObjectToByteArray(object? preview)
+    {
+        if (preview is null)
+        {
+            return null;
+        }
+
+        if (preview is byte[] bytes)
+        {
+            return bytes.Length == 0 ? null : bytes;
+        }
+
+        if (preview is Array array)
+        {
+            byte[] result = new byte[array.Length];
+            for (int i = 0; i < array.Length; i++)
+            {
+                object? value = array.GetValue(i);
+                if (value is not byte byteValue)
+                {
+                    return null;
+                }
+
+                result[i] = byteValue;
+            }
+
+            return result.Length == 0 ? null : result;
+        }
+
+        return null;
+    }
+
     private static SwDmDocumentType ResolveInteropDocumentType(string filePath)
     {
         return Path.GetExtension(filePath).ToLowerInvariant() switch
@@ -413,7 +548,8 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
             docType,
             mockProperties,
             new Dictionary<string, IReadOnlyDictionary<string, SolidWorksCustomProperty>>(),
-            Array.Empty<string>()
+            Array.Empty<string>(),
+            null
         );
     }
 
@@ -424,6 +560,11 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
     public void WriteCustomProperty(string filePath, string propertyName, string propertyValue)
     {
         // No-Op since the SolidWorks Document Manager interop is not referenced
+    }
+
+    public byte[]? GetThumbnail(string filePath)
+    {
+        return null;
     }
 }
 #endif
@@ -440,7 +581,8 @@ public sealed record SolidWorksParseResult(
     SolidWorksDocumentKind DocumentType,
     IReadOnlyDictionary<string, SolidWorksCustomProperty> DocumentProperties,
     IReadOnlyDictionary<string, IReadOnlyDictionary<string, SolidWorksCustomProperty>> ConfigurationProperties,
-    IReadOnlyList<string> ReferencedFilePaths);
+    IReadOnlyList<string> ReferencedFilePaths,
+    byte[]? ThumbnailData);
 
 public sealed record SolidWorksCustomProperty(
     string Name,

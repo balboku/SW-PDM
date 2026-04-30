@@ -9,7 +9,7 @@ public sealed class PdmDbContextDesignFactory : IDesignTimeDbContextFactory<PdmD
     {
         string provider = Environment.GetEnvironmentVariable("PDM_DB_PROVIDER") ?? "PostgreSql";
         string connectionString = Environment.GetEnvironmentVariable("PDM_DB_CONNECTION_STRING")
-            ?? "Host=localhost;Port=5432;Database=swpdm;Username=postgres;Password=postgres";
+            ?? "Host=localhost;Port=5433;Database=swpdm;Username=swpdm_user;Password=CHANGE_ME";
 
         DbContextOptionsBuilder<PdmDbContext> optionsBuilder = new();
 

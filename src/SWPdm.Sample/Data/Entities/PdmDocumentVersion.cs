@@ -12,6 +12,8 @@ public sealed class PdmDocumentVersion
 
     public string StorageFileId { get; set; } = string.Empty;
 
+    public string? ThumbnailStorageId { get; set; }
+
     public string OriginalFileName { get; set; } = string.Empty;
 
     public string SourceFilePath { get; set; } = string.Empty;

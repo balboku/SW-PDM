@@ -82,6 +82,7 @@ public sealed class PdmDbContext : DbContext
             entity.Property(x => x.VersionNo).HasColumnName("version_no");
             entity.Property(x => x.RevisionLabel).HasColumnName("revision_label").HasMaxLength(50);
             entity.Property(x => x.StorageFileId).HasColumnName("storage_file_id").HasMaxLength(255);
+            entity.Property(x => x.ThumbnailStorageId).HasColumnName("thumbnail_storage_id").HasMaxLength(255);
             entity.Property(x => x.OriginalFileName).HasColumnName("original_file_name").HasMaxLength(255);
             entity.Property(x => x.SourceFilePath).HasColumnName("source_file_path");
             entity.Property(x => x.VaultRelativePath).HasColumnName("vault_relative_path");

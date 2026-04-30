@@ -1,5 +1,7 @@
 namespace SWPdm.Api.Endpoints;
 
+using SWPdm.Api.Services;
+
 public static class EndpointHelpers
 {
     private static string BuildErrorDetail(Exception ex)
@@ -26,6 +28,10 @@ public static class EndpointHelpers
     {
         return ex switch
         {
+            PdmCheckoutConflictException checkoutConflictException => Results.Problem(
+                title: "Checkout conflict",
+                detail: BuildErrorDetail(checkoutConflictException),
+                statusCode: StatusCodes.Status409Conflict),
             ArgumentException argumentException => Results.Problem(
                 title: "Invalid request",
                 detail: BuildErrorDetail(argumentException),

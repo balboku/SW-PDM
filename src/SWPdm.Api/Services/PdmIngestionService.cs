@@ -182,14 +182,7 @@ public sealed class PdmIngestionService
         
         if (existingDocument != null)
         {
-            // 檢查出庫狀態：如果是他人出庫，禁止入庫
-            if (!string.IsNullOrWhiteSpace(existingDocument.CheckedOutBy) && 
-                !string.IsNullOrWhiteSpace(uploadedBy) && 
-                existingDocument.CheckedOutBy != uploadedBy)
-            {
-                throw new InvalidOperationException(
-                    $"入庫失敗：檔案 {Path.GetFileName(normalizedPath)} 正被 {existingDocument.CheckedOutBy} 出庫中，您無法覆蓋。");
-            }
+            EnsureCheckoutLockAllowsIngest(existingDocument, Path.GetFileName(normalizedPath), uploadedBy);
         }
 
         if (isRoot && existingDocument == null)
@@ -237,7 +230,7 @@ public sealed class PdmIngestionService
 
                     childNodesByPath[childPath] = childNode;
                 }
-                catch (Exception ex) when (ex is FileNotFoundException or NotSupportedException or InvalidOperationException)
+                catch (Exception ex) when (IsRecoverableReferenceIngestException(ex))
                 {
                     issues.Add($"Referenced file ingest failed for '{childPath}': {ex.Message}");
                     childNodesByPath[childPath] = null;
@@ -314,6 +307,16 @@ public sealed class PdmIngestionService
             storageFileId = await _localStorageService.UploadFileAsync(normalizedPath, documentType, cancellationToken);
         }
 
+        string? thumbnailStorageId = null;
+        if (parseResult.ThumbnailData is { Length: > 0 } thumbnailData)
+        {
+            string thumbnailFileName = $"{Path.GetFileNameWithoutExtension(originalFileName)}_thumbnail.png";
+            thumbnailStorageId = await _localStorageService.UploadBytesAsync(
+                thumbnailData,
+                thumbnailFileName,
+                "Thumbnails",
+                cancellationToken);
+        }
 
         PdmDocumentVersion version = new()
         {
@@ -321,6 +324,7 @@ public sealed class PdmIngestionService
             VersionNo = nextVersionNo,
             RevisionLabel = revision,
             StorageFileId = storageFileId,
+            ThumbnailStorageId = thumbnailStorageId,
             OriginalFileName = originalFileName,
             SourceFilePath = normalizedPath,
             VaultRelativePath = BuildVaultRelativePath(documentType, normalizedPath, partNumber),
@@ -588,6 +592,43 @@ public sealed class PdmIngestionService
         }
 
         return null;
+    }
+
+    private static void EnsureCheckoutLockAllowsIngest(
+        PdmDocument document,
+        string fileName,
+        string? uploadedBy)
+    {
+        if (string.IsNullOrWhiteSpace(document.CheckedOutBy))
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(uploadedBy) ||
+            !string.Equals(document.CheckedOutBy, uploadedBy, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new PdmCheckoutConflictException(
+                fileName,
+                document.CheckedOutBy,
+                document.CheckedOutAt,
+                uploadedBy);
+        }
+
+        if (document.CheckedOutAt is null)
+        {
+            throw new PdmCheckoutConflictException(
+                fileName,
+                document.CheckedOutBy,
+                document.CheckedOutAt,
+                uploadedBy,
+                "出庫鎖缺少有效時間資訊，請先復原出庫後重新出庫。");
+        }
+    }
+
+    private static bool IsRecoverableReferenceIngestException(Exception ex)
+    {
+        return ex is FileNotFoundException or NotSupportedException
+            || ex is InvalidOperationException and not PdmCheckoutConflictException;
     }
 
     private static void EnsureSupportedExtension(string filePath)

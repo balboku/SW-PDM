@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal } from './ui';
 import { getCheckoutReferences, checkOutDocument } from '../lib/api';
-import { AlertCircle, CheckCircle2, FileText, Package, Layout, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, FileText, Package, Layout, Loader2, Lock, Unlock } from 'lucide-react';
 
 interface CheckOutModalProps {
   isOpen: boolean;
@@ -24,6 +24,17 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [userName, setUserName] = useState('User');
 
+  const relatedFiles = [
+    ...(data?.whereUsed ?? []),
+    ...(data?.references ?? [])
+  ];
+  const normalizedUserName = userName.trim().toLowerCase();
+  const blockingLocks = relatedFiles.filter((file: any) => (
+    file.checkedOutBy &&
+    file.checkedOutBy.trim().toLowerCase() !== normalizedUserName
+  ));
+  const hasBlockingLocks = blockingLocks.length > 0;
+
   useEffect(() => {
     if (isOpen) {
       loadReferences();
@@ -45,6 +56,10 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
   };
 
   const handleConfirm = async () => {
+    if (hasBlockingLocks) {
+      return;
+    }
+
     setSubmitting(true);
     try {
       await checkOutDocument(documentId, userName, true);
@@ -64,6 +79,29 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const renderCheckoutStatus = (file: any) => {
+    if (!file.checkedOutBy) {
+      return (
+        <span className="inline-flex items-center gap-1 text-[10px] bg-green-500/10 text-green-400 px-1.5 py-0.5 rounded border border-green-500/20">
+          <Unlock size={10} /> 可出庫
+        </span>
+      );
+    }
+
+    const isOwnedByCurrentUser = file.checkedOutBy.trim().toLowerCase() === normalizedUserName;
+
+    return (
+      <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border ${
+        isOwnedByCurrentUser
+          ? 'bg-blue-500/10 text-blue-300 border-blue-500/20'
+          : 'bg-red-500/10 text-red-400 border-red-500/30'
+      }`}>
+        <Lock size={10} />
+        {isOwnedByCurrentUser ? '已由您出庫' : `已由 ${file.checkedOutBy} 出庫`}
+      </span>
+    );
   };
 
   return (
@@ -110,7 +148,11 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
                 <ul className="divide-y divide-gray-800">
                   {/* Where-Used (Drawings / Parents) */}
                   {data?.whereUsed?.map((file: any) => (
-                    <li key={file.versionId} className="p-3 flex items-center gap-3 hover:bg-gray-800/50 transition-colors">
+                    <li key={file.versionId} className={`p-3 flex items-center gap-3 transition-colors ${
+                      file.checkedOutBy && file.checkedOutBy.trim().toLowerCase() !== normalizedUserName
+                        ? 'bg-red-950/20 hover:bg-red-950/30'
+                        : 'hover:bg-gray-800/50'
+                    }`}>
                       <div className="text-blue-400">
                         {file.documentType === 'Drawing' ? <FileText size={18} /> : <Package size={18} />}
                       </div>
@@ -118,13 +160,20 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
                         <p className="text-sm text-gray-200 truncate font-medium">{file.originalFileName}</p>
                         <p className="text-[11px] text-gray-500">{file.documentType} • 使用於上層</p>
                       </div>
-                      <span className="text-[10px] bg-blue-900/30 text-blue-400 px-1.5 py-0.5 rounded border border-blue-900/50">引用此檔</span>
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        <span className="text-[10px] bg-blue-900/30 text-blue-400 px-1.5 py-0.5 rounded border border-blue-900/50">引用此檔</span>
+                        {renderCheckoutStatus(file)}
+                      </div>
                     </li>
                   ))}
                   
                   {/* References (Children) */}
                   {data?.references?.map((file: any) => (
-                    <li key={file.versionId} className="p-3 flex items-center gap-3 hover:bg-gray-800/50 transition-colors">
+                    <li key={file.versionId} className={`p-3 flex items-center gap-3 transition-colors ${
+                      file.checkedOutBy && file.checkedOutBy.trim().toLowerCase() !== normalizedUserName
+                        ? 'bg-red-950/20 hover:bg-red-950/30'
+                        : 'hover:bg-gray-800/50'
+                    }`}>
                       <div className="text-yellow-500">
                         <Package size={18} />
                       </div>
@@ -132,12 +181,24 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
                         <p className="text-sm text-gray-200 truncate font-medium">{file.originalFileName}</p>
                         <p className="text-[11px] text-gray-500">{file.documentType} • 子零件 (階層: {file.depth})</p>
                       </div>
-                      <span className="text-[10px] bg-yellow-900/20 text-yellow-500 px-1.5 py-0.5 rounded border border-yellow-900/30">內部參考</span>
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        <span className="text-[10px] bg-yellow-900/20 text-yellow-500 px-1.5 py-0.5 rounded border border-yellow-900/30">內部參考</span>
+                        {renderCheckoutStatus(file)}
+                      </div>
                     </li>
                   ))}
                 </ul>
               )}
             </div>
+
+            {hasBlockingLocks && (
+              <div className="flex items-start gap-2 p-3 bg-red-900/20 border border-red-900/30 rounded text-red-300 text-xs">
+                <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                <p>
+                  有 {blockingLocks.length} 個關聯檔案已被其他人出庫，無法取得完整變更鏈。請先協調釋放鎖定後再出庫。
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -150,7 +211,7 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
           </button>
           <button 
             onClick={handleConfirm}
-            disabled={submitting}
+            disabled={submitting || loading || Boolean(error) || hasBlockingLocks}
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:opacity-50 text-white px-6 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2"
           >
             {submitting ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}

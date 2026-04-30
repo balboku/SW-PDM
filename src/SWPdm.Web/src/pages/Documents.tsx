@@ -1,10 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Loader2, Download, PackageOpen, Server, FileText, Archive, History } from 'lucide-react';
-import { api, searchDocuments, downloadAssemblyZip, downloadVersion, undoCheckOutDocument } from '../lib/api';
+import { api, searchDocuments, downloadAssemblyZip, downloadVersion, getVersionThumbnailUrl, undoCheckOutDocument } from '../lib/api';
 import { BomTreeView } from '../components/BomTreeView';
 import { CheckOutModal } from '../components/CheckOutModal';
 import { CheckInModal } from '../components/CheckInModal';
 import { Lock, Unlock, LogOut, LogIn } from 'lucide-react';
+
+interface VersionThumbnailProps {
+  versionId?: number | null;
+  className: string;
+  iconSize?: number;
+}
+
+const VersionThumbnail: React.FC<VersionThumbnailProps> = ({ versionId, className, iconSize = 18 }) => {
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setHasError(false);
+  }, [versionId]);
+
+  return (
+    <div className={`${className} shrink-0 overflow-hidden rounded-md border border-gray-800 bg-gray-900/70 flex items-center justify-center`}>
+      {versionId && !hasError ? (
+        <img
+          src={getVersionThumbnailUrl(versionId)}
+          alt=""
+          className="h-full w-full object-contain"
+          loading="lazy"
+          onError={() => setHasError(true)}
+        />
+      ) : (
+        <FileText size={iconSize} className="text-gray-600" />
+      )}
+    </div>
+  );
+};
 
 export default function Documents() {
   const [query, setQuery] = useState('');
@@ -112,21 +142,34 @@ export default function Documents() {
               <tbody className="bg-[#121212] divide-y divide-gray-800/50">
                 {documents.length === 0 && !isLoading && (
                   <tr>
-                    <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
+                    <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
                       查無圖檔資料
                     </td>
                   </tr>
                 )}
                 
-                {documents.map((doc) => (
+                {documents.map((doc) => {
+                  const isSelected = selectedDoc?.documentId === doc.documentId;
+                  const isCheckedOutWip = Boolean(
+                    doc.checkedOutBy &&
+                    String(doc.currentLifecycleState || '').toLowerCase() === 'wip'
+                  );
+
+                  return (
                   <tr 
-                    key={doc.documentId} 
+                    key={doc.documentId}
                     onClick={() => handleSelectDocument(doc)}
-                    className={`cursor-pointer transition-colors ${selectedDoc?.documentId === doc.documentId ? 'bg-gray-800/80 border-l-2 border-[#D4AF37]' : 'hover:bg-gray-800/40 border-l-2 border-transparent'}`}
+                    className={`cursor-pointer transition-colors ${
+                      isSelected
+                        ? 'bg-gray-800/80 border-l-2 border-[#D4AF37]'
+                        : isCheckedOutWip
+                          ? 'bg-orange-950/20 hover:bg-orange-950/30 border-l-2 border-orange-500/80'
+                          : 'hover:bg-gray-800/40 border-l-2 border-transparent'
+                    }`}
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-gray-200 font-medium flex items-center">
-                      <FileText size={16} className="mr-2 text-gray-500" />
-                      {doc.fileName}
+                      <VersionThumbnail versionId={doc.currentVersionId} className="mr-3 h-10 w-10" />
+                      <span className="min-w-0 truncate">{doc.fileName}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-400">{doc.partNumber || '-'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -157,7 +200,8 @@ export default function Documents() {
                       })}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -167,6 +211,11 @@ export default function Documents() {
         {selectedDoc && (
           <div className="w-full lg:w-96 flex flex-col min-h-0 bg-[#121212] border border-gray-800 rounded-xl shadow-2xl animate-in slide-in-from-right-4 duration-300">
             <div className="p-4 border-b border-gray-800 bg-[#1a1a1a]">
+              <VersionThumbnail
+                versionId={selectedDoc.currentVersionId}
+                className="mb-4 h-40 w-full rounded-lg"
+                iconSize={48}
+              />
               <div className="flex justify-between items-start">
                 <h3 className="text-sm border border-gray-700 bg-gray-800 px-2 py-0.5 rounded text-gray-400 font-mono mb-2 inline-block">
                   {selectedDoc.partNumber || 'No Part Number'}

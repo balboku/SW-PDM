@@ -50,6 +50,7 @@ public static class DocumentEndpoints
                         d.Material,
                         CurrentVersionNo = d.CurrentVersion != null ? d.CurrentVersion.VersionNo : (int?)null,
                         CurrentVersionId = d.CurrentVersion != null ? d.CurrentVersion.VersionId : (long?)null,
+                        CurrentLifecycleState = d.CurrentVersion != null ? d.CurrentVersion.LifecycleState : null,
                         d.UpdatedAt,
                         d.CheckedOutBy,
                         d.CheckedOutAt
@@ -130,6 +131,39 @@ public static class DocumentEndpoints
 
                 var filePath = storageService.GetFilePath(version.StorageFileId);
                 return Results.File(filePath, "application/octet-stream", version.OriginalFileName);
+            }
+            catch (Exception ex)
+            {
+                return EndpointHelpers.ToProblem(ex);
+            }
+        });
+
+        app.MapGet("/api/versions/{versionId:long}/thumbnail", async (
+            long versionId,
+            PdmDbContext dbContext,
+            LocalStorageService storageService,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var version = await dbContext.DocumentVersions
+                    .AsNoTracking()
+                    .Where(x => x.VersionId == versionId)
+                    .Select(x => new { x.ThumbnailStorageId })
+                    .SingleOrDefaultAsync(cancellationToken);
+
+                if (version is null)
+                {
+                    return Results.NotFound(new { title = "Version not found" });
+                }
+
+                if (string.IsNullOrWhiteSpace(version.ThumbnailStorageId))
+                {
+                    return Results.NotFound(new { title = "Thumbnail not found" });
+                }
+
+                string thumbnailPath = storageService.GetFilePath(version.ThumbnailStorageId);
+                return Results.File(thumbnailPath, "image/png");
             }
             catch (Exception ex)
             {
@@ -316,6 +350,7 @@ public static class DocumentEndpoints
         app.MapGet("/api/documents/{documentId:long}/checkout-references", async (
             long documentId,
             IPdmRepository repository,
+            PdmDbContext dbContext,
             CancellationToken cancellationToken) =>
         {
             try
@@ -329,10 +364,51 @@ public static class DocumentEndpoints
                 // 2. 取得所有父階或相關圖面 (Where-Used / Drawings)
                 var parents = await repository.GetWhereUsedAsync(document.CurrentVersionId.Value, cancellationToken);
 
+                var relationVersionIds = children
+                    .Select(x => x.VersionId)
+                    .Concat(parents.Select(x => x.VersionId))
+                    .Distinct()
+                    .ToList();
+
+                var checkoutRows = await dbContext.Documents
+                    .AsNoTracking()
+                    .Where(x => x.CurrentVersionId.HasValue && relationVersionIds.Contains(x.CurrentVersionId.Value))
+                    .Select(x => new
+                    {
+                        VersionId = x.CurrentVersionId!.Value,
+                        x.CheckedOutBy,
+                        x.CheckedOutAt
+                    })
+                    .ToListAsync(cancellationToken);
+
+                var checkoutStates = checkoutRows.ToDictionary(x => x.VersionId);
+                object ToRelationDto(PdmPackageFile file)
+                {
+                    checkoutStates.TryGetValue(file.VersionId, out var checkout);
+                    return new
+                    {
+                        file.VersionId,
+                        file.DocumentType,
+                        file.StorageFileId,
+                        file.OriginalFileName,
+                        file.SourceFilePath,
+                        file.VaultRelativePath,
+                        file.Depth,
+                        CheckedOutBy = checkout?.CheckedOutBy,
+                        CheckedOutAt = checkout?.CheckedOutAt
+                    };
+                }
+
                 return Results.Ok(new {
                     document = document,
-                    references = children.Where(x => x.VersionId != document.CurrentVersionId).OrderBy(x => x.Depth).ToList(),
+                    references = children
+                        .Where(x => x.VersionId != document.CurrentVersionId)
+                        .OrderBy(x => x.Depth)
+                        .Select(ToRelationDto)
+                        .ToList(),
                     whereUsed = parents
+                        .Select(ToRelationDto)
+                        .ToList()
                 });
             }
             catch (Exception ex)
@@ -386,10 +462,31 @@ public static class DocumentEndpoints
                     {
                         var relatedDocuments = await dbContext.Documents
                             .Where(x => x.CurrentVersionId.HasValue && relationVersionIds.Contains(x.CurrentVersionId.Value))
-                            .Where(x => string.IsNullOrWhiteSpace(x.CheckedOutBy))
                             .ToListAsync(cancellationToken);
 
-                        foreach (var relatedDocument in relatedDocuments)
+                        var blockedDocuments = relatedDocuments
+                            .Where(x => !string.IsNullOrWhiteSpace(x.CheckedOutBy) &&
+                                        !string.Equals(x.CheckedOutBy, request.CheckOutBy, StringComparison.OrdinalIgnoreCase))
+                            .ToList();
+
+                        if (blockedDocuments.Count > 0)
+                        {
+                            await transaction.RollbackAsync(cancellationToken);
+                            return Results.Conflict(new
+                            {
+                                title = "Checkout conflict",
+                                detail = "Cannot check out the complete relation chain because one or more related documents are already checked out by another user.",
+                                conflicts = blockedDocuments.Select(x => new
+                                {
+                                    x.DocumentId,
+                                    x.FileName,
+                                    x.CheckedOutBy,
+                                    x.CheckedOutAt
+                                })
+                            });
+                        }
+
+                        foreach (var relatedDocument in relatedDocuments.Where(x => string.IsNullOrWhiteSpace(x.CheckedOutBy)))
                         {
                             relatedDocument.CheckedOutBy = request.CheckOutBy;
                             relatedDocument.CheckedOutAt = checkedOutAt;
