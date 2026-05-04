@@ -326,59 +326,67 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
 
     private static byte[]? ReadThumbnailData(SwDMDocument18 document)
     {
-        byte[]? previewBytes = TryReadPreviewBytesByName(
-            document,
-            "GetPreviewPNGBitmapBytes");
-
-        if (previewBytes is not null)
-        {
-            return previewBytes;
-        }
-
-        if (document is not ISwDMDocument18 previewDocument)
-        {
-            return null;
-        }
-
+        // 策略 1: 嘗試 PNG 預覽 (高品質)
         try
         {
-            object? pngPreview = previewDocument.GetPreviewPNGBitmap(out SwDmPreviewError pngError);
-            return pngError == SwDmPreviewError.swDmPreviewErrorNone
-                ? ConvertPreviewObjectToByteArray(pngPreview)
-                : null;
+            object? pngPreview = document.GetPreviewPNGBitmap(out SwDmPreviewError pngError);
+            if (pngError == SwDmPreviewError.swDmPreviewErrorNone && pngPreview is not null)
+            {
+                byte[]? bytes = ConvertPreviewObjectToByteArray(pngPreview);
+                if (bytes is { Length: > 0 }) return bytes;
+            }
         }
-        catch (COMException)
+        catch (Exception)
         {
-            return null;
+            // 忽略高品質預覽失敗，嘗試備援方案
         }
+
+        // 策略 2: 嘗試 BMP 預覽 (相容性較高)
+        try
+        {
+            object? bmpPreview = document.GetPreviewBitmap(out SwDmPreviewError bmpError);
+            if (bmpError == SwDmPreviewError.swDmPreviewErrorNone && bmpPreview is not null)
+            {
+                byte[]? bytes = ConvertPreviewObjectToByteArray(bmpPreview);
+                if (bytes is { Length: > 0 }) return bytes;
+            }
+        }
+        catch (Exception)
+        {
+            // 忽略
+        }
+
+        // 策略 3: 嘗試透過反射調用隱藏的 GetPreviewPNGBitmapBytes (部分版本適用)
+        byte[]? previewBytes = TryReadPreviewBytesByName(
+            document,
+            "GetPreviewPNGBitmapBytes",
+            "GetPreviewBitmapBytes");
+
+        return previewBytes;
     }
 
     private static byte[]? TryReadPreviewBytesByName(object document, params string[] methodNames)
     {
         foreach (string methodName in methodNames)
         {
-            var method = document.GetType().GetMethod(methodName);
-            if (method is null)
-            {
-                continue;
-            }
-
-            object?[] parameters = method.GetParameters().Length == 0
-                ? Array.Empty<object?>()
-                : new object?[] { null };
-
             try
             {
-                object? result = method.Invoke(document, parameters);
+                // 使用 dynamic 來避開 .NET Core 對 COM 物件反射的限制
+                dynamic dynDoc = document;
+                object? result = null;
+
+                if (methodName == "GetPreviewPNGBitmapBytes") result = dynDoc.GetPreviewPNGBitmapBytes();
+                else if (methodName == "GetPreviewBitmapBytes") result = dynDoc.GetPreviewBitmapBytes();
+
                 byte[]? previewBytes = ConvertPreviewObjectToByteArray(result);
                 if (previewBytes is not null)
                 {
                     return previewBytes;
                 }
             }
-            catch (COMException)
+            catch (Exception)
             {
-                return null;
+                // 忽略動態調用失敗
             }
         }
 
