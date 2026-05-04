@@ -21,7 +21,7 @@ namespace ThumbnailRepair
             string connString = "Host=localhost;Port=5433;Database=swpdm;Username=swpdm_user;Password=CHANGE_ME";
             
             services.AddDbContext<PdmDbContext>(options =>
-                options.UseNpgsql(connString).UseSnakeCaseNamingConvention());
+                options.UseNpgsql(connString));
 
             services.AddLogging(builder => builder.AddConsole());
             
@@ -48,11 +48,10 @@ namespace ThumbnailRepair
             foreach (var v in versions)
             {
                 try {
-                    // 這裡要處理路徑。注意：因為之前上傳到了 src/SWPdm.Api/vault_storage，
-                    // 所以我們先檢查該路徑。
-                    string fullPath = Path.Combine("src", "SWPdm.Api", "vault_storage", v.StorageFileId);
+                    string fullPath = Path.Combine("vault_storage", v.StorageFileId);
                     if (!File.Exists(fullPath)) {
-                        fullPath = Path.Combine("vault_storage", v.StorageFileId);
+                         // Check API subfolder as fallback
+                         fullPath = Path.Combine("src", "SWPdm.Api", "vault_storage", v.StorageFileId);
                     }
 
                     if (!File.Exists(fullPath)) {
