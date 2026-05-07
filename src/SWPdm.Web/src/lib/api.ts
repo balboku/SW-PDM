@@ -60,8 +60,19 @@ export const getSystemStatus = async () => {
   return response.data;
 };
 
-export const downloadAssemblyZip = (rootVersionId: number) => {
-  window.open(`http://${API_HOST}:5000/api/assemblies/${rootVersionId}/download-zip`, '_blank');
+export const checkAssemblyUpdates = async (rootVersionId: number) => {
+  const response = await api.get(`/api/assemblies/${rootVersionId}/check-updates`);
+  return response.data;
+};
+
+export const downloadAssemblyZip = (
+  rootVersionId: number,
+  useLatest: boolean = false,
+  versionOverrides: string[] = []
+) => {
+  const params = new URLSearchParams({ useLatest: String(useLatest) });
+  versionOverrides.forEach((override) => params.append('versionOverrides', override));
+  window.open(`http://${API_HOST}:5000/api/assemblies/${rootVersionId}/download-zip?${params.toString()}`, '_blank');
 };
 
 export const downloadVersion = (versionId: number) => {

@@ -87,6 +87,7 @@ app.MapGet("/", () => Results.Ok(new
         "GET /api/versions/{versionId}",
         "GET /api/versions/{versionId}/children",
         "GET /api/assemblies/{rootVersionId}/package-closure",
+        "GET /api/assemblies/{rootVersionId}/check-updates",
         "GET /api/assemblies/{rootVersionId}/download-zip",
         "POST /api/web/upload-temp",
         "POST /api/ingest/cad",

@@ -198,11 +198,112 @@ public static class DocumentEndpoints
             }
         });
 
+        app.MapGet("/api/assemblies/{rootVersionId:long}/check-updates", async (
+            long rootVersionId,
+            IPdmRepository repository,
+            PdmDbContext dbContext,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                IReadOnlyList<PdmPackageFile> files =
+                    await repository.GetPackageClosureAsync(rootVersionId, cancellationToken);
+
+                if (files.Count == 0)
+                {
+                    return Results.NotFound(new
+                    {
+                        title = "Assembly not found",
+                        detail = $"No package files found for rootVersionId={rootVersionId}."
+                    });
+                }
+
+                long[] versionIds = files
+                    .Select(x => x.VersionId)
+                    .Distinct()
+                    .ToArray();
+
+                var packageVersions = await dbContext.DocumentVersions
+                    .AsNoTracking()
+                    .Where(x => versionIds.Contains(x.VersionId))
+                    .Select(x => new
+                    {
+                        x.VersionId,
+                        x.DocumentId,
+                        x.Document.CurrentVersionId,
+                        x.OriginalFileName,
+                        x.VersionNo,
+                        x.RevisionLabel
+                    })
+                    .ToListAsync(cancellationToken);
+
+                bool hasUpdates = packageVersions.Any(x =>
+                    x.CurrentVersionId.HasValue &&
+                    x.VersionId < x.CurrentVersionId.Value);
+
+                long[] documentIds = packageVersions
+                    .Where(x => x.CurrentVersionId.HasValue && x.VersionId < x.CurrentVersionId.Value)
+                    .Select(x => x.DocumentId)
+                    .Distinct()
+                    .ToArray();
+
+                var availableVersions = await dbContext.DocumentVersions
+                    .AsNoTracking()
+                    .Where(x => documentIds.Contains(x.DocumentId))
+                    .OrderByDescending(x => x.VersionNo)
+                    .Select(x => new
+                    {
+                        x.DocumentId,
+                        x.VersionId,
+                        x.VersionNo,
+                        x.RevisionLabel,
+                        x.OriginalFileName,
+                        x.CreatedAt
+                    })
+                    .ToListAsync(cancellationToken);
+
+                var updateItems = packageVersions
+                    .Where(x => x.CurrentVersionId.HasValue && x.VersionId < x.CurrentVersionId.Value)
+                    .Select(x => new
+                    {
+                        SourceVersionId = x.VersionId,
+                        x.DocumentId,
+                        x.OriginalFileName,
+                        PackageVersionNo = x.VersionNo,
+                        PackageRevisionLabel = x.RevisionLabel,
+                        CurrentVersionId = x.CurrentVersionId,
+                        Versions = availableVersions
+                            .Where(v => v.DocumentId == x.DocumentId)
+                            .Select(v => new
+                            {
+                                v.VersionId,
+                                v.VersionNo,
+                                v.RevisionLabel,
+                                v.OriginalFileName,
+                                v.CreatedAt,
+                                IsPackageVersion = v.VersionId == x.VersionId,
+                                IsCurrentVersion = v.VersionId == x.CurrentVersionId
+                            })
+                            .ToArray()
+                    })
+                    .ToArray();
+
+                return Results.Ok(new { hasUpdates, updates = updateItems });
+            }
+            catch (Exception ex)
+            {
+                return EndpointHelpers.ToProblem(ex);
+            }
+        });
+
         app.MapGet("/api/assemblies/{rootVersionId:long}/download-zip", async (
             long rootVersionId,
             IPdmRepository repository,
+            PdmDbContext dbContext,
             LocalStorageService storageService,
-            CancellationToken cancellationToken) =>
+            CancellationToken cancellationToken,
+            [FromQuery] bool useLatest = false,
+            [FromQuery] string[]? versionOverrides = null) =>
         {
             IReadOnlyList<PdmPackageFile> files =
                 await repository.GetPackageClosureAsync(rootVersionId, cancellationToken);
@@ -215,6 +316,15 @@ public static class DocumentEndpoints
                     detail = $"No package files found for rootVersionId={rootVersionId}. " +
                              "Verify the version exists and has resolved BOM references."
                 });
+            }
+
+            if (useLatest)
+            {
+                files = await ResolveLatestPackageFilesAsync(files, dbContext, cancellationToken);
+            }
+            else if (versionOverrides is { Length: > 0 })
+            {
+                files = await ResolveOverriddenPackageFilesAsync(files, versionOverrides, dbContext, cancellationToken);
             }
 
             string sessionId = Guid.NewGuid().ToString("N")[..8];
@@ -615,6 +725,151 @@ public static class DocumentEndpoints
 
         // POST /api/documents/allocate-number 已移除。
         // 系統不再自動派發圖號；料號由 SolidWorks CAD 自訂屬性 (PartNumber) 決定。
+    }
+
+    private static async Task<IReadOnlyList<PdmPackageFile>> ResolveLatestPackageFilesAsync(
+        IReadOnlyList<PdmPackageFile> files,
+        PdmDbContext dbContext,
+        CancellationToken cancellationToken)
+    {
+        long[] sourceVersionIds = files
+            .Select(x => x.VersionId)
+            .Distinct()
+            .ToArray();
+
+        var sourceVersions = await dbContext.DocumentVersions
+            .AsNoTracking()
+            .Where(x => sourceVersionIds.Contains(x.VersionId))
+            .Select(x => new
+            {
+                SourceVersionId = x.VersionId,
+                x.Document.CurrentVersionId
+            })
+            .ToListAsync(cancellationToken);
+
+        Dictionary<long, long> sourceToCurrentVersionIds = sourceVersions
+            .Where(x => x.CurrentVersionId.HasValue)
+            .ToDictionary(x => x.SourceVersionId, x => x.CurrentVersionId!.Value);
+
+        long[] currentVersionIds = sourceToCurrentVersionIds.Values
+            .Distinct()
+            .ToArray();
+
+        var currentVersions = await dbContext.DocumentVersions
+            .AsNoTracking()
+            .Where(x => currentVersionIds.Contains(x.VersionId))
+            .Select(x => new
+            {
+                x.VersionId,
+                x.Document.DocumentType,
+                x.StorageFileId,
+                x.OriginalFileName,
+                x.SourceFilePath,
+                x.VaultRelativePath
+            })
+            .ToDictionaryAsync(x => x.VersionId, cancellationToken);
+
+        return files
+            .Select(file =>
+            {
+                if (!sourceToCurrentVersionIds.TryGetValue(file.VersionId, out long currentVersionId) ||
+                    !currentVersions.TryGetValue(currentVersionId, out var currentVersion))
+                {
+                    return file;
+                }
+
+                return new PdmPackageFile(
+                    VersionId: currentVersion.VersionId,
+                    DocumentType: currentVersion.DocumentType,
+                    StorageFileId: currentVersion.StorageFileId,
+                    OriginalFileName: currentVersion.OriginalFileName,
+                    SourceFilePath: currentVersion.SourceFilePath,
+                    VaultRelativePath: currentVersion.VaultRelativePath,
+                    Depth: file.Depth);
+            })
+            .ToArray();
+    }
+
+    private static async Task<IReadOnlyList<PdmPackageFile>> ResolveOverriddenPackageFilesAsync(
+        IReadOnlyList<PdmPackageFile> files,
+        IReadOnlyCollection<string> versionOverrides,
+        PdmDbContext dbContext,
+        CancellationToken cancellationToken)
+    {
+        Dictionary<long, long> overrideMap = new();
+        foreach (string overrideValue in versionOverrides)
+        {
+            string[] parts = overrideValue.Split(':', 2, StringSplitOptions.TrimEntries);
+            if (parts.Length != 2 ||
+                !long.TryParse(parts[0], out long sourceVersionId) ||
+                !long.TryParse(parts[1], out long selectedVersionId))
+            {
+                continue;
+            }
+
+            overrideMap[sourceVersionId] = selectedVersionId;
+        }
+
+        if (overrideMap.Count == 0)
+        {
+            return files;
+        }
+
+        long[] packageVersionIds = files
+            .Select(x => x.VersionId)
+            .Distinct()
+            .ToArray();
+
+        var packageDocuments = await dbContext.DocumentVersions
+            .AsNoTracking()
+            .Where(x => packageVersionIds.Contains(x.VersionId))
+            .Select(x => new
+            {
+                x.VersionId,
+                x.DocumentId
+            })
+            .ToDictionaryAsync(x => x.VersionId, x => x.DocumentId, cancellationToken);
+
+        long[] selectedVersionIds = overrideMap.Values
+            .Distinct()
+            .ToArray();
+
+        var selectedVersions = await dbContext.DocumentVersions
+            .AsNoTracking()
+            .Where(x => selectedVersionIds.Contains(x.VersionId))
+            .Select(x => new
+            {
+                x.VersionId,
+                x.DocumentId,
+                x.Document.DocumentType,
+                x.StorageFileId,
+                x.OriginalFileName,
+                x.SourceFilePath,
+                x.VaultRelativePath
+            })
+            .ToDictionaryAsync(x => x.VersionId, cancellationToken);
+
+        return files
+            .Select(file =>
+            {
+                if (!overrideMap.TryGetValue(file.VersionId, out long selectedVersionId) ||
+                    !packageDocuments.TryGetValue(file.VersionId, out long packageDocumentId) ||
+                    !selectedVersions.TryGetValue(selectedVersionId, out var selectedVersion) ||
+                    selectedVersion.DocumentId != packageDocumentId)
+                {
+                    return file;
+                }
+
+                return new PdmPackageFile(
+                    VersionId: selectedVersion.VersionId,
+                    DocumentType: selectedVersion.DocumentType,
+                    StorageFileId: selectedVersion.StorageFileId,
+                    OriginalFileName: selectedVersion.OriginalFileName,
+                    SourceFilePath: selectedVersion.SourceFilePath,
+                    VaultRelativePath: selectedVersion.VaultRelativePath,
+                    Depth: file.Depth);
+            })
+            .ToArray();
     }
 
     private static string SanitizeFileName(string fileName)

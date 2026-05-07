@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Loader2, Download, PackageOpen, Server, FileText, Archive, History } from 'lucide-react';
-import { api, searchDocuments, downloadAssemblyZip, downloadVersion, getVersionThumbnailUrl, undoCheckOutDocument } from '../lib/api';
+import { api, searchDocuments, downloadAssemblyZip, downloadVersion, getVersionThumbnailUrl, undoCheckOutDocument, checkAssemblyUpdates } from '../lib/api';
 import { BomTreeView } from '../components/BomTreeView';
 import { CheckOutModal } from '../components/CheckOutModal';
 import { CheckInModal } from '../components/CheckInModal';
+import { Modal } from '../components/ui';
 import { Lock, Unlock, LogOut, LogIn } from 'lucide-react';
 
 interface VersionThumbnailProps {
@@ -43,6 +44,9 @@ export default function Documents() {
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
   const [isCheckOutModalOpen, setIsCheckOutModalOpen] = useState(false);
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
+  const [packAndGoTarget, setPackAndGoTarget] = useState<number | null>(null);
+  const [packAndGoUpdates, setPackAndGoUpdates] = useState<any[]>([]);
+  const [packAndGoSelections, setPackAndGoSelections] = useState<Record<number, number>>({});
   const [detailTab, setDetailTab] = useState<'structure' | 'history'>('structure');
 
   const fetchDocuments = async (searchQuery: string = '') => {
@@ -80,6 +84,48 @@ export default function Documents() {
     } catch (error) {
       console.error('Failed to load document details', error);
     }
+  };
+
+  const handlePackAndGoClick = async (versionId: number) => {
+    try {
+      const result = await checkAssemblyUpdates(versionId);
+      if (result?.hasUpdates) {
+        const updates = Array.isArray(result.updates) ? result.updates : [];
+        const selections = updates.reduce((acc: Record<number, number>, item: any) => {
+          const defaultVersionId = item.currentVersionId ?? item.versions?.[0]?.versionId ?? item.sourceVersionId;
+          acc[item.sourceVersionId] = Number(defaultVersionId);
+          return acc;
+        }, {});
+
+        setPackAndGoTarget(versionId);
+        setPackAndGoUpdates(updates);
+        setPackAndGoSelections(selections);
+        return;
+      }
+
+      downloadAssemblyZip(versionId, false);
+    } catch (error) {
+      console.error('Failed to check package updates', error);
+      downloadAssemblyZip(versionId, false);
+    }
+  };
+
+  const closePackAndGoModal = () => {
+    setPackAndGoTarget(null);
+    setPackAndGoUpdates([]);
+    setPackAndGoSelections({});
+  };
+
+  const handlePackAndGoDownload = (mode: 'original' | 'selected') => {
+    if (packAndGoTarget) {
+      const overrides = mode === 'selected'
+        ? Object.entries(packAndGoSelections).map(([sourceVersionId, selectedVersionId]) => `${sourceVersionId}:${selectedVersionId}`)
+        : [];
+
+      downloadAssemblyZip(packAndGoTarget, false, overrides);
+    }
+
+    closePackAndGoModal();
   };
 
   const canPackAndGo = selectedDoc && ['Assembly', 'Drawing'].includes(selectedDoc.documentType);
@@ -297,7 +343,7 @@ export default function Documents() {
                           關聯結構預覽
                         </h4>
                         <button
-                          onClick={() => downloadAssemblyZip(selectedDoc.currentVersionId)}
+                          onClick={() => handlePackAndGoClick(selectedDoc.currentVersionId)}
                           className="text-xs flex items-center text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded transition-colors"
                         >
                           <Download size={12} className="mr-1" /> Pack & Go
@@ -375,7 +421,7 @@ export default function Documents() {
                                 </button>
                                 {canPackAndGo && (
                                   <button
-                                    onClick={() => downloadAssemblyZip(v.versionId)}
+                                    onClick={() => handlePackAndGoClick(v.versionId)}
                                     className="inline-flex h-8 w-8 items-center justify-center rounded border border-gray-700 bg-gray-800 text-gray-400 hover:border-[#D4AF37]/60 hover:text-[#D4AF37] transition-colors"
                                     title="Pack & Go"
                                     aria-label={`下載 Ver. ${v.versionNo} Pack & Go`}
@@ -417,6 +463,69 @@ export default function Documents() {
           setIsCheckInModalOpen(false);
         }}
       />
+      <Modal
+        isOpen={packAndGoTarget !== null}
+        onClose={closePackAndGoModal}
+        title="Pack & Go 版本選擇"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-300">
+            此組合件的關聯檔案已有其他系統版本。可維持原簽入版本，或逐項選擇要下載的既有版本。
+          </p>
+          <div className="space-y-3">
+            <button
+              onClick={() => handlePackAndGoDownload('original')}
+              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-left text-sm text-gray-200 transition-colors hover:border-[#D4AF37]/60 hover:bg-gray-700"
+            >
+              <span className="block font-medium text-white">1. 下載系統內原檔案</span>
+              <span className="mt-1 block text-xs text-gray-400">維持當初簽入版本</span>
+            </button>
+            <div className="rounded-lg border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-4">
+              <div className="mb-3">
+                <p className="text-sm font-medium text-white">2. 下載系統內的既有版本</p>
+                <p className="mt-1 text-xs text-gray-400">請為下列檔案選擇要放入 Pack & Go 的版本</p>
+              </div>
+
+              <div className="max-h-72 space-y-3 overflow-auto pr-1">
+                {packAndGoUpdates.map((item: any) => (
+                  <div key={item.sourceVersionId} className="rounded-md border border-gray-800 bg-gray-900/70 p-3">
+                    <div className="mb-2 min-w-0">
+                      <p className="truncate text-sm font-medium text-gray-100">{item.originalFileName}</p>
+                      <p className="mt-0.5 text-xs text-gray-500">
+                        原簽入：Ver. {item.packageVersionNo} / Rev. {item.packageRevisionLabel || '-'}
+                      </p>
+                    </div>
+                    <select
+                      value={packAndGoSelections[item.sourceVersionId] ?? item.sourceVersionId}
+                      onChange={(e) => setPackAndGoSelections((current) => ({
+                        ...current,
+                        [item.sourceVersionId]: Number(e.target.value)
+                      }))}
+                      className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#D4AF37]"
+                    >
+                      {(item.versions || []).map((version: any) => (
+                        <option key={version.versionId} value={version.versionId}>
+                          Ver. {version.versionNo} / Rev. {version.revisionLabel || '-'}
+                          {version.isCurrentVersion ? ' (目前最新版)' : ''}
+                          {version.isPackageVersion ? ' (原簽入)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={() => handlePackAndGoDownload('selected')}
+                className="mt-4 w-full rounded-lg border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-4 py-3 text-left text-sm text-gray-200 transition-colors hover:border-[#D4AF37] hover:bg-[#D4AF37]/20"
+              >
+                <span className="block font-medium text-white">下載所選版本</span>
+                <span className="mt-1 block text-xs text-gray-400">依照上方選擇組成 Pack & Go</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
