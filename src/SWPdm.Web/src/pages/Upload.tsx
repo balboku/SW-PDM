@@ -163,8 +163,9 @@ export default function UploadPage() {
       const serverLocalPath = await ensureUploadedFile();
 
       setStatus('processing');
-      const isAssembly = file.name.toLowerCase().endsWith('.sldasm');
-      const ingestRes = await ingestCad(serverLocalPath, isAssembly, userName);
+      const lowerFileName = file.name.toLowerCase();
+      const shouldIngestReferences = lowerFileName.endsWith('.sldasm') || lowerFileName.endsWith('.slddrw');
+      const ingestRes = await ingestCad(serverLocalPath, shouldIngestReferences, userName);
 
       setResult(ingestRes);
       setStatus('success');
@@ -269,7 +270,7 @@ export default function UploadPage() {
                 ) : (
                   <>
                     <div className="text-lg font-medium text-primary">拖曳 CAD 檔案到這裡，或點擊選擇</div>
-                    <p className="mt-1 text-sm text-gray-500">僅支援 .SLDPRT 與 .SLDASM</p>
+                    <p className="mt-1 text-sm text-gray-500">僅支援 .SLDPRT、.SLDASM、.SLDDRW</p>
                   </>
                 )}
               </label>

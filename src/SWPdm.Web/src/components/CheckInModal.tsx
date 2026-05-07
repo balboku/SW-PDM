@@ -50,8 +50,9 @@ export const CheckInModal: React.FC<CheckInModalProps> = ({
 
       // 2. 執行入庫 (Check-in)
       setStatus('processing');
-      const isAssembly = file.name.toLowerCase().endsWith('.sldasm');
-      await ingestCad(serverLocalPath, isAssembly, userName, changeReason);
+      const lowerFileName = file.name.toLowerCase();
+      const shouldIngestReferences = lowerFileName.endsWith('.sldasm') || lowerFileName.endsWith('.slddrw');
+      await ingestCad(serverLocalPath, shouldIngestReferences, userName, changeReason);
 
       setStatus('success');
       setTimeout(() => {

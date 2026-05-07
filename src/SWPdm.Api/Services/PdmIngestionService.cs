@@ -190,7 +190,7 @@ public sealed class PdmIngestionService
         if (isRoot && existingDocument == null)
         {
             bool partNumberAlreadyExists = await _dbContext.Documents
-                .AnyAsync(d => d.PartNumber == partNumber, cancellationToken);
+                .AnyAsync(d => d.DocumentType == documentType && d.PartNumber == partNumber, cancellationToken);
             if (partNumberAlreadyExists)
             {
                 throw new InvalidOperationException(
