@@ -354,6 +354,14 @@ export default function Documents() {
                                 <p className="mt-1 text-xs text-gray-400">
                                   {v.createdAt ? new Date(v.createdAt).toLocaleString() : '-'}
                                 </p>
+                                {v.changeReason && (
+                                  <div className="mt-2 rounded-md border border-gray-800 bg-gray-950/40 px-3 py-2">
+                                    <p className="text-[11px] font-medium text-gray-500">變更原因</p>
+                                    <p className="mt-1 whitespace-pre-wrap break-words text-xs text-gray-300">
+                                      {v.changeReason}
+                                    </p>
+                                  </div>
+                                )}
                               </div>
 
                               <div className="flex shrink-0 items-center gap-1.5">

@@ -5,4 +5,5 @@ public sealed record IngestCadFileRequest(
     string? DriveFolderId,
     bool IngestReferencedFiles,
     string[]? AdditionalSearchPaths,
-    string? UploadedBy = null);
+    string? UploadedBy = null,
+    string? ChangeReason = null);

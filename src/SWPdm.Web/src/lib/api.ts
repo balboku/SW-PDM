@@ -27,13 +27,15 @@ export const uploadTempFile = async (file: File) => {
 export const ingestCad = async (
   localFilePath: string,
   ingestReferencedFiles: boolean = true,
-  uploadedBy: string = 'User'
+  uploadedBy: string = 'User',
+  changeReason: string = ''
 ) => {
   const payload = {
     localFilePath,
     ingestReferencedFiles,
     additionalSearchPaths: [],
-    uploadedBy
+    uploadedBy,
+    changeReason
   };
 
   const response = await api.post('/api/ingest/cad', payload);

@@ -22,6 +22,7 @@ export const CheckInModal: React.FC<CheckInModalProps> = ({
   const [status, setStatus] = useState<'idle' | 'uploading' | 'processing' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [userName, setUserName] = useState('User');
+  const [changeReason, setChangeReason] = useState('');
 
   const handleFileSelected = (selectedFile: File | null) => {
     setFile(selectedFile);
@@ -50,7 +51,7 @@ export const CheckInModal: React.FC<CheckInModalProps> = ({
       // 2. 執行入庫 (Check-in)
       setStatus('processing');
       const isAssembly = file.name.toLowerCase().endsWith('.sldasm');
-      await ingestCad(serverLocalPath, isAssembly, userName);
+      await ingestCad(serverLocalPath, isAssembly, userName, changeReason);
 
       setStatus('success');
       setTimeout(() => {
@@ -68,6 +69,7 @@ export const CheckInModal: React.FC<CheckInModalProps> = ({
     setFile(null);
     setStatus('idle');
     setErrorMessage('');
+    setChangeReason('');
     onClose();
   };
 
@@ -91,6 +93,17 @@ export const CheckInModal: React.FC<CheckInModalProps> = ({
             value={userName} 
             onChange={(e) => setUserName(e.target.value)}
             className="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-gray-400 mb-1.5">變更原因</label>
+          <textarea
+            value={changeReason}
+            onChange={(e) => setChangeReason(e.target.value)}
+            rows={3}
+            className="w-full resize-none bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            placeholder="請輸入本次入庫的變更原因"
           />
         </div>
 

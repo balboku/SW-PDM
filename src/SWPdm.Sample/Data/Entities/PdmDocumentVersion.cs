@@ -10,6 +10,8 @@ public sealed class PdmDocumentVersion
 
     public string? RevisionLabel { get; set; }
 
+    public string? ChangeReason { get; set; }
+
     public string StorageFileId { get; set; } = string.Empty;
 
     public string? ThumbnailStorageId { get; set; }

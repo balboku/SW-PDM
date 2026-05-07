@@ -39,6 +39,7 @@ public sealed class PdmRepository : IPdmRepository
                 x.VersionId,
                 x.VersionNo,
                 x.RevisionLabel,
+                x.ChangeReason,
                 x.OriginalFileName,
                 x.StorageFileId,
                 x.CreatedAt))

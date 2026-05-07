@@ -80,6 +80,7 @@ public sealed class PdmIngestionService
             issues,
             true, // isRoot
             request.UploadedBy,
+            request.ChangeReason,
             cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
@@ -150,6 +151,7 @@ public sealed class PdmIngestionService
         ICollection<string> issues,
         bool isRoot,
         string? uploadedBy,
+        string? changeReason,
         CancellationToken cancellationToken)
     {
         string normalizedPath = Path.GetFullPath(filePath);
@@ -226,6 +228,7 @@ public sealed class PdmIngestionService
                         issues,
                         false, // not root
                         uploadedBy,
+                        changeReason,
                         cancellationToken);
 
                     childNodesByPath[childPath] = childNode;
@@ -323,6 +326,7 @@ public sealed class PdmIngestionService
             DocumentId = document.DocumentId,
             VersionNo = nextVersionNo,
             RevisionLabel = revision,
+            ChangeReason = string.IsNullOrWhiteSpace(changeReason) ? null : changeReason,
             StorageFileId = storageFileId,
             ThumbnailStorageId = thumbnailStorageId,
             OriginalFileName = originalFileName,
