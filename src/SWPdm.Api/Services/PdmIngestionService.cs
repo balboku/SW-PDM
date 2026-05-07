@@ -184,8 +184,14 @@ public sealed class PdmIngestionService
         
         if (existingDocument != null)
         {
+            _logger.LogWarning("Found existing document ID {DocumentId} for partNumber {PartNumber}. Checking checkout lock...", existingDocument.DocumentId, partNumber);
             EnsureCheckoutLockAllowsIngest(existingDocument, Path.GetFileName(normalizedPath), uploadedBy);
         }
+        else
+        {
+            _logger.LogWarning("No existing document found for partNumber {PartNumber} and type {DocumentType}.", partNumber, documentType);
+        }
+
 
         if (isRoot && existingDocument == null)
         {
@@ -644,8 +650,10 @@ public sealed class PdmIngestionService
     {
         if (string.IsNullOrWhiteSpace(document.CheckedOutBy))
         {
-            return;
+            throw new InvalidOperationException(
+                $"圖檔已存在系統中 (料號: {document.PartNumber})。為避免版本覆蓋與管理錯亂，請先執行『出庫 (Check-out)』後，再進行上傳更新。");
         }
+
 
         if (string.IsNullOrWhiteSpace(uploadedBy) ||
             !string.Equals(document.CheckedOutBy, uploadedBy, StringComparison.OrdinalIgnoreCase))
