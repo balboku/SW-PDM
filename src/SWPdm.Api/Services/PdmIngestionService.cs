@@ -456,6 +456,45 @@ public sealed class PdmIngestionService
 
         if (parseResult.DocumentType == SolidWorksDocumentKind.Assembly || parseResult.DocumentType == SolidWorksDocumentKind.Drawing)
         {
+            if (parseResult.DocumentType == SolidWorksDocumentKind.Drawing && parseResult.ReferencedFilePaths.Count == 0)
+            {
+                string? drawingPartNumber = ExtractProperty(parseResult, "PartNumber", "Number", "Part No", "PartNo", "品號");
+                if (!string.IsNullOrWhiteSpace(drawingPartNumber))
+                {
+                    PdmDocumentVersion? matchedModelVersion = await _dbContext.DocumentVersions
+                        .Where(x =>
+                            x.Document.PartNumber == drawingPartNumber &&
+                            x.Document.DocumentType != "Drawing" &&
+                            x.Document.CurrentVersionId == x.VersionId)
+                        .OrderByDescending(x => x.VersionNo)
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (matchedModelVersion is not null)
+                    {
+                        bomRows.Add(new PdmBomOccurrence
+                        {
+                            ParentVersionId = parentVersionId,
+                            ChildVersionId = matchedModelVersion.VersionId,
+                            OccurrencePath = $"1:part-number:{drawingPartNumber}",
+                            ParentConfigurationName = string.Empty,
+                            ChildConfigurationName = string.Empty,
+                            Quantity = 1m,
+                            FindNumber = null,
+                            SourceReferencePath = matchedModelVersion.SourceFilePath,
+                            PackageRelativePath = matchedModelVersion.OriginalFileName,
+                            ReferenceStatus = "Resolved",
+                            IsSuppressed = false,
+                            IsVirtual = false,
+                            CreatedAt = DateTimeOffset.UtcNow
+                        });
+                    }
+                    else
+                    {
+                        issues.Add($"Drawing reference fallback could not find a current model with PartNumber '{drawingPartNumber}'.");
+                    }
+                }
+            }
+
             for (int index = 0; index < parseResult.ReferencedFilePaths.Count; index++)
             {
                 string referencePath = Path.GetFullPath(parseResult.ReferencedFilePaths[index]);
