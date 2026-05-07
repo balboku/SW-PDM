@@ -5,9 +5,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
   <ItemGroup>
-    <ProjectReference Include="..\src\SWPdm.Sample\SWPdm.Sample.csproj" />
-    <ProjectReference Include="..\src\SWPdm.Api\SWPdm.Api.csproj" />
+    <Reference Include="SolidWorks.Interop.swdocumentmgr">
+      <HintPath>..\lib\SolidWorks.Interop.swdocumentmgr.dll</HintPath>
+      <EmbedInteropTypes>false</EmbedInteropTypes>
+    </Reference>
   </ItemGroup>
 </Project>

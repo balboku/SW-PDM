@@ -51,15 +51,7 @@ export const parseSolidWorksFile = async (
   return response.data;
 };
 
-export const getNumberingRules = async () => {
-  const response = await api.get('/api/settings/numbering-rules');
-  return response.data;
-};
 
-export const updateNumberingRule = async (documentType: string, pattern: string) => {
-  const response = await api.post('/api/settings/numbering-rules', { documentType, pattern });
-  return response.data;
-};
 
 export const getSystemStatus = async () => {
   const response = await api.get('/api/config/status');
