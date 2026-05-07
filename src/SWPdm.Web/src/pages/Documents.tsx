@@ -181,7 +181,7 @@ export default function Documents() {
                         {doc.documentType}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-400 text-center">{doc.revisionLabel}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-400 text-center">{doc.revisionLabel || '-'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {doc.checkedOutBy ? (
                         <span className="flex items-center gap-1 text-[10px] text-orange-400 bg-orange-400/10 px-1.5 py-0.5 rounded border border-orange-400/20">

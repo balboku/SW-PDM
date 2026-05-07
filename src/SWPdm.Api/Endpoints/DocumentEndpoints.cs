@@ -46,7 +46,18 @@ public static class DocumentEndpoints
                         d.FileName,
                         d.PartNumber,
                         d.DocumentType,
-                        d.RevisionLabel,
+                        RevisionLabel = d.CurrentVersion != null
+                            ? d.CurrentVersion.RevisionLabel
+                              ?? dbContext.CustomProperties
+                                  .Where(p =>
+                                      p.VersionId == d.CurrentVersion.VersionId &&
+                                      (p.PropertyName == "Revision" ||
+                                       p.PropertyName == "Rev" ||
+                                       p.PropertyName == "版次"))
+                                  .Select(p => p.PropertyValue)
+                                  .FirstOrDefault()
+                              ?? d.RevisionLabel
+                            : d.RevisionLabel,
                         d.Material,
                         CurrentVersionNo = d.CurrentVersion != null ? d.CurrentVersion.VersionNo : (int?)null,
                         CurrentVersionId = d.CurrentVersion != null ? d.CurrentVersion.VersionId : (long?)null,

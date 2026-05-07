@@ -200,7 +200,7 @@ public sealed class PdmIngestionService
 
         string? material = ExtractProperty(parseResult, "Material");
         string? designer = ExtractProperty(parseResult, "Designer", "DesignedBy", "Author");
-        string? revision = ExtractProperty(parseResult, "Revision", "Rev");
+        string? revision = ExtractProperty(parseResult, "Revision", "Rev", "版次");
 
         Dictionary<string, IngestedCadNode?> childNodesByPath = new(StringComparer.OrdinalIgnoreCase);
 
