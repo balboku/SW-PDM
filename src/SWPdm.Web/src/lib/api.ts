@@ -83,9 +83,9 @@ export const getVersionThumbnailUrl = (versionId: number) => {
   return `http://${API_HOST}:5000/api/versions/${versionId}/thumbnail`;
 };
 
-export const searchDocuments = async (query: string = '') => {
+export const searchDocuments = async (query: string = '', documentType: string = '', status: string = '') => {
   const response = await api.get('/api/documents/search', {
-    params: { query }
+    params: { query, documentType, status }
   });
   return response.data;
 };

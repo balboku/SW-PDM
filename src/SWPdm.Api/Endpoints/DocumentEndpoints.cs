@@ -21,6 +21,8 @@ public static class DocumentEndpoints
         // 階段 1：搜尋圖檔的 API
         app.MapGet("/api/documents/search", async (
             string? query,
+            string? documentType,
+            string? status,
             PdmDbContext dbContext,
             CancellationToken cancellationToken) =>
         {
@@ -36,6 +38,23 @@ public static class DocumentEndpoints
                     queryable = queryable.Where(d =>
                         EF.Functions.ILike(d.FileName, searchPattern) ||
                         (d.PartNumber != null && EF.Functions.ILike(d.PartNumber, searchPattern)));
+                }
+
+                if (!string.IsNullOrWhiteSpace(documentType) && documentType != "All")
+                {
+                    queryable = queryable.Where(d => d.DocumentType == documentType);
+                }
+
+                if (!string.IsNullOrWhiteSpace(status))
+                {
+                    if (status == "CheckedOut")
+                    {
+                        queryable = queryable.Where(d => d.CheckedOutBy != null);
+                    }
+                    else if (status == "Available")
+                    {
+                        queryable = queryable.Where(d => d.CheckedOutBy == null);
+                    }
                 }
 
                 var results = await queryable

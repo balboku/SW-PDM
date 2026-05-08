@@ -48,11 +48,13 @@ export default function Documents() {
   const [packAndGoUpdates, setPackAndGoUpdates] = useState<any[]>([]);
   const [packAndGoSelections, setPackAndGoSelections] = useState<Record<number, number>>({});
   const [detailTab, setDetailTab] = useState<'structure' | 'history'>('structure');
+  const [selectedType, setSelectedType] = useState('All');
+  const [selectedStatus, setSelectedStatus] = useState('All');
 
-  const fetchDocuments = async (searchQuery: string = '') => {
+  const fetchDocuments = async (searchQuery: string = query, type: string = selectedType, status: string = selectedStatus) => {
     setIsLoading(true);
     try {
-      const data = await searchDocuments(searchQuery);
+      const data = await searchDocuments(searchQuery, type, status);
       setDocuments(data);
     } catch (error) {
       console.error('Failed to search documents', error);
@@ -67,7 +69,7 @@ export default function Documents() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchDocuments(query);
+    fetchDocuments(query, selectedType, selectedStatus);
   };
 
   const handleSelectDocument = async (doc: any) => {
@@ -162,6 +164,34 @@ export default function Documents() {
                   className="block w-full pl-10 pr-3 py-2 border border-gray-700 rounded-lg leading-5 bg-gray-800/50 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] sm:text-sm transition-all"
                 />
               </div>
+
+              <select
+                value={selectedType}
+                onChange={(e) => {
+                  setSelectedType(e.target.value);
+                  fetchDocuments(query, e.target.value, selectedStatus);
+                }}
+                className="bg-gray-800/50 text-gray-200 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#D4AF37]"
+              >
+                <option value="All">所有類型</option>
+                <option value="Part">零件 (Part)</option>
+                <option value="Assembly">組合件 (Asm)</option>
+                <option value="Drawing">工程圖 (Drw)</option>
+              </select>
+
+              <select
+                value={selectedStatus}
+                onChange={(e) => {
+                  setSelectedStatus(e.target.value);
+                  fetchDocuments(query, selectedType, e.target.value);
+                }}
+                className="bg-gray-800/50 text-gray-200 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#D4AF37]"
+              >
+                <option value="All">所有狀態</option>
+                <option value="Available">可用 (Available)</option>
+                <option value="CheckedOut">已出庫 (Locked)</option>
+              </select>
+
               <button
                 type="submit"
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-[#D4AF37] hover:bg-[#c2a033] shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-[#D4AF37] disabled:opacity-50"
@@ -501,7 +531,7 @@ export default function Documents() {
                         ...current,
                         [item.sourceVersionId]: Number(e.target.value)
                       }))}
-                      className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#D4AF37]"
+                      className="w-full rounded-md border border-gray-800 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#D4AF37]"
                     >
                       {(item.versions || []).map((version: any) => (
                         <option key={version.versionId} value={version.versionId}>
