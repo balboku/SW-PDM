@@ -182,6 +182,23 @@ public sealed class PdmIngestionService
         // 防呆檢查：建立新文件時，確保 PartNumber 尚未被使用
         PdmDocument? existingDocument = await FindDocumentForIngestAsync(documentType, partNumber, normalizedPath, cancellationToken);
         
+        string? revision = ExtractProperty(parseResult, "Revision", "Rev", "版次");
+
+        // 業務邏輯：同料號且同版次則拒絕存檔 (優先於出庫鎖定檢查)
+        if (existingDocument != null && !string.IsNullOrWhiteSpace(revision))
+        {
+            bool isSameRevision = string.Equals(
+                revision.Trim(), 
+                existingDocument.RevisionLabel?.Trim(), 
+                StringComparison.OrdinalIgnoreCase);
+
+            if (isSameRevision)
+            {
+                throw new InvalidOperationException(
+                    $"入庫失敗：上傳的檔案版次 ({revision}) 與系統現有版次相同。若要更新圖檔內容，請先於 SolidWorks 中變更版次屬性後再上傳。");
+            }
+        }
+
         if (existingDocument != null)
         {
             _logger.LogWarning("Found existing document ID {DocumentId} for partNumber {PartNumber}. Checking checkout lock...", existingDocument.DocumentId, partNumber);
@@ -206,7 +223,6 @@ public sealed class PdmIngestionService
 
         string? material = ExtractProperty(parseResult, "Material");
         string? designer = ExtractProperty(parseResult, "Designer", "DesignedBy", "Author");
-        string? revision = ExtractProperty(parseResult, "Revision", "Rev", "版次");
 
         Dictionary<string, IngestedCadNode?> childNodesByPath = new(StringComparer.OrdinalIgnoreCase);
 
