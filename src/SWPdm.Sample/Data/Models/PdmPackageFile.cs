@@ -1,6 +1,7 @@
 namespace SWPdm.Sample.Data.Models;
 
 public sealed record PdmPackageFile(
+    long DocumentId,
     long VersionId,
     string DocumentType,
     string? StorageFileId,

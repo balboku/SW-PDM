@@ -26,7 +26,8 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
 
   const relatedFiles = [
     ...(data?.whereUsed ?? []),
-    ...(data?.references ?? [])
+    ...(data?.references ?? []),
+    ...(data?.drawings ?? [])
   ];
   const normalizedUserName = userName.trim().toLowerCase();
   const blockingLocks = relatedFiles.filter((file: any) => (
@@ -140,13 +141,34 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
             </h4>
             
             <div className="max-h-60 overflow-y-auto border border-gray-800 rounded-md bg-gray-900/50">
-              {data?.whereUsed?.length === 0 && data?.references?.length === 0 ? (
+              {data?.whereUsed?.length === 0 && data?.references?.length === 0 && data?.drawings?.length === 0 ? (
                 <div className="p-4 text-center text-gray-500 text-sm italic">
                   沒有找到相關聯的檔案
                 </div>
               ) : (
                 <ul className="divide-y divide-gray-800">
-                  {/* Where-Used (Drawings / Parents) */}
+                  {/* Related Drawings */}
+                  {data?.drawings?.map((file: any) => (
+                    <li key={file.versionId} className={`p-3 flex items-center gap-3 transition-colors ${
+                      file.checkedOutBy && file.checkedOutBy.trim().toLowerCase() !== normalizedUserName
+                        ? 'bg-red-950/20 hover:bg-red-950/30'
+                        : 'hover:bg-gray-800/50'
+                    }`}>
+                      <div className="text-pink-500">
+                        <FileText size={18} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-200 truncate font-medium">{file.originalFileName}</p>
+                        <p className="text-[11px] text-gray-500">{file.documentType} • 關聯圖面</p>
+                      </div>
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        <span className="text-[10px] bg-pink-900/20 text-pink-500 px-1.5 py-0.5 rounded border border-pink-900/30">強制關聯</span>
+                        {renderCheckoutStatus(file)}
+                      </div>
+                    </li>
+                  ))}
+
+                  {/* Where-Used (Parents) */}
                   {data?.whereUsed?.map((file: any) => (
                     <li key={file.versionId} className={`p-3 flex items-center gap-3 transition-colors ${
                       file.checkedOutBy && file.checkedOutBy.trim().toLowerCase() !== normalizedUserName

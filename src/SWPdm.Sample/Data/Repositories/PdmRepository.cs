@@ -251,13 +251,14 @@ public sealed class PdmRepository : IPdmRepository
         while (await reader.ReadAsync(cancellationToken))
         {
             result.Add(new PdmPackageFile(
-                VersionId: reader.GetInt64(0),
-                DocumentType: reader.GetString(1),
-                StorageFileId: reader.IsDBNull(2) ? null : reader.GetString(2),
-                OriginalFileName: reader.GetString(3),
-                SourceFilePath: reader.IsDBNull(4) ? null : reader.GetString(4),
-                VaultRelativePath: reader.IsDBNull(5) ? null : reader.GetString(5),
-                Depth: reader.GetInt32(6)));
+                DocumentId: reader.GetInt64(0),
+                VersionId: reader.GetInt64(1),
+                DocumentType: reader.GetString(2),
+                StorageFileId: reader.IsDBNull(3) ? null : reader.GetString(3),
+                OriginalFileName: reader.GetString(4),
+                SourceFilePath: reader.IsDBNull(5) ? null : reader.GetString(5),
+                VaultRelativePath: reader.IsDBNull(6) ? null : reader.GetString(6),
+                Depth: reader.GetInt32(7)));
         }
 
         return result;
@@ -288,13 +289,14 @@ public sealed class PdmRepository : IPdmRepository
         while (await reader.ReadAsync(cancellationToken))
         {
             result.Add(new PdmPackageFile(
-                VersionId: reader.GetInt64(0),
-                DocumentType: reader.GetString(1),
-                StorageFileId: reader.IsDBNull(2) ? null : reader.GetString(2),
-                OriginalFileName: reader.GetString(3),
-                SourceFilePath: reader.IsDBNull(4) ? null : reader.GetString(4),
-                VaultRelativePath: reader.IsDBNull(5) ? null : reader.GetString(5),
-                Depth: reader.GetInt32(6)));
+                DocumentId: reader.GetInt64(0),
+                VersionId: reader.GetInt64(1),
+                DocumentType: reader.GetString(2),
+                StorageFileId: reader.IsDBNull(3) ? null : reader.GetString(3),
+                OriginalFileName: reader.GetString(4),
+                SourceFilePath: reader.IsDBNull(5) ? null : reader.GetString(5),
+                VaultRelativePath: reader.IsDBNull(6) ? null : reader.GetString(6),
+                Depth: reader.GetInt32(7)));
         }
 
         return result;
@@ -348,7 +350,7 @@ public sealed class PdmRepository : IPdmRepository
                     GROUP BY version_id
                 )
                 SELECT
-                    md.version_id,
+                    d.document_id, md.version_id,
                     d.document_type,
                     v.storage_file_id,
                     v.original_file_name,
@@ -408,7 +410,7 @@ public sealed class PdmRepository : IPdmRepository
                     GROUP BY version_id
                 )
                 SELECT
-                    md.version_id,
+                    d.document_id, md.version_id,
                     d.document_type,
                     v.storage_file_id,
                     v.original_file_name,
@@ -466,7 +468,7 @@ public sealed class PdmRepository : IPdmRepository
                 GROUP BY version_id
             )
             SELECT
-                md.version_id,
+                d.document_id, md.version_id,
                 d.document_type,
                 v.storage_file_id,
                 v.original_file_name,
@@ -527,7 +529,7 @@ public sealed class PdmRepository : IPdmRepository
                     GROUP BY version_id
                 )
                 SELECT
-                    md.version_id,
+                    d.document_id, md.version_id,
                     d.document_type,
                     v.storage_file_id,
                     v.original_file_name,
@@ -585,7 +587,7 @@ public sealed class PdmRepository : IPdmRepository
                     GROUP BY version_id
                 )
                 SELECT
-                    md.version_id,
+                    d.document_id, md.version_id,
                     d.document_type,
                     v.storage_file_id,
                     v.original_file_name,
@@ -641,7 +643,7 @@ public sealed class PdmRepository : IPdmRepository
                 GROUP BY version_id
             )
             SELECT
-                md.version_id,
+                d.document_id, md.version_id,
                 d.document_type,
                 v.storage_file_id,
                 v.original_file_name,

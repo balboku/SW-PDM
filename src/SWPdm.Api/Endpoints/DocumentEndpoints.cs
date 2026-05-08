@@ -10,6 +10,7 @@ using SWPdm.Sample.Data.Models;
 using SWPdm.Sample.Data.Repositories;
 using SWPdm.Sample.Data.Entities;
 using SWPdm.Sample.Services;
+using Microsoft.Extensions.Logging;
 
 namespace SWPdm.Api.Endpoints;
 
@@ -484,22 +485,28 @@ public static class DocumentEndpoints
                 var children = await repository.GetPackageClosureAsync(document.CurrentVersionId.Value, cancellationToken);
 
                 // 2. 取得所有子項目關聯的工程圖 (Drawings)
-                var childVersionIds = children.Select(x => x.VersionId).ToList();
-                _logger.LogInformation("Checking drawings for {Count} child versions: {Ids}", childVersionIds.Count, string.Join(", ", childVersionIds));
+                var childDocIds = children.Select(x => x.DocumentId).Distinct().ToList();
+                var childFilenames = children.Select(x => x.OriginalFileName.ToLower()).ToList();
+                
+                _logger.LogInformation("Checking drawings for {Count} child documents", childDocIds.Count);
 
-                // A. 透過已建立的連結 (ChildVersionId) 找工程圖
+                // A. 透過「文件 ID」找工程圖 (不論參考哪一個版本)
                 var drawingIdsFromLinks = await dbContext.BomOccurrences
-                    .Where(bom => bom.ChildVersionId.HasValue && childVersionIds.Contains(bom.ChildVersionId.Value))
+                    .Where(bom => bom.ChildVersionId.HasValue)
                     .Join(dbContext.DocumentVersions,
-                          bom => bom.ParentVersionId,
-                          v => v.VersionId,
-                          (bom, v) => new { v.VersionId, v.Document.DocumentType })
+                          bom => bom.ChildVersionId!.Value,
+                          cv => cv.VersionId,
+                          (bom, cv) => new { bom.ParentVersionId, cv.DocumentId })
+                    .Where(x => childDocIds.Contains(x.DocumentId))
+                    .Join(dbContext.DocumentVersions,
+                          x => x.ParentVersionId,
+                          pv => pv.VersionId,
+                          (x, pv) => new { pv.VersionId, pv.Document.DocumentType })
                     .Where(x => x.DocumentType == "Drawing")
                     .Select(x => x.VersionId)
                     .ToListAsync(cancellationToken);
 
                 // B. 透過檔名匹配 (Fallback for Missing links)
-                var childFilenames = children.Select(x => x.OriginalFileName.ToLower()).ToList();
                 var drawingsMissingLinks = await dbContext.BomOccurrences
                     .Where(bom => bom.ChildVersionId == null)
                     .Join(dbContext.DocumentVersions,
@@ -520,11 +527,12 @@ public static class DocumentEndpoints
                     .Distinct()
                     .ToList();
 
-                _logger.LogInformation("Found {Count} related drawings: {Ids}", relatedDrawingVersionIds.Count, string.Join(", ", relatedDrawingVersionIds));
+                _logger.LogInformation("Found {Count} related drawings", relatedDrawingVersionIds.Count);
 
                 var drawingFiles = await dbContext.DocumentVersions
                     .Where(v => relatedDrawingVersionIds.Contains(v.VersionId))
                     .Select(v => new PdmPackageFile(
+                        v.DocumentId,
                         v.VersionId,
                         v.Document.DocumentType,
                         v.StorageFileId,
@@ -629,23 +637,29 @@ public static class DocumentEndpoints
                     // 1. 取得所有子項目 (Recursive Children)
                     var children = await repository.GetPackageClosureAsync(document.CurrentVersionId.Value, cancellationToken);
 
-                    // 2. 精準反查子項目的工程圖 (Drawings)
-                    var childVersionIds = children.Select(x => x.VersionId).ToList();
-                    _logger.LogInformation("Checking drawings for {Count} child versions during checkout...", childVersionIds.Count);
+                    // 2. 取得所有子項目關聯的工程圖 (Drawings)
+                    var childDocIds = children.Select(x => x.DocumentId).Distinct().ToList();
+                    var childFilenames = children.Select(x => x.OriginalFileName.ToLower()).ToList();
+                    
+                    _logger.LogInformation("Checking drawings for {Count} child documents during checkout", childDocIds.Count);
 
-                    // A. 透過已建立的連結找工程圖
+                    // A. 透過「文件 ID」找工程圖 (不論參考哪一個版本)
                     var drawingIdsFromLinks = await dbContext.BomOccurrences
-                        .Where(bom => bom.ChildVersionId.HasValue && childVersionIds.Contains(bom.ChildVersionId.Value))
+                        .Where(bom => bom.ChildVersionId.HasValue)
                         .Join(dbContext.DocumentVersions,
-                              bom => bom.ParentVersionId,
-                              v => v.VersionId,
-                              (bom, v) => new { v.VersionId, v.Document.DocumentType })
+                              bom => bom.ChildVersionId!.Value,
+                              cv => cv.VersionId,
+                              (bom, cv) => new { bom.ParentVersionId, cv.DocumentId })
+                        .Where(x => childDocIds.Contains(x.DocumentId))
+                        .Join(dbContext.DocumentVersions,
+                              x => x.ParentVersionId,
+                              pv => pv.VersionId,
+                              (x, pv) => new { pv.VersionId, pv.Document.DocumentType })
                         .Where(x => x.DocumentType == "Drawing")
                         .Select(x => x.VersionId)
                         .ToListAsync(cancellationToken);
 
-                    // B. 透過檔名匹配 (Fallback)
-                    var childFilenames = children.Select(x => x.OriginalFileName.ToLower()).ToList();
+                    // B. 透過檔名匹配 (Fallback for Missing links)
                     var drawingsMissingLinks = await dbContext.BomOccurrences
                         .Where(bom => bom.ChildVersionId == null)
                         .Join(dbContext.DocumentVersions,
@@ -666,7 +680,7 @@ public static class DocumentEndpoints
                         .Distinct()
                         .ToList();
 
-                    _logger.LogInformation("Found {Count} related drawings during checkout.", relatedDrawingVersionIds.Count);
+                    _logger.LogInformation("Found {Count} related drawings during checkout", relatedDrawingVersionIds.Count);
 
                     // 3. 重組鎖定清單：合併 Children 與 Drawings，但排除 Parents 以防止鎖定擴散
                     var relationVersionIds = children
@@ -857,6 +871,7 @@ public static class DocumentEndpoints
             .Where(x => currentVersionIds.Contains(x.VersionId))
             .Select(x => new
             {
+                x.DocumentId,
                 x.VersionId,
                 x.Document.DocumentType,
                 x.StorageFileId,
@@ -876,6 +891,7 @@ public static class DocumentEndpoints
                 }
 
                 return new PdmPackageFile(
+                    DocumentId: currentVersion.DocumentId,
                     VersionId: currentVersion.VersionId,
                     DocumentType: currentVersion.DocumentType,
                     StorageFileId: currentVersion.StorageFileId,
@@ -958,6 +974,7 @@ public static class DocumentEndpoints
                 }
 
                 return new PdmPackageFile(
+                    DocumentId: selectedVersion.DocumentId,
                     VersionId: selectedVersion.VersionId,
                     DocumentType: selectedVersion.DocumentType,
                     StorageFileId: selectedVersion.StorageFileId,
