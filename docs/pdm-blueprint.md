@@ -54,10 +54,12 @@ The API host currently exposes:
 - `GET /api/database/status`
 - `POST /api/database/migrate`
 - `GET /api/documents/{documentId}`
+- `GET /api/documents/{documentId}/relations`
 - `GET /api/versions/{versionId}`
 - `GET /api/versions/{versionId}/children`
 - `GET /api/assemblies/{rootVersionId}/package-closure`
 - `POST /api/ingest/cad`
+- `POST /api/ingest/cad-batch`
 - `POST /api/drive/upload`
 - `POST /api/drive/download`
 - `POST /api/solidworks/parse`
@@ -100,6 +102,28 @@ The migration tooling uses `src/SWPdm.DbTool/` as the startup project to avoid d
 5. insert `pdm_document_versions`
 6. persist `pdm_custom_properties`
 7. persist assembly `pdm_bom_occurrences`
+
+When `targetDocumentId` is supplied for Check-in, the backend also verifies
+that the parsed `PartNumber` and document type match that exact document before
+writing a version. File names remain version metadata and may change between
+revisions.
+
+If a checked-out CAD file intentionally changes `PartNumber`, the normal
+Check-in still returns `409 CAD_IDENTITY_MISMATCH` and never overwrites the
+original document. The client may then explicitly retry with
+`createNewDocumentForPartNumberChange: true`. That branch is accepted only when
+the caller owns the checkout, the document type is unchanged, a non-empty
+change reason is supplied, and the new part number is unused for that document
+type. A single transaction creates a new WIP document at version 1, writes its
+origin to `pdm_document_identity_changes`, and releases the source checkout.
+Existing source versions, lifecycle state, references, and BOM rows are not
+rewritten. The branch does not recursively ingest referenced CAD files; its new
+version only resolves references that can already be identified in the vault.
+
+`POST /api/ingest/cad-batch` accepts a multipart batch of up to 200 CAD files
+and 1 GiB. It preserves safe relative paths in a temporary staging directory,
+processes parts before assemblies and drawings, isolates each file in its own
+database transaction, and returns per-file success or failure details.
 
 Example request body:
 

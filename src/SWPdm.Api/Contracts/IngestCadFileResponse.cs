@@ -7,4 +7,5 @@ public sealed record IngestCadFileResponse(
     string RootStorageFileId,
     int ProcessedFileCount,
     IReadOnlyList<IngestedFileResponse> Files,
-    IReadOnlyList<string> Issues);
+    IReadOnlyList<string> Issues,
+    PartNumberChangeResponse? PartNumberChange = null);

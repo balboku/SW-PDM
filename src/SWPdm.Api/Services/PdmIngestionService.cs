@@ -79,9 +79,29 @@ public sealed class PdmIngestionService
             cache,
             issues,
             true, // isRoot
+            request.TargetDocumentId,
+            request.CreateNewDocumentForPartNumberChange,
             request.UploadedBy,
             request.ChangeReason,
             cancellationToken);
+
+        PartNumberChangeResponse? partNumberChange = null;
+        if (request.CreateNewDocumentForPartNumberChange)
+        {
+            PdmDocumentIdentityChange identityChange = await _dbContext.DocumentIdentityChanges
+                .AsNoTracking()
+                .SingleAsync(x => x.TargetDocumentId == root.DocumentId, cancellationToken);
+            partNumberChange = new PartNumberChangeResponse(
+                identityChange.IdentityChangeId,
+                identityChange.SourceDocumentId,
+                identityChange.SourceVersionId,
+                identityChange.TargetDocumentId,
+                identityChange.OldPartNumber,
+                identityChange.NewPartNumber,
+                identityChange.ChangeReason,
+                identityChange.ChangedBy,
+                identityChange.CreatedAt);
+        }
 
         await transaction.CommitAsync(cancellationToken);
 
@@ -98,8 +118,11 @@ public sealed class PdmIngestionService
                 VersionNo: x.VersionNo))
             .ToArray();
 
-        // 自動修復：檢查系統中是否有原本「遺失」的 BOM 關聯現在可以被連結了
-        await HealMissingLinksAsync(cancellationToken);
+        // 品號分支不得回寫既有歷史 BOM；一般入庫才沿用既有 missing-link 修復行為。
+        if (!request.CreateNewDocumentForPartNumberChange)
+        {
+            await HealMissingLinksAsync(cancellationToken);
+        }
 
         return new IngestCadFileResponse(
             RootDocumentId: root.DocumentId,
@@ -108,7 +131,8 @@ public sealed class PdmIngestionService
             RootStorageFileId: root.StorageFileId,
             ProcessedFileCount: files.Count,
             Files: files,
-            Issues: issues);
+            Issues: issues,
+            PartNumberChange: partNumberChange);
     }
 
     private async Task HealMissingLinksAsync(CancellationToken cancellationToken)
@@ -150,6 +174,8 @@ public sealed class PdmIngestionService
         IDictionary<string, IngestedCadNode> cache,
         ICollection<string> issues,
         bool isRoot,
+        long? targetDocumentId,
+        bool createNewDocumentForPartNumberChange,
         string? uploadedBy,
         string? changeReason,
         CancellationToken cancellationToken)
@@ -179,8 +205,153 @@ public sealed class PdmIngestionService
                 $"解析失敗：CAD 檔案內部未設定 PartNumber 或 品號 屬性，請在 SolidWorks 填寫後再上傳。(檔案：{Path.GetFileName(normalizedPath)})");
         }
 
-        // 防呆檢查：建立新文件時，確保 PartNumber 尚未被使用
-        PdmDocument? existingDocument = await FindDocumentForIngestAsync(documentType, partNumber, normalizedPath, cancellationToken);
+        partNumber = partNumber.Trim();
+
+        PdmDocument? existingDocument;
+        PdmDocument? identityChangeSource = null;
+        long? identityChangeSourceVersionId = null;
+        if (isRoot && targetDocumentId.HasValue)
+        {
+            PdmDocument? targetDocument = await _dbContext.Documents
+                .SingleOrDefaultAsync(
+                    x => x.DocumentId == targetDocumentId.Value,
+                    cancellationToken);
+
+            if (targetDocument is null)
+            {
+                throw new ArgumentException(
+                    $"找不到目標文件 ID {targetDocumentId.Value}，請重新整理圖檔中心後再試。",
+                    nameof(targetDocumentId));
+            }
+
+            bool partNumberMatches = string.Equals(
+                targetDocument.PartNumber?.Trim(),
+                partNumber,
+                StringComparison.OrdinalIgnoreCase);
+            bool documentTypeMatches = string.Equals(
+                targetDocument.DocumentType,
+                documentType,
+                StringComparison.OrdinalIgnoreCase);
+
+            if (!createNewDocumentForPartNumberChange)
+            {
+                if (!partNumberMatches || !documentTypeMatches)
+                {
+                    bool canCreateNewDocument = documentTypeMatches && !partNumberMatches;
+                    string? blockReason = null;
+
+                    if (canCreateNewDocument && string.IsNullOrWhiteSpace(targetDocument.PartNumber))
+                    {
+                        canCreateNewDocument = false;
+                        blockReason = "原文件沒有有效品號，不能建立可追溯的新品號文件。";
+                    }
+                    else if (canCreateNewDocument && await PartNumberExistsAsync(documentType, partNumber, cancellationToken))
+                    {
+                        canCreateNewDocument = false;
+                        blockReason = $"新品號 {partNumber} 已被同類型文件使用，不能建立重複文件。";
+                    }
+                    else if (canCreateNewDocument && !targetDocument.CurrentVersionId.HasValue)
+                    {
+                        canCreateNewDocument = false;
+                        blockReason = "原文件沒有目前版本，不能建立可追溯的新品號文件。";
+                    }
+                    else if (canCreateNewDocument &&
+                             (string.IsNullOrWhiteSpace(targetDocument.CheckedOutBy) ||
+                              string.IsNullOrWhiteSpace(uploadedBy) ||
+                              !string.Equals(targetDocument.CheckedOutBy, uploadedBy, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        canCreateNewDocument = false;
+                        blockReason = "只有原文件的出庫持有人可以建立新品號文件。";
+                    }
+                    else if (canCreateNewDocument && targetDocument.CheckedOutAt is null)
+                    {
+                        canCreateNewDocument = false;
+                        blockReason = "原文件的出庫鎖缺少有效時間，請復原後重新出庫。";
+                    }
+
+                    throw new PdmIngestIdentityMismatchException(
+                        targetDocument.DocumentId,
+                        targetDocument.PartNumber,
+                        targetDocument.DocumentType,
+                        partNumber,
+                        documentType,
+                        canCreateNewDocument,
+                        blockReason);
+                }
+
+                existingDocument = targetDocument;
+            }
+            else
+            {
+                if (!documentTypeMatches)
+                {
+                    throw new PdmIngestIdentityMismatchException(
+                        targetDocument.DocumentId,
+                        targetDocument.PartNumber,
+                        targetDocument.DocumentType,
+                        partNumber,
+                        documentType,
+                        false,
+                        "文件類型不同，不能使用品號分支。");
+                }
+
+                if (partNumberMatches)
+                {
+                    throw new PdmPartNumberChangeConflictException(
+                        "目前檔案品號與原文件相同，請使用一般 Check-in 建立新版次。");
+                }
+
+                if (string.IsNullOrWhiteSpace(targetDocument.PartNumber))
+                {
+                    throw new PdmPartNumberChangeConflictException(
+                        "原文件沒有有效品號，不能使用新品號分支；請先走受控的品號更正流程。");
+                }
+
+                if (string.IsNullOrWhiteSpace(changeReason))
+                {
+                    throw new ArgumentException(
+                        "另存為新料號時必須填寫變更原因。",
+                        nameof(changeReason));
+                }
+
+                EnsureCheckoutLockAllowsIngest(
+                    targetDocument,
+                    Path.GetFileName(normalizedPath),
+                    uploadedBy);
+
+                if (!targetDocument.CurrentVersionId.HasValue)
+                {
+                    throw new PdmPartNumberChangeConflictException(
+                        "原文件沒有目前版本，無法建立可追溯的新品號文件。");
+                }
+
+                if (await PartNumberExistsAsync(documentType, partNumber, cancellationToken))
+                {
+                    throw new PdmPartNumberChangeConflictException(
+                        $"新品號 {partNumber} 已被同類型文件使用，請重新確認 CAD 品號。");
+                }
+
+                identityChangeSource = targetDocument;
+                identityChangeSourceVersionId = targetDocument.CurrentVersionId.Value;
+                existingDocument = null;
+            }
+        }
+        else
+        {
+            if (createNewDocumentForPartNumberChange)
+            {
+                throw new ArgumentException(
+                    "另存為新料號必須指定來源文件 ID。",
+                    nameof(targetDocumentId));
+            }
+
+            // 一般入庫仍以 CAD 內部品號與類型辨識文件；檔名只作為版本中繼資料。
+            existingDocument = await FindDocumentForIngestAsync(
+                documentType,
+                partNumber,
+                normalizedPath,
+                cancellationToken);
+        }
         
         string? revision = ExtractProperty(parseResult, "Revision", "Rev", "版次");
 
@@ -212,11 +383,13 @@ public sealed class PdmIngestionService
 
         if (isRoot && existingDocument == null)
         {
-            bool partNumberAlreadyExists = await _dbContext.Documents
-                .AnyAsync(d => d.DocumentType == documentType && d.PartNumber == partNumber, cancellationToken);
+            bool partNumberAlreadyExists = await PartNumberExistsAsync(
+                documentType,
+                partNumber,
+                cancellationToken);
             if (partNumberAlreadyExists)
             {
-                throw new InvalidOperationException(
+                throw new PdmPartNumberChangeConflictException(
                     $"入庫失敗：系統中已存在料號為 {partNumber} 的圖檔，無法重複建立。");
             }
         }
@@ -226,7 +399,9 @@ public sealed class PdmIngestionService
 
         Dictionary<string, IngestedCadNode?> childNodesByPath = new(StringComparer.OrdinalIgnoreCase);
 
-        if (ingestReferencedFiles && (parseResult.DocumentType == SolidWorksDocumentKind.Assembly || parseResult.DocumentType == SolidWorksDocumentKind.Drawing))
+        if (ingestReferencedFiles &&
+            !createNewDocumentForPartNumberChange &&
+            (parseResult.DocumentType == SolidWorksDocumentKind.Assembly || parseResult.DocumentType == SolidWorksDocumentKind.Drawing))
         {
             foreach (string referencedPath in parseResult.ReferencedFilePaths)
             {
@@ -249,6 +424,8 @@ public sealed class PdmIngestionService
                         cache,
                         issues,
                         false, // not root
+                        null, // referenced files are matched by their own CAD identity
+                        false, // referenced files never inherit the root identity-change action
                         uploadedBy,
                         changeReason,
                         cancellationToken);
@@ -371,6 +548,27 @@ public sealed class PdmIngestionService
         await ReplaceCustomPropertiesAsync(version.VersionId, parseResult, cancellationToken);
         await ReplaceBomRowsAsync(version.VersionId, parseResult, childNodesByPath, issues, cancellationToken);
 
+        if (identityChangeSource is not null && identityChangeSourceVersionId.HasValue)
+        {
+            PdmDocumentIdentityChange identityChange = new()
+            {
+                SourceDocumentId = identityChangeSource.DocumentId,
+                SourceVersionId = identityChangeSourceVersionId.Value,
+                TargetDocumentId = document.DocumentId,
+                OldPartNumber = identityChangeSource.PartNumber!.Trim(),
+                NewPartNumber = partNumber,
+                ChangeReason = changeReason!.Trim(),
+                ChangedBy = uploadedBy!.Trim(),
+                CreatedAt = DateTimeOffset.UtcNow
+            };
+            _dbContext.DocumentIdentityChanges.Add(identityChange);
+
+            // 分支完全成功後才解除原文件鎖；例外會由外層交易回滾並保留原鎖。
+            identityChangeSource.CheckedOutBy = null;
+            identityChangeSource.CheckedOutAt = null;
+            identityChangeSource.UpdatedAt = DateTimeOffset.UtcNow;
+        }
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         IngestedCadNode result = new(
@@ -418,6 +616,19 @@ public sealed class PdmIngestionService
             .OrderByDescending(x => x.VersionNo)
             .Select(x => x.Document)
             .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    private Task<bool> PartNumberExistsAsync(
+        string documentType,
+        string partNumber,
+        CancellationToken cancellationToken)
+    {
+        string normalizedPartNumber = partNumber.Trim().ToUpperInvariant();
+        return _dbContext.Documents.AnyAsync(
+            x => x.DocumentType == documentType &&
+                 x.PartNumber != null &&
+                 x.PartNumber.Trim().ToUpper() == normalizedPartNumber,
+            cancellationToken);
     }
 
     private async Task ReplaceCustomPropertiesAsync(
@@ -695,7 +906,9 @@ public sealed class PdmIngestionService
     private static bool IsRecoverableReferenceIngestException(Exception ex)
     {
         return ex is FileNotFoundException or NotSupportedException
-            || ex is InvalidOperationException and not PdmCheckoutConflictException;
+            || ex is InvalidOperationException
+                and not PdmCheckoutConflictException
+                and not PdmIngestIdentityMismatchException;
     }
 
     private static void EnsureSupportedExtension(string filePath)

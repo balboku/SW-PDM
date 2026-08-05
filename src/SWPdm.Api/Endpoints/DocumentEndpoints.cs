@@ -308,7 +308,15 @@ public static class DocumentEndpoints
                     })
                     .ToArray();
 
-                return Results.Ok(new { hasUpdates, updates = updateItems });
+                IReadOnlyList<RelatedDrawingPackageFile> relatedDrawings =
+                    await GetRelatedDrawingsAsync(files, dbContext, cancellationToken);
+
+                return Results.Ok(new
+                {
+                    hasUpdates,
+                    updates = updateItems,
+                    relatedDrawings = relatedDrawings.Select(ToRelatedDrawingDto).ToArray()
+                });
             }
             catch (Exception ex)
             {
@@ -323,7 +331,8 @@ public static class DocumentEndpoints
             LocalStorageService storageService,
             CancellationToken cancellationToken,
             [FromQuery] bool useLatest = false,
-            [FromQuery] string[]? versionOverrides = null) =>
+            [FromQuery] string[]? versionOverrides = null,
+            [FromQuery] bool includeDrawings = false) =>
         {
             IReadOnlyList<PdmPackageFile> files =
                 await repository.GetPackageClosureAsync(rootVersionId, cancellationToken);
@@ -345,6 +354,18 @@ public static class DocumentEndpoints
             else if (versionOverrides is { Length: > 0 })
             {
                 files = await ResolveOverriddenPackageFilesAsync(files, versionOverrides, dbContext, cancellationToken);
+            }
+
+            if (includeDrawings)
+            {
+                IReadOnlyList<RelatedDrawingPackageFile> relatedDrawings =
+                    await GetRelatedDrawingsAsync(files, dbContext, cancellationToken);
+
+                files = files
+                    .Concat(relatedDrawings.Select(x => x.File))
+                    .GroupBy(x => x.DocumentId)
+                    .Select(x => x.First())
+                    .ToArray();
             }
 
             string sessionId = Guid.NewGuid().ToString("N")[..8];
@@ -478,6 +499,101 @@ public static class DocumentEndpoints
             {
                 var parents = await repository.GetWhereUsedAsync(versionId, cancellationToken);
                 return Results.Ok(parents);
+            }
+            catch (Exception ex)
+            {
+                return EndpointHelpers.ToProblem(ex);
+            }
+        });
+
+        app.MapGet("/api/documents/{documentId:long}/relations", async (
+            long documentId,
+            IPdmRepository repository,
+            PdmDbContext dbContext,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var document = await dbContext.Documents
+                    .AsNoTracking()
+                    .Where(x => x.DocumentId == documentId)
+                    .Select(x => new
+                    {
+                        x.DocumentId,
+                        x.CurrentVersionId
+                    })
+                    .SingleOrDefaultAsync(cancellationToken);
+
+                if (document is null || !document.CurrentVersionId.HasValue)
+                {
+                    return Results.NotFound(new
+                    {
+                        title = "Document relations not found",
+                        detail = "找不到目前版本，請重新整理圖檔中心後再試。"
+                    });
+                }
+
+                IReadOnlyList<PdmPackageFile> closure =
+                    await repository.GetPackageClosureAsync(document.CurrentVersionId.Value, cancellationToken);
+                IReadOnlyList<RelatedDrawingPackageFile> drawings =
+                    await GetRelatedDrawingsAsync(closure, dbContext, cancellationToken);
+                IReadOnlyList<PdmPackageFile> whereUsed =
+                    await repository.GetWhereUsedAsync(document.CurrentVersionId.Value, cancellationToken);
+
+                var identityOrigin = await dbContext.DocumentIdentityChanges
+                    .AsNoTracking()
+                    .Where(x => x.TargetDocumentId == documentId)
+                    .Select(x => new
+                    {
+                        x.IdentityChangeId,
+                        x.SourceDocumentId,
+                        x.SourceVersionId,
+                        x.TargetDocumentId,
+                        x.OldPartNumber,
+                        x.NewPartNumber,
+                        x.ChangeReason,
+                        x.ChangedBy,
+                        x.CreatedAt,
+                        SourceFileName = x.SourceDocument.FileName,
+                        SourceDocumentType = x.SourceDocument.DocumentType
+                    })
+                    .SingleOrDefaultAsync(cancellationToken);
+
+                var derivedDocuments = await dbContext.DocumentIdentityChanges
+                    .AsNoTracking()
+                    .Where(x => x.SourceDocumentId == documentId)
+                    .OrderByDescending(x => x.CreatedAt)
+                    .Select(x => new
+                    {
+                        x.IdentityChangeId,
+                        x.SourceDocumentId,
+                        x.SourceVersionId,
+                        x.TargetDocumentId,
+                        x.OldPartNumber,
+                        x.NewPartNumber,
+                        x.ChangeReason,
+                        x.ChangedBy,
+                        x.CreatedAt,
+                        TargetFileName = x.TargetDocument.FileName,
+                        TargetDocumentType = x.TargetDocument.DocumentType,
+                        TargetVersionId = x.TargetDocument.CurrentVersionId
+                    })
+                    .ToArrayAsync(cancellationToken);
+
+                return Results.Ok(new
+                {
+                    references = closure
+                        .Where(x => x.VersionId != document.CurrentVersionId.Value)
+                        .OrderBy(x => x.Depth)
+                        .ToArray(),
+                    drawings = drawings
+                        .Where(x => x.File.DocumentId != documentId)
+                        .Select(ToRelatedDrawingDto)
+                        .ToArray(),
+                    whereUsed,
+                    identityOrigin,
+                    derivedDocuments
+                });
             }
             catch (Exception ex)
             {
@@ -922,6 +1038,139 @@ public static class DocumentEndpoints
             .ToArray();
     }
 
+    private static async Task<IReadOnlyList<RelatedDrawingPackageFile>> GetRelatedDrawingsAsync(
+        IReadOnlyCollection<PdmPackageFile> packageFiles,
+        PdmDbContext dbContext,
+        CancellationToken cancellationToken)
+    {
+        long[] modelDocumentIds = packageFiles
+            .Where(x => !string.Equals(x.DocumentType, "Drawing", StringComparison.OrdinalIgnoreCase))
+            .Select(x => x.DocumentId)
+            .Distinct()
+            .ToArray();
+
+        if (modelDocumentIds.Length == 0)
+        {
+            return Array.Empty<RelatedDrawingPackageFile>();
+        }
+
+        HashSet<string> modelFileNames = packageFiles
+            .Where(x => !string.Equals(x.DocumentType, "Drawing", StringComparison.OrdinalIgnoreCase))
+            .Select(x => Path.GetFileName(x.OriginalFileName))
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        long[] directlyLinkedDrawingDocumentIds = await dbContext.BomOccurrences
+            .AsNoTracking()
+            .Where(x => x.ChildVersionId.HasValue)
+            .Join(
+                dbContext.DocumentVersions,
+                bom => bom.ChildVersionId!.Value,
+                childVersion => childVersion.VersionId,
+                (bom, childVersion) => new
+                {
+                    bom.ParentVersionId,
+                    ChildDocumentId = childVersion.DocumentId
+                })
+            .Where(x => modelDocumentIds.Contains(x.ChildDocumentId))
+            .Join(
+                dbContext.DocumentVersions,
+                link => link.ParentVersionId,
+                parentVersion => parentVersion.VersionId,
+                (link, parentVersion) => new
+                {
+                    DrawingDocumentId = parentVersion.DocumentId,
+                    parentVersion.Document.DocumentType
+                })
+            .Where(x => x.DocumentType == "Drawing")
+            .Select(x => x.DrawingDocumentId)
+            .Distinct()
+            .ToArrayAsync(cancellationToken);
+
+        var unresolvedDrawingLinks = await dbContext.BomOccurrences
+            .AsNoTracking()
+            .Where(x => !x.ChildVersionId.HasValue && !string.IsNullOrEmpty(x.SourceReferencePath))
+            .Join(
+                dbContext.DocumentVersions,
+                bom => bom.ParentVersionId,
+                parentVersion => parentVersion.VersionId,
+                (bom, parentVersion) => new
+                {
+                    DrawingDocumentId = parentVersion.DocumentId,
+                    parentVersion.Document.DocumentType,
+                    bom.SourceReferencePath
+                })
+            .Where(x => x.DocumentType == "Drawing")
+            .ToListAsync(cancellationToken);
+
+        long[] filenameMatchedDrawingDocumentIds = unresolvedDrawingLinks
+            .Where(x => modelFileNames.Contains(Path.GetFileName(x.SourceReferencePath)))
+            .Select(x => x.DrawingDocumentId)
+            .Distinct()
+            .ToArray();
+
+        Dictionary<long, string> matchMethods = directlyLinkedDrawingDocumentIds
+            .ToDictionary(x => x, _ => "DocumentId");
+
+        foreach (long drawingDocumentId in filenameMatchedDrawingDocumentIds)
+        {
+            matchMethods.TryAdd(drawingDocumentId, "FilenameFallback");
+        }
+
+        if (matchMethods.Count == 0)
+        {
+            return Array.Empty<RelatedDrawingPackageFile>();
+        }
+
+        long[] drawingDocumentIds = matchMethods.Keys.ToArray();
+        var currentDrawingVersions = await dbContext.DocumentVersions
+            .AsNoTracking()
+            .Where(x =>
+                drawingDocumentIds.Contains(x.DocumentId) &&
+                x.Document.CurrentVersionId == x.VersionId)
+            .Select(x => new
+            {
+                x.DocumentId,
+                x.VersionId,
+                x.Document.DocumentType,
+                x.StorageFileId,
+                x.OriginalFileName,
+                x.SourceFilePath,
+                x.VaultRelativePath
+            })
+            .OrderBy(x => x.OriginalFileName)
+            .ToListAsync(cancellationToken);
+
+        return currentDrawingVersions
+            .Select(x => new RelatedDrawingPackageFile(
+                new PdmPackageFile(
+                    DocumentId: x.DocumentId,
+                    VersionId: x.VersionId,
+                    DocumentType: x.DocumentType,
+                    StorageFileId: x.StorageFileId,
+                    OriginalFileName: x.OriginalFileName,
+                    SourceFilePath: x.SourceFilePath,
+                    VaultRelativePath: x.VaultRelativePath,
+                    Depth: -1),
+                MatchMethod: matchMethods[x.DocumentId]))
+            .ToArray();
+    }
+
+    private static object ToRelatedDrawingDto(RelatedDrawingPackageFile drawing)
+    {
+        return new
+        {
+            drawing.File.DocumentId,
+            drawing.File.VersionId,
+            drawing.File.DocumentType,
+            drawing.File.StorageFileId,
+            drawing.File.OriginalFileName,
+            drawing.File.SourceFilePath,
+            drawing.File.VaultRelativePath,
+            drawing.MatchMethod
+        };
+    }
+
     private static async Task<IReadOnlyList<PdmPackageFile>> ResolveOverriddenPackageFilesAsync(
         IReadOnlyList<PdmPackageFile> files,
         IReadOnlyCollection<string> versionOverrides,
@@ -1014,4 +1263,8 @@ public static class DocumentEndpoints
 
         return new string(buffer);
     }
+
+    private sealed record RelatedDrawingPackageFile(
+        PdmPackageFile File,
+        string MatchMethod);
 }

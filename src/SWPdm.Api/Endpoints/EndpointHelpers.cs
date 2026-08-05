@@ -16,6 +16,11 @@ public static class EndpointHelpers
         return current == ex ? ex.Message : $"{ex.Message} Inner: {current.Message}";
     }
 
+    public static string GetErrorDetail(Exception ex)
+    {
+        return BuildErrorDetail(ex);
+    }
+
     public static IResult ValidationError(string fieldName, string message)
     {
         return Results.ValidationProblem(new Dictionary<string, string[]>
@@ -28,6 +33,29 @@ public static class EndpointHelpers
     {
         return ex switch
         {
+            PdmIngestIdentityMismatchException identityMismatchException => Results.Problem(
+                title: "CAD identity mismatch",
+                detail: BuildErrorDetail(identityMismatchException),
+                statusCode: StatusCodes.Status409Conflict,
+                extensions: new Dictionary<string, object?>
+                {
+                    ["code"] = "CAD_IDENTITY_MISMATCH",
+                    ["targetDocumentId"] = identityMismatchException.TargetDocumentId,
+                    ["expectedPartNumber"] = identityMismatchException.ExpectedPartNumber,
+                    ["expectedDocumentType"] = identityMismatchException.ExpectedDocumentType,
+                    ["actualPartNumber"] = identityMismatchException.ActualPartNumber,
+                    ["actualDocumentType"] = identityMismatchException.ActualDocumentType,
+                    ["canCreateNewDocument"] = identityMismatchException.CanCreateNewDocument,
+                    ["partNumberChangeBlockReason"] = identityMismatchException.PartNumberChangeBlockReason
+                }),
+            PdmPartNumberChangeConflictException partNumberChangeConflictException => Results.Problem(
+                title: "Part number change conflict",
+                detail: BuildErrorDetail(partNumberChangeConflictException),
+                statusCode: StatusCodes.Status409Conflict,
+                extensions: new Dictionary<string, object?>
+                {
+                    ["code"] = "PART_NUMBER_CHANGE_CONFLICT"
+                }),
             PdmCheckoutConflictException checkoutConflictException => Results.Problem(
                 title: "Checkout conflict",
                 detail: BuildErrorDetail(checkoutConflictException),

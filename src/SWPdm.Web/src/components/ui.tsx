@@ -5,15 +5,15 @@ import React, { ReactNode } from 'react';
  */
 export const Layout = ({ children, sidebar }: { children: ReactNode, sidebar: ReactNode }) => {
   return (
-    <div className="flex h-screen bg-[#F9FAFB] text-[#171717] font-sans antialiased">
+    <div className="flex h-screen flex-col bg-[#F9FAFB] text-[#171717] font-sans antialiased md:flex-row">
       {/* Sidebar */}
-      <aside className="w-64 flex-shrink-0 border-r border-[#E5E7EB] bg-white flex flex-col">
+      <aside className="w-full flex-shrink-0 border-b border-[#E5E7EB] bg-white flex flex-col md:h-full md:w-64 md:border-b-0 md:border-r">
         {sidebar}
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden">
-        <div className="flex-1 overflow-y-auto no-scrollbar p-8">
+      <main className="min-h-0 min-w-0 flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-8">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
@@ -51,10 +51,13 @@ export const Modal = ({ isOpen, onClose, title, children }: { isOpen: boolean, o
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
       <div 
-        className="bg-[#121212] border border-gray-800 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200"
+        className="flex max-h-[calc(100vh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#121212] shadow-2xl animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
       >
-        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-800">
+        <div className="flex shrink-0 justify-between items-center px-6 py-4 border-b border-gray-800">
           <h3 className="text-lg font-semibold text-white">{title}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,7 +65,7 @@ export const Modal = ({ isOpen, onClose, title, children }: { isOpen: boolean, o
             </svg>
           </button>
         </div>
-        <div className="p-6">
+        <div className="min-h-0 overflow-y-auto p-4 sm:p-6">
           {children}
         </div>
       </div>

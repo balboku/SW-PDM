@@ -22,6 +22,8 @@ public sealed class PdmDbContext : DbContext
 
     public DbSet<PdmNumberSequence> NumberSequences => Set<PdmNumberSequence>();
 
+    public DbSet<PdmDocumentIdentityChange> DocumentIdentityChanges => Set<PdmDocumentIdentityChange>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ConfigureDocuments(modelBuilder);
@@ -29,6 +31,7 @@ public sealed class PdmDbContext : DbContext
         ConfigureCustomProperties(modelBuilder);
         ConfigureBomOccurrences(modelBuilder);
         ConfigureNumbering(modelBuilder);
+        ConfigureDocumentIdentityChanges(modelBuilder);
     }
 
     private static void ConfigureDocuments(ModelBuilder modelBuilder)
@@ -215,6 +218,46 @@ public sealed class PdmDbContext : DbContext
             entity.HasIndex(x => x.Prefix)
                 .IsUnique()
                 .HasDatabaseName("uq_pdm_number_sequences_prefix");
+        });
+    }
+
+    private static void ConfigureDocumentIdentityChanges(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<PdmDocumentIdentityChange>(entity =>
+        {
+            entity.ToTable("pdm_document_identity_changes");
+            entity.HasKey(x => x.IdentityChangeId);
+            entity.Property(x => x.IdentityChangeId).HasColumnName("identity_change_id");
+            entity.Property(x => x.SourceDocumentId).HasColumnName("source_document_id");
+            entity.Property(x => x.SourceVersionId).HasColumnName("source_version_id");
+            entity.Property(x => x.TargetDocumentId).HasColumnName("target_document_id");
+            entity.Property(x => x.OldPartNumber).HasColumnName("old_part_number").HasMaxLength(100);
+            entity.Property(x => x.NewPartNumber).HasColumnName("new_part_number").HasMaxLength(100);
+            entity.Property(x => x.ChangeReason).HasColumnName("change_reason");
+            entity.Property(x => x.ChangedBy).HasColumnName("changed_by").HasMaxLength(100);
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at");
+
+            entity.HasOne(x => x.SourceDocument)
+                .WithMany()
+                .HasForeignKey(x => x.SourceDocumentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.SourceVersion)
+                .WithMany()
+                .HasForeignKey(x => x.SourceVersionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(x => x.TargetDocument)
+                .WithMany()
+                .HasForeignKey(x => x.TargetDocumentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(x => x.SourceDocumentId)
+                .HasDatabaseName("idx_pdm_identity_changes_source_document");
+
+            entity.HasIndex(x => x.TargetDocumentId)
+                .IsUnique()
+                .HasDatabaseName("uq_pdm_identity_changes_target_document");
         });
     }
 }

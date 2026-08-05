@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Options;
 using SWPdm.Api.Configuration;
 using SWPdm.Api.Endpoints;
@@ -8,6 +9,16 @@ using SWPdm.Sample.Data.Repositories;
 using SWPdm.Sample.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+const long maxCadBatchBytes = 1024L * 1024L * 1024L;
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = maxCadBatchBytes;
+});
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = maxCadBatchBytes;
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHealthChecks();
@@ -84,6 +95,7 @@ app.MapGet("/", () => Results.Ok(new
         "POST /api/database/migrate",
         "GET /api/documents/search",
         "GET /api/documents/{documentId}",
+        "GET /api/documents/{documentId}/relations",
         "GET /api/versions/{versionId}",
         "GET /api/versions/{versionId}/children",
         "GET /api/assemblies/{rootVersionId}/package-closure",
@@ -91,6 +103,7 @@ app.MapGet("/", () => Results.Ok(new
         "GET /api/assemblies/{rootVersionId}/download-zip",
         "POST /api/web/upload-temp",
         "POST /api/ingest/cad",
+        "POST /api/ingest/cad-batch",
         "POST /api/storage/upload",
         "POST /api/storage/download",
         "POST /api/solidworks/parse"

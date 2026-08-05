@@ -21,6 +21,7 @@ appsettings.*.json
 
 # User generated files / Vault Storage
 vault_storage/
+scratch/db-backups/
 *.json
 !global.json
 !gen-lang-client-*.json

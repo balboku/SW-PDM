@@ -24,20 +24,25 @@ because the references inside the assembly may still point to old absolute paths
 Use a backend-generated "Pack and Go style" staging folder:
 
 1. query the full dependency closure from the BOM table
-2. download every required file into a temporary staging folder
-3. flatten the package into one folder, or use a deterministic package path
-4. detect duplicate file names and rename collisions
-5. rewrite references inside copied assembly and subassembly files
-6. save the copied files
-7. create a ZIP from the staging folder
+2. optionally reverse-query drawings that reference any model document in that closure
+3. download every required file into a temporary staging folder
+4. flatten the package into one folder, or use a deterministic package path
+5. detect duplicate file names and rename collisions
+6. rewrite references inside copied assembly and subassembly files
+7. save the copied files
+8. create a ZIP from the staging folder
 
-The important part is step 5:
+The important part is step 6:
 
 - for parts and assemblies, call Document Manager external-reference APIs first
 - then call `ReplaceReference(...)`
 - then call `Save()`
 
 This is the closest backend-only equivalent to SolidWorks Pack and Go.
+
+The download API keeps `includeDrawings=false` as its backward-compatible
+default. The web UI previews the related drawing names and explicitly sends
+`includeDrawings=true` unless the user clears that option.
 
 ## Dependency query
 

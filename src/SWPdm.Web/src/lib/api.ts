@@ -19,6 +19,26 @@ export const uploadTempFile = async (file: File) => {
   return response.data;
 };
 
+export const ingestCadBatch = async (
+  files: File[],
+  uploadedBy: string = 'User',
+  changeReason: string = ''
+) => {
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append('files', file, file.name);
+    formData.append('relativePaths', file.webkitRelativePath || file.name);
+  });
+  formData.append('uploadedBy', uploadedBy);
+  formData.append('changeReason', changeReason);
+
+  const response = await axios.post(
+    `http://${API_HOST}:5000/api/ingest/cad-batch`,
+    formData
+  );
+  return response.data;
+};
+
 /**
  * 發起 CAD 檔案入庫。
  * 系統將直接讀取 CAD 檔案內部的 PartNumber 或 品號 自訂屬性作為料號；
@@ -28,14 +48,19 @@ export const ingestCad = async (
   localFilePath: string,
   ingestReferencedFiles: boolean = true,
   uploadedBy: string = 'User',
-  changeReason: string = ''
+  changeReason: string = '',
+  targetDocumentId?: number,
+  createNewDocumentForPartNumberChange: boolean = false,
+  additionalSearchPaths: string[] = []
 ) => {
   const payload = {
     localFilePath,
     ingestReferencedFiles,
-    additionalSearchPaths: [],
+    additionalSearchPaths,
     uploadedBy,
-    changeReason
+    changeReason,
+    targetDocumentId,
+    createNewDocumentForPartNumberChange
   };
 
   const response = await api.post('/api/ingest/cad', payload);
@@ -68,9 +93,13 @@ export const checkAssemblyUpdates = async (rootVersionId: number) => {
 export const downloadAssemblyZip = (
   rootVersionId: number,
   useLatest: boolean = false,
-  versionOverrides: string[] = []
+  versionOverrides: string[] = [],
+  includeDrawings: boolean = false
 ) => {
-  const params = new URLSearchParams({ useLatest: String(useLatest) });
+  const params = new URLSearchParams({
+    useLatest: String(useLatest),
+    includeDrawings: String(includeDrawings)
+  });
   versionOverrides.forEach((override) => params.append('versionOverrides', override));
   window.open(`http://${API_HOST}:5000/api/assemblies/${rootVersionId}/download-zip?${params.toString()}`, '_blank');
 };
@@ -97,6 +126,11 @@ export const getVersionChildren = async (versionId: number) => {
 
 export const getCheckoutReferences = async (documentId: number) => {
   const response = await api.get(`/api/documents/${documentId}/checkout-references`);
+  return response.data;
+};
+
+export const getDocumentRelations = async (documentId: number) => {
+  const response = await api.get(`/api/documents/${documentId}/relations`);
   return response.data;
 };
 

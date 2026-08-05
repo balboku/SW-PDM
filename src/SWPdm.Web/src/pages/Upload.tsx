@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { UploadCloud, CheckCircle, AlertCircle, RefreshCw, AlertTriangle, SearchCheck } from 'lucide-react';
+import { UploadCloud, CheckCircle, AlertCircle, RefreshCw, AlertTriangle, SearchCheck, File as FileIcon, FolderOpen } from 'lucide-react';
 import { Card, Button } from '../components/ui';
+import { BatchUploadPanel } from '../components/BatchUploadPanel';
 import { uploadTempFile, ingestCad, parseSolidWorksFile } from '../lib/api';
 
 type CustomProperty = {
@@ -34,6 +35,7 @@ type PropertyRow = {
 const PART_NUMBER_ALIASES = ['PartNumber', 'Number', 'Part No', 'PartNo', '品號'];
 
 export default function UploadPage() {
+  const [uploadMode, setUploadMode] = useState<'single' | 'batch'>('single');
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<'idle' | 'uploading' | 'parsing' | 'processing' | 'success' | 'error'>('idle');
   const [result, setResult] = useState<any>(null);
@@ -207,6 +209,34 @@ export default function UploadPage() {
         </div>
       </div>
 
+      <div className="grid grid-cols-2 gap-2 rounded-lg border border-gray-200 bg-white p-1 shadow-sm">
+        <button
+          type="button"
+          onClick={() => setUploadMode('single')}
+          className={`flex items-center justify-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
+            uploadMode === 'single'
+              ? 'bg-[#171717] text-white shadow-sm'
+              : 'text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          <FileIcon className="h-4 w-4" />
+          單檔入庫
+        </button>
+        <button
+          type="button"
+          onClick={() => setUploadMode('batch')}
+          className={`flex items-center justify-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
+            uploadMode === 'batch'
+              ? 'bg-[#171717] text-white shadow-sm'
+              : 'text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          <FolderOpen className="h-4 w-4" />
+          資料夾／多檔
+        </button>
+      </div>
+
+      {uploadMode === 'single' ? (
       <Card className="p-8">
         {status === 'success' ? (
           <div className="py-12 text-center">
@@ -387,6 +417,9 @@ export default function UploadPage() {
           </div>
         )}
       </Card>
+      ) : (
+        <BatchUploadPanel defaultUserName={userName} />
+      )}
     </div>
   );
 }

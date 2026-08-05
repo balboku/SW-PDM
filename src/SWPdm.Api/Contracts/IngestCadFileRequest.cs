@@ -6,4 +6,6 @@ public sealed record IngestCadFileRequest(
     bool IngestReferencedFiles,
     string[]? AdditionalSearchPaths,
     string? UploadedBy = null,
-    string? ChangeReason = null);
+    string? ChangeReason = null,
+    long? TargetDocumentId = null,
+    bool CreateNewDocumentForPartNumberChange = false);
