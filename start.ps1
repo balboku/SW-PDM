@@ -6,6 +6,7 @@ $ApiPort = 5000
 $WebPort = 5174
 $PostgresPort = 5432
 $ApiUrl = "http://localhost:$ApiPort"
+$ApiListenUrl = "http://0.0.0.0:$ApiPort"
 $WebUrl = "http://localhost:$WebPort"
 $ApiPath = Join-Path $PSScriptRoot "src\SWPdm.Api"
 $WebPath = Join-Path $PSScriptRoot "src\SWPdm.Web"
@@ -120,7 +121,8 @@ if (Test-PortListening -Port $ApiPort) {
 }
 else {
     $apiPathForCommand = $ApiPath.Replace("'", "''")
-    $apiCommand = "& { `$env:ASPNETCORE_ENVIRONMENT = 'Development'; dotnet run --project '$apiPathForCommand' }"
+    $apiListenUrlForCommand = $ApiListenUrl.Replace("'", "''")
+    $apiCommand = "& { `$env:ASPNETCORE_ENVIRONMENT = 'Development'; dotnet run --project '$apiPathForCommand' --urls '$apiListenUrlForCommand' }"
     Start-Process -FilePath "powershell.exe" `
         -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", $apiCommand) `
         -WorkingDirectory $PSScriptRoot `

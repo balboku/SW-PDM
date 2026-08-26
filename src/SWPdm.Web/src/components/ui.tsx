@@ -3,7 +3,15 @@ import React, { ReactNode } from 'react';
 /**
  * 共用外觀：Minimal 單欄式 Layout + Sidebar
  */
-export const Layout = ({ children, sidebar }: { children: ReactNode, sidebar: ReactNode }) => {
+export const Layout = ({
+  children,
+  sidebar,
+  fullWidth = false
+}: {
+  children: ReactNode,
+  sidebar: ReactNode,
+  fullWidth?: boolean
+}) => {
   return (
     <div className="flex h-screen flex-col bg-[#F9FAFB] text-[#171717] font-sans antialiased md:flex-row">
       {/* Sidebar */}
@@ -14,7 +22,7 @@ export const Layout = ({ children, sidebar }: { children: ReactNode, sidebar: Re
       {/* Main Content Area */}
       <main className="min-h-0 min-w-0 flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto no-scrollbar p-4 md:p-8">
-          <div className="max-w-7xl mx-auto">
+          <div className={fullWidth ? 'w-full' : 'max-w-7xl mx-auto'}>
             {children}
           </div>
         </div>

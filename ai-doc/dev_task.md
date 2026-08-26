@@ -1,7 +1,7 @@
 # SW-PDM DEV 任務
 
-更新日期：2026-08-04
-文件狀態：DEV-001／DEV-007 本機正式套用完成；遠端 release target 未設定
+更新日期：2026-08-26
+文件狀態：DEV-008～DEV-011 完成並納入 GitHub release candidate；DEV-001／DEV-007 本機正式套用完成
 
 ## 總任務清單
 
@@ -57,6 +57,39 @@
   - 證據：`decisions/ADR-001-part-number-branch.md`、`qc/part-number-branch-qc-2026-08-04.md`
   - 批次發版：`reports/local-release-2026-08-04.md`
   - 計入交付：是
+
+- ✓ DEV-008 [交付點] [實作完成] [P1] [本輪已完成] 圖檔中心顯示圖號
+  - 摘要：從目前版本的 CAD「圖號」自訂屬性顯示圖號，並支援清單搜尋與明細辨識。
+  - 來源 ID：`SWPDM-DRAWING-NUMBER-20260805`
+  - 父任務：無
+  - 下一步：已完成；納入 2026-08-26 GitHub release candidate
+  - 證據：`qc/drawing-number-qc-2026-08-05.md`
+  - 計入交付：是
+
+- ✓ DEV-009 [交付點] [完成] [P1] [本輪已完成] 父文件舊版參照提示
+  - 摘要：在圖檔中心清單直接辨識目前父版本引用的舊版子文件，並於文件詳情顯示完整更新指引。
+  - 來源 ID：`SWPDM-REFERENCE-UPDATE-WARNING-20260805`
+  - 父任務：無
+  - 下一步：已完成；納入 2026-08-26 GitHub release candidate
+  - 證據：`qc/reference-update-warning-qc-2026-08-05.md`
+  - 計入交付：是
+
+- ✓ DEV-010 [交付點] [完成] [P1] [本輪已完成] Vault 寬螢幕與資訊密度優化
+  - 摘要：解除 Vault 的共用 1280px 寬度限制，利用頁首空間顯示結果、異常、已出庫與可用摘要，並擴充寬螢幕詳情區。
+  - 來源 ID：`SWPDM-VAULT-SPACE-20260805`
+  - 父任務：無
+  - 下一步：已完成；納入 2026-08-26 GitHub release candidate
+  - 證據：`qc/vault-space-utilization-qc-2026-08-05.md`
+  - 計入交付：是
+
+- ✓ DEV-011 [開發點] [完成] [P0] [本輪已完成] 內網圖面清單可見性修正
+  - 摘要：修正前端可由同仁開啟、但 API 僅監聽 localhost 而無法載入圖面清單的問題，
+    並在連線失敗時提供明確提示與重新連線動作。
+  - 來源 ID：`SWPDM-LAN-VAULT-VISIBILITY-20260811`
+  - 父任務：DEV-001
+  - 下一步：請同仁以 `Ctrl+F5` 重新載入 LAN Vault，完成實際工作站使用者確認
+  - 證據：`qc/lan-vault-visibility-qc-2026-08-11.md`
+  - 計入交付：否
 
 ## DEV-001：試用人員回饋優化
 
@@ -185,7 +218,7 @@
 
 ## DEV-007：出庫後另存為新料號
 
-狀態：實作完成；QC 限制式通過（既有前端 lint 工具缺口）
+狀態：實作完成；QC 限制式通過（第二輪已涵蓋 Vault 清單直接顯示異常；既有前端 lint 工具缺口）
 節點類型：交付點
 父交付點：無
 是否計入產品交付完成：是
@@ -261,6 +294,176 @@
 - 品號更正核准流程為 Future Phase Captured / Not Requested；恢復條件是使用者要求處理
   既有主資料輸入錯誤，而非設計衍生新品號。
 
+## DEV-008：圖檔中心顯示圖號
+
+狀態：實作完成；QC 限制式通過（既有前端 lint 工具缺口）
+節點類型：交付點
+父交付點：無
+是否計入產品交付完成：是
+風險：Low；新增唯讀欄位與搜尋條件，不改 schema、CAD 檔案或主資料。
+
+### Current Phase RD Handoff Contract
+
+#### Scope
+
+- `/api/documents/search` 從目前版本、空白 configuration、精確屬性名稱「圖號」讀取圖號。
+- 圖檔中心清單在檔名與料號之間顯示圖號；沒有圖號時顯示 `-`。
+- 選取文件明細分別標示圖號與料號，避免兩者混淆。
+- 關鍵字搜尋涵蓋檔名、圖號及料號。
+
+#### Out of Scope
+
+- 不以「工程圖號」替代「圖號」，不合併兩個不同 CAD 自訂屬性。
+- 不新增、回填或修改圖號，不建立資料庫 migration。
+- 不新增排序、批次編輯或唯一性規則。
+
+### 驗收標準
+
+- [x] 有「圖號」屬性的目前版本，在清單及明細顯示相同值。
+- [x] 無「圖號」的文件顯示 `-`，既有料號仍在獨立欄位。
+- [x] 以完整圖號搜尋可找到對應文件。
+- [x] 後端及前端 production build 通過。
+- [ ] 前端 lint：現有專案未提供可執行的 ESLint 相依套件；已記錄既有工具缺口。
+- [x] `/documents` 在 1440×900、1024×768、390×844 無頁面級水平 overflow 或可見錯誤。
+
+## DEV-009：父文件舊版參照提示
+
+狀態：實作完成；QC 限制式通過（既有前端 lint 工具缺口）
+節點類型：交付點
+父交付點：無
+是否計入產品交付完成：是
+風險：Low；新增唯讀檢查與前端提示，不改 schema、CAD 檔案、BOM 或歷史版本。
+
+### Current Phase RD Handoff Contract
+
+#### Scope
+
+- 新增文件層級唯讀 API，以目前父版本的已解析直屬 BOM occurrence 判斷子文件是否已有較新目前版本。
+- Assembly 與 Drawing 使用相同判斷；回傳舊／新版本、檔名、料號及受影響 occurrence 數。
+- 圖檔中心文件詳情在出入庫操作前顯示醒目警示，並依出庫狀態提示下一步。
+- 圖檔中心搜尋結果直接回傳每份文件的舊版參照項目數與受影響 occurrence 數。
+- 清單上方顯示異常文件摘要，異常列在檔名附近顯示可掃描的「需更新」警示。
+- 警示明確說明歷史版本不會自動改寫，需在 SolidWorks 更新父文件參照後重新入庫。
+
+#### Out of Scope
+
+- 不自動改寫既有 `pdm_bom_occurrences`、父文件 CAD 內部參照或任何歷史版本。
+- 不將缺少 child link 的參照誤判為「有新版」；missing reference 修復另案處理。
+- 不新增 migration、背景通知、批次更新或自動開啟 SolidWorks。
+
+### 驗收標準
+
+- [x] Assembly 與 Drawing 的目前父版本若引用舊版子文件，API 回傳正確的新舊版本及 occurrence 數。
+- [x] 沒有舊版直屬參照的文件回傳 `hasUpdates=false`，不顯示誤導性警示。
+- [x] 前端警示在出入庫按鈕前可見，並能辨識「目前引用 → 可更新」及下一步。
+- [x] 歷史 BOM、版本與文件資料在檢查前後不變。
+- [x] 後端及前端 production build 通過。
+- [ ] 前端 lint：現有專案未安裝可執行的 ESLint 相依套件；已記錄既有工具缺口。
+- [x] `/documents` 在 1440×900、1024×768、390×844 無頁面級水平 overflow 或可見錯誤。
+- [x] 使用者不選取文件，也能從 Vault 清單摘要及逐列徽章辨識哪些文件有舊版子文件參照。
+- [x] 選取異常列後，右側詳情仍顯示一致的新舊版本差異與下一步。
+
+## DEV-010：Vault 寬螢幕與資訊密度優化
+
+狀態：實作完成；QC 限制式通過（既有前端 lint 工具缺口）
+節點類型：交付點
+父交付點：無
+是否計入產品交付完成：是
+風險：Low；僅調整 Vault 路由的版面與既有搜尋資料呈現，不改 API、資料庫或其他頁面的資訊架構。
+
+### UX Intent
+
+- 使用者：需要快速掃描與處理大量 PDM 文件的工程人員。
+- 主要任務：在寬螢幕充分利用可用空間，同時辨識結果數、異常、出庫狀態與文件詳情。
+- 自然下一步：先由頁首摘要掌握目前搜尋結果，再於清單選取文件查看詳情。
+- 資訊分層：頁首放短摘要、清單放可比較欄位、右側面板放完整關聯與處理操作。
+- 安全預設：只擴充顯示，不改搜尋結果、文件狀態或任何寫入流程。
+
+### Current Phase RD Handoff Contract
+
+#### Scope
+
+- 共用 Layout 提供可選的全寬內容模式，只讓 `/documents` 使用；Dashboard 與 Ingest 維持既有寬度策略。
+- Vault 頁首右側顯示目前結果、參照異常、已出庫與可用文件數。
+- 寬螢幕下擴大右側文件詳情面板，清單仍保留可用比較寬度。
+- 版本欄同時顯示版本號與版次，利用新增空間提升判斷效率。
+
+#### Out of Scope
+
+- 不新增圖表、後端欄位、資料庫 migration 或持久化使用者版面偏好。
+- 不重設 Dashboard、Ingest、導航或出入庫流程。
+- 不以更多裝飾填滿空間；新增資訊必須支援掃描、比較或下一步判斷。
+
+### 驗收標準
+
+- [x] 1920×1080 下 Vault 不再受 1280px 上限限制，內容能使用主區域可用寬度且無頁面水平 overflow。
+- [x] 頁首空白區顯示四個與目前搜尋結果一致的即時摘要數值。
+- [x] 寬螢幕選取文件後，詳情面板較既有 384px 更寬，清單與詳情皆可操作。
+- [x] 版本欄可同時辨識 VersionNo 與 RevisionLabel，未提供資料時安全顯示 `-`。
+- [x] Dashboard 與 Ingest 的既有最大寬度行為不受影響。
+- [x] `npm run build` 通過。
+- [ ] 前端 lint：現有專案未安裝可執行的 ESLint 相依套件；已記錄既有工具缺口。
+- [x] `/documents` 在 1920×1080、1440×900、1024×768、390×844 無重疊、裁切、頁面級水平 overflow 或可見錯誤。
+
+### Stop Conditions / Evidence
+
+- 若全寬模式影響其他路由、手機版資訊摘要造成水平 overflow，或選取詳情後清單不可操作，停止通過並回 RD 修正。
+- 證據需包含寬度量測、四種 viewport 截圖、清單／詳情互動、Visible Error Sweep、build 與 Git boundary。
+
+## DEV-011：內網圖面清單可見性修正
+
+狀態：實作完成；QC 限制式通過（待同仁實際工作站確認）
+節點類型：開發點
+父交付點：DEV-001
+是否計入產品交付完成：否
+風險：Medium；需要修正本機 API 監聽位址並短暫重啟服務，但不修改資料庫、圖面或文件狀態。
+
+### 根因證據
+
+- 前端 `5174` 監聽 `0.0.0.0`，同仁可以開啟系統。
+- API `5000` 目前只監聽 `127.0.0.1`／`::1`，啟動命令包含 `--urls http://localhost:5000`。
+- 主機由 localhost 呼叫搜尋 API 可取得 50 份文件，但由 `192.168.20.62:5000` 呼叫失敗。
+- Vault 捕捉載入錯誤後只寫入 console，畫面仍顯示「查無圖檔資料」，造成資料為空的誤判。
+
+### UX Intent
+
+- 使用者：從同一內網存取 SW-PDM 的工程同仁。
+- 主要任務：開啟 Vault 後立即看到共享圖面；服務不可用時知道要重新連線或通知主機管理者。
+- 成功狀態：LAN URL 回傳與主機一致的文件數，Vault 摘要不是非預期全零。
+- 錯誤狀態首句：目前無法載入圖面清單。
+- 自然下一步：確認主機服務後按「重新連線」。
+- 安全預設：載入失敗不清除既有資料、不把故障誤報為真正的空清單。
+
+### Current Phase RD Handoff Contract
+
+#### Scope
+
+- Windows 啟動腳本明確將 API 綁定 `0.0.0.0:5000`，避免 launch profile 或命令列回退到 localhost-only。
+- Vault 搜尋載入失敗時顯示人類可理解的錯誤狀態、下一步與重新連線 CTA。
+- 連線失敗時摘要數值顯示 `—`，真正空資料才顯示「查無圖檔資料」。
+- 重建前後端並以目前主機 LAN IP 驗證 API、CORS 與 50 份既有文件。
+
+#### Out of Scope
+
+- 不新增登入、角色權限、VPN、反向代理、TLS 或遠端正式部署。
+- 不修改 PostgreSQL 資料、Vault 圖檔、BOM、版本或出入庫狀態。
+- 不開放任意 CORS origin；沿用目前明列的內網前端來源。
+
+### 驗收標準
+
+- [x] API 同時支援 localhost 與 `0.0.0.0:5000`，LAN URL 可取得與 localhost 相同的文件數。
+- [x] LAN 前端來源通過 CORS，Vault 首次載入顯示 50 份既有文件。
+- [x] API 不可用時不再顯示「查無圖檔資料」，而是顯示錯誤原因、替代下一步與「重新連線」。
+- [x] API 恢復後按「重新連線」可回到正常清單，不需關閉頁面。
+- [x] 後端與前端 production build 通過。
+- [x] `/documents` 正常與錯誤狀態在 1440×900、1024×768、390×844 無重疊、裁切或頁面級水平 overflow。
+- [ ] 前端 lint：現有專案未安裝可執行的 ESLint 相依套件；已記錄既有工具缺口。
+
+### Stop Conditions / Evidence
+
+- 若 LAN 綁定需要新增廣泛防火牆例外、變更公司網路策略，或服務重啟後 localhost smoke 失敗，停止並回報。
+- 證據需包含監聽位址、localhost／LAN 文件數、CORS header、正常與錯誤畫面、重新連線流程、Visible Error Sweep、build 與 Git boundary。
+
 ## 變更紀錄
 
 - 2026-07-29：依試用回饋建立 DEV-001～DEV-006 與本輪 RD/QA/QC 契約。
@@ -271,3 +474,21 @@
   詳細證據見 `qc/part-number-branch-qc-2026-08-04.md`。
 - 2026-08-04：DEV-001／DEV-007 已正式套用至本機運行環境；完成備份、Release build、
   migration 冪等檢查與 production-mode smoke，證據見 `reports/local-release-2026-08-04.md`。
+- 2026-08-05：完成 DEV-008；圖號 API、搜尋、清單、明細、RWD、建置及三種 viewport QC
+  通過，證據見 `qc/drawing-number-qc-2026-08-05.md`。
+- 2026-08-05：完成 DEV-009；父文件舊版子文件參照 API、醒目前端提示、資料不變量、
+  production build 及三種 viewport QC 通過，證據見 `qc/reference-update-warning-qc-2026-08-05.md`。
+- 2026-08-05：依使用者回饋重開 DEV-009，將異常提示由文件詳情提升至 Vault 清單摘要及逐列狀態。
+- 2026-08-05：完成 DEV-009 第二輪；搜尋 API 回傳異常數量，Vault 首屏摘要、異常列置頂、逐列徽章、
+  正反向搜尋、詳情一致性、production build 及三種 viewport QC 通過。
+- 2026-08-05：建立 DEV-010，依使用者回饋進行 Vault 寬螢幕空間利用與資訊密度優化。
+- 2026-08-05：完成 DEV-010；1920×1080 的 Vault 內容寬度由 1280px 擴至 1600px、主區域利用率由
+  76.9% 提升至 96.2%，新增四項搜尋結果摘要、版本／版次比較欄與擴充詳情面板；production build、
+  四種 viewport、選取詳情及 Visible Error Sweep 通過，證據見 `qc/vault-space-utilization-qc-2026-08-05.md`。
+- 2026-08-11：建立 DEV-011；確認同仁看不到圖面並非資料遺失，而是 Release API 被命令列參數限制為
+  localhost-only，且 Vault 缺少可見的載入失敗狀態。
+- 2026-08-11：完成 DEV-011；API 改為監聽 `0.0.0.0:5000`，localhost／LAN 均取得 50 份文件，
+  Vault 新增可恢復的連線錯誤狀態；production build、三種正常／錯誤 viewport、同頁重新連線及
+  Visible Error Sweep 通過，證據見 `qc/lan-vault-visibility-qc-2026-08-11.md`。
+- 2026-08-26：整理 DEV-008～DEV-011 程式、文件及有效 QC 證據為 GitHub release candidate；
+  排除未採納的錯誤尺寸截圖與 `scratch/db-backups/` 本機資料庫備份。

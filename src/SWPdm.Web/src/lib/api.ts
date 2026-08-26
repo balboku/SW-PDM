@@ -134,6 +134,11 @@ export const getDocumentRelations = async (documentId: number) => {
   return response.data;
 };
 
+export const getDocumentReferenceUpdates = async (documentId: number) => {
+  const response = await api.get(`/api/documents/${documentId}/reference-updates`);
+  return response.data;
+};
+
 export const checkOutDocument = async (
   documentId: number,
   checkOutBy: string,

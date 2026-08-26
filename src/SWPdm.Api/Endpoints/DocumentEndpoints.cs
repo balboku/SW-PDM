@@ -37,7 +37,13 @@ public static class DocumentEndpoints
                     string searchPattern = $"%{query}%";
                     queryable = queryable.Where(d =>
                         EF.Functions.ILike(d.FileName, searchPattern) ||
-                        (d.PartNumber != null && EF.Functions.ILike(d.PartNumber, searchPattern)));
+                        (d.PartNumber != null && EF.Functions.ILike(d.PartNumber, searchPattern)) ||
+                        dbContext.CustomProperties.Any(p =>
+                            p.VersionId == d.CurrentVersionId &&
+                            p.ConfigurationName == string.Empty &&
+                            p.PropertyName == "圖號" &&
+                            p.PropertyValue != null &&
+                            EF.Functions.ILike(p.PropertyValue, searchPattern)));
                 }
 
                 if (!string.IsNullOrWhiteSpace(documentType) && documentType != "All")
@@ -64,6 +70,15 @@ public static class DocumentEndpoints
                     {
                         d.DocumentId,
                         d.FileName,
+                        DrawingNumber = d.CurrentVersion != null
+                            ? dbContext.CustomProperties
+                                .Where(p =>
+                                    p.VersionId == d.CurrentVersion.VersionId &&
+                                    p.ConfigurationName == string.Empty &&
+                                    p.PropertyName == "圖號")
+                                .Select(p => p.PropertyValue)
+                                .FirstOrDefault()
+                            : null,
                         d.PartNumber,
                         d.DocumentType,
                         RevisionLabel = d.CurrentVersion != null
@@ -82,6 +97,23 @@ public static class DocumentEndpoints
                         CurrentVersionNo = d.CurrentVersion != null ? d.CurrentVersion.VersionNo : (int?)null,
                         CurrentVersionId = d.CurrentVersion != null ? d.CurrentVersion.VersionId : (long?)null,
                         CurrentLifecycleState = d.CurrentVersion != null ? d.CurrentVersion.LifecycleState : null,
+                        ReferenceUpdateCount = dbContext.BomOccurrences
+                            .Where(x =>
+                                d.CurrentVersionId.HasValue &&
+                                x.ParentVersionId == d.CurrentVersionId.Value &&
+                                x.ChildVersionId.HasValue &&
+                                x.ChildVersion!.Document.CurrentVersion != null &&
+                                x.ChildVersion.Document.CurrentVersion.VersionNo > x.ChildVersion.VersionNo)
+                            .Select(x => x.ChildVersion!.DocumentId)
+                            .Distinct()
+                            .Count(),
+                        AffectedReferenceOccurrenceCount = dbContext.BomOccurrences
+                            .Count(x =>
+                                d.CurrentVersionId.HasValue &&
+                                x.ParentVersionId == d.CurrentVersionId.Value &&
+                                x.ChildVersionId.HasValue &&
+                                x.ChildVersion!.Document.CurrentVersion != null &&
+                                x.ChildVersion.Document.CurrentVersion.VersionNo > x.ChildVersion.VersionNo),
                         d.UpdatedAt,
                         d.CheckedOutBy,
                         d.CheckedOutAt
@@ -105,6 +137,138 @@ public static class DocumentEndpoints
             {
                 var document = await repository.GetDocumentAsync(documentId, cancellationToken);
                 return document is null ? Results.NotFound() : Results.Ok(document);
+            }
+            catch (Exception ex)
+            {
+                return EndpointHelpers.ToProblem(ex);
+            }
+        });
+
+        app.MapGet("/api/documents/{documentId:long}/reference-updates", async (
+            long documentId,
+            PdmDbContext dbContext,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var parentDocument = await dbContext.Documents
+                    .AsNoTracking()
+                    .Where(x => x.DocumentId == documentId)
+                    .Select(x => new
+                    {
+                        x.DocumentId,
+                        x.DocumentType,
+                        x.CurrentVersionId
+                    })
+                    .SingleOrDefaultAsync(cancellationToken);
+
+                if (parentDocument is null)
+                {
+                    return Results.NotFound(new
+                    {
+                        title = "Document not found",
+                        detail = $"No document found for documentId={documentId}."
+                    });
+                }
+
+                if (!parentDocument.CurrentVersionId.HasValue)
+                {
+                    return Results.Ok(new
+                    {
+                        parentDocument.DocumentId,
+                        parentDocument.DocumentType,
+                        parentDocument.CurrentVersionId,
+                        checkedOccurrenceCount = 0,
+                        affectedOccurrenceCount = 0,
+                        updateCount = 0,
+                        hasUpdates = false,
+                        updates = Array.Empty<object>()
+                    });
+                }
+
+                long parentVersionId = parentDocument.CurrentVersionId.Value;
+                var referenceRows = await dbContext.BomOccurrences
+                    .AsNoTracking()
+                    .Where(x => x.ParentVersionId == parentVersionId && x.ChildVersionId.HasValue)
+                    .Select(x => new
+                    {
+                        x.BomOccurrenceId,
+                        x.OccurrencePath,
+                        ReferencedVersionId = x.ChildVersionId!.Value,
+                        ReferencedVersionNo = x.ChildVersion!.VersionNo,
+                        ReferencedRevisionLabel = x.ChildVersion.RevisionLabel,
+                        ReferencedFileName = x.ChildVersion.OriginalFileName,
+                        ChildDocumentId = x.ChildVersion.DocumentId,
+                        ChildDocumentType = x.ChildVersion.Document.DocumentType,
+                        ChildPartNumber = x.ChildVersion.Document.PartNumber,
+                        CurrentVersionId = x.ChildVersion.Document.CurrentVersionId,
+                        CurrentVersionNo = x.ChildVersion.Document.CurrentVersion != null
+                            ? x.ChildVersion.Document.CurrentVersion.VersionNo
+                            : (int?)null,
+                        CurrentRevisionLabel = x.ChildVersion.Document.CurrentVersion != null
+                            ? x.ChildVersion.Document.CurrentVersion.RevisionLabel
+                            : null,
+                        CurrentFileName = x.ChildVersion.Document.CurrentVersion != null
+                            ? x.ChildVersion.Document.CurrentVersion.OriginalFileName
+                            : null
+                    })
+                    .ToListAsync(cancellationToken);
+
+                var updates = referenceRows
+                    .Where(x =>
+                        x.CurrentVersionId.HasValue &&
+                        x.CurrentVersionNo.HasValue &&
+                        x.CurrentVersionNo.Value > x.ReferencedVersionNo)
+                    .GroupBy(x => new
+                    {
+                        x.ChildDocumentId,
+                        x.ChildDocumentType,
+                        x.ChildPartNumber,
+                        x.ReferencedVersionId,
+                        x.ReferencedVersionNo,
+                        x.ReferencedRevisionLabel,
+                        x.ReferencedFileName,
+                        x.CurrentVersionId,
+                        x.CurrentVersionNo,
+                        x.CurrentRevisionLabel,
+                        x.CurrentFileName
+                    })
+                    .Select(group => new
+                    {
+                        group.Key.ChildDocumentId,
+                        group.Key.ChildDocumentType,
+                        group.Key.ChildPartNumber,
+                        group.Key.ReferencedVersionId,
+                        group.Key.ReferencedVersionNo,
+                        group.Key.ReferencedRevisionLabel,
+                        group.Key.ReferencedFileName,
+                        group.Key.CurrentVersionId,
+                        group.Key.CurrentVersionNo,
+                        group.Key.CurrentRevisionLabel,
+                        group.Key.CurrentFileName,
+                        AffectedOccurrenceCount = group.Count(),
+                        OccurrencePaths = group
+                            .Select(x => x.OccurrencePath)
+                            .Where(x => !string.IsNullOrWhiteSpace(x))
+                            .Distinct(StringComparer.OrdinalIgnoreCase)
+                            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+                            .ToArray()
+                    })
+                    .OrderBy(x => x.ChildDocumentType, StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(x => x.CurrentFileName, StringComparer.OrdinalIgnoreCase)
+                    .ToArray();
+
+                return Results.Ok(new
+                {
+                    parentDocument.DocumentId,
+                    parentDocument.DocumentType,
+                    parentDocument.CurrentVersionId,
+                    checkedOccurrenceCount = referenceRows.Count,
+                    affectedOccurrenceCount = updates.Sum(x => x.AffectedOccurrenceCount),
+                    updateCount = updates.Length,
+                    hasUpdates = updates.Length > 0,
+                    updates
+                });
             }
             catch (Exception ex)
             {

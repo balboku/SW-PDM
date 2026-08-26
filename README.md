@@ -10,7 +10,13 @@
 
 ## 🚀 快速啟動
 
-本專案提供了一鍵啟動腳本。確保您的電腦已啟動 Docker 後，只要在專案根目錄下執行：
+本專案提供了一鍵啟動腳本。Windows 主機在專案根目錄下執行：
+
+```powershell
+.\start.ps1
+```
+
+Linux／macOS 環境可執行：
 
 ```bash
 ./start.sh
@@ -20,7 +26,12 @@
 1. 更新/套用最新的 Entity Framework Core 資料庫遷移 (Migration)。
 2. 啟動 `SWPdm.Api` 服務。
 
-預設 API 運行在：`http://localhost:5000`
+- 主機本機 Web：`http://localhost:5174`
+- 主機本機 API：`http://localhost:5000`
+- 同一內網的同仁：使用 `http://<PDM 主機 IPv4>:5174` 開啟系統。
+
+Windows 啟動腳本會讓 API 監聽 `0.0.0.0:5000`，供同一內網的 Web 用戶端載入圖面。
+請只在受信任的公司內網使用，並確認 Windows 防火牆允許 `.NET Host` 的入站連線。
 
 ## 🛠 開發與測試
 

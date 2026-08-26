@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, Loader2, Download, PackageOpen, Server, FileText, Archive, History, Link2, AlertCircle, RefreshCw, GitBranch, ArrowRight } from 'lucide-react';
-import { api, searchDocuments, downloadAssemblyZip, downloadVersion, getVersionThumbnailUrl, undoCheckOutDocument, checkAssemblyUpdates, getDocumentRelations } from '../lib/api';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Filter, Loader2, Download, PackageOpen, Server, FileText, Archive, History, Link2, AlertCircle, AlertTriangle, RefreshCw, GitBranch, ArrowRight } from 'lucide-react';
+import { api, searchDocuments, downloadAssemblyZip, downloadVersion, getVersionThumbnailUrl, undoCheckOutDocument, checkAssemblyUpdates, getDocumentRelations, getDocumentReferenceUpdates } from '../lib/api';
 import { BomTreeView } from '../components/BomTreeView';
 import { CheckOutModal } from '../components/CheckOutModal';
 import { CheckInModal } from '../components/CheckInModal';
@@ -203,10 +203,152 @@ const IdentityChangePanel: React.FC<IdentityChangePanelProps> = ({
   );
 };
 
+interface ReferenceUpdateItem {
+  childDocumentId: number;
+  childDocumentType: string;
+  childPartNumber?: string | null;
+  referencedVersionId: number;
+  referencedVersionNo: number;
+  referencedRevisionLabel?: string | null;
+  referencedFileName: string;
+  currentVersionId: number;
+  currentVersionNo: number;
+  currentRevisionLabel?: string | null;
+  currentFileName?: string | null;
+  affectedOccurrenceCount: number;
+}
+
+interface ReferenceUpdateStatus {
+  documentId: number;
+  documentType: string;
+  currentVersionId?: number | null;
+  checkedOccurrenceCount: number;
+  affectedOccurrenceCount: number;
+  updateCount: number;
+  hasUpdates: boolean;
+  updates: ReferenceUpdateItem[];
+}
+
+interface ReferenceUpdateWarningProps {
+  data: ReferenceUpdateStatus | null;
+  isLoading: boolean;
+  error: string;
+  isCheckedOut: boolean;
+  onRetry: () => void;
+}
+
+const ReferenceUpdateWarning: React.FC<ReferenceUpdateWarningProps> = ({
+  data,
+  isLoading,
+  error,
+  isCheckedOut,
+  onRetry
+}) => {
+  if (isLoading) {
+    return (
+      <div className="mt-4 flex items-center rounded-lg border border-gray-700 bg-gray-900/60 px-3 py-2 text-xs text-gray-400">
+        <Loader2 size={14} className="mr-2 animate-spin text-amber-400" />
+        正在檢查子文件版本…
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mt-4 rounded-lg border border-amber-800/60 bg-amber-950/30 p-3 text-xs text-amber-100" role="alert">
+        <div className="flex items-start gap-2">
+          <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-400" />
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold">暫時無法確認子文件版本</p>
+            <p className="mt-1 leading-5 text-amber-200/80">{error}</p>
+            <button
+              type="button"
+              onClick={onRetry}
+              className="mt-2 inline-flex items-center rounded border border-amber-700/70 bg-amber-900/40 px-2.5 py-1.5 font-medium text-amber-100 hover:bg-amber-900/60"
+            >
+              <RefreshCw size={12} className="mr-1.5" />
+              重新檢查
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data?.hasUpdates || data.updates.length === 0) return null;
+
+  return (
+    <section
+      className="mt-4 overflow-hidden rounded-lg border border-amber-500/70 bg-amber-950/40 shadow-[0_0_0_1px_rgba(245,158,11,0.08),0_10px_28px_rgba(0,0,0,0.28)]"
+      aria-live="polite"
+    >
+      <div className="flex items-start gap-3 border-b border-amber-800/50 px-3 py-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-400 text-amber-950 shadow">
+          <AlertTriangle size={18} aria-hidden="true" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-sm font-bold text-amber-100">
+              發現 {data.updateCount} 個舊版子文件參照
+            </h3>
+            <span className="rounded-full border border-amber-700/70 bg-amber-900/50 px-2 py-0.5 text-[10px] font-semibold text-amber-200">
+              {data.affectedOccurrenceCount} 個參照位置
+            </span>
+          </div>
+          <p className="mt-1 text-xs leading-5 text-amber-100/80">
+            目前父文件仍指向子文件先前版本，內容可能不是最新。
+          </p>
+        </div>
+      </div>
+
+      <div className="max-h-48 divide-y divide-amber-900/50 overflow-y-auto">
+        {data.updates.map((item) => (
+          <div key={`${item.childDocumentId}-${item.referencedVersionId}`} className="px-3 py-2.5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-semibold text-white" title={item.currentFileName || item.referencedFileName}>
+                  {item.currentFileName || item.referencedFileName}
+                </p>
+                <p className="mt-0.5 truncate text-[10px] text-amber-200/60">
+                  {item.childPartNumber || '無料號'} · {item.childDocumentType}
+                </p>
+              </div>
+              {item.affectedOccurrenceCount > 1 && (
+                <span className="shrink-0 rounded bg-amber-900/60 px-1.5 py-0.5 text-[10px] text-amber-200">
+                  {item.affectedOccurrenceCount} 處
+                </span>
+              )}
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px]">
+              <span className="rounded border border-red-900/60 bg-red-950/40 px-2 py-1 text-red-200">
+                目前引用 Ver. {item.referencedVersionNo} / Rev. {item.referencedRevisionLabel || '-'}
+              </span>
+              <ArrowRight size={12} className="text-amber-400" aria-hidden="true" />
+              <span className="rounded border border-emerald-800/60 bg-emerald-950/40 px-2 py-1 text-emerald-200">
+                子文件目前 Ver. {item.currentVersionNo} / Rev. {item.currentRevisionLabel || '-'}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="border-t border-amber-800/50 bg-amber-950/50 px-3 py-3 text-xs leading-5 text-amber-50">
+        <p className="font-semibold">
+          {isCheckedOut
+            ? '下一步：在 SolidWorks 更新參照並儲存父文件，再使用下方「入庫」。'
+            : '下一步：先使用下方「出庫」，到 SolidWorks 更新參照後再重新入庫。'}
+        </p>
+        <p className="mt-1 text-amber-200/70">歷史版本保留原參照，不會被自動改寫。</p>
+      </div>
+    </section>
+  );
+};
+
 export default function Documents() {
   const [query, setQuery] = useState('');
   const [documents, setDocuments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [documentLoadError, setDocumentLoadError] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
   const [isCheckOutModalOpen, setIsCheckOutModalOpen] = useState(false);
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
@@ -219,17 +361,23 @@ export default function Documents() {
   const [relationData, setRelationData] = useState<any>(null);
   const [isRelationLoading, setIsRelationLoading] = useState(false);
   const [relationError, setRelationError] = useState('');
+  const [referenceUpdateData, setReferenceUpdateData] = useState<ReferenceUpdateStatus | null>(null);
+  const [isReferenceUpdateLoading, setIsReferenceUpdateLoading] = useState(false);
+  const [referenceUpdateError, setReferenceUpdateError] = useState('');
   const [detailTab, setDetailTab] = useState<'structure' | 'history'>('structure');
   const [selectedType, setSelectedType] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
+  const selectedDocumentIdRef = useRef<number | null>(null);
 
   const fetchDocuments = async (searchQuery: string = query, type: string = selectedType, status: string = selectedStatus) => {
     setIsLoading(true);
+    setDocumentLoadError('');
     try {
       const data = await searchDocuments(searchQuery, type, status);
-      setDocuments(data);
+      setDocuments(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to search documents', error);
+      setDocumentLoadError('請先確認 PDM 主機服務仍在執行，再重新連線；若仍失敗，請通知系統管理者檢查內網 API。');
     } finally {
       setIsLoading(false);
     }
@@ -259,12 +407,37 @@ export default function Documents() {
     }
   };
 
+  const loadDocumentReferenceUpdates = async (documentId: number) => {
+    setIsReferenceUpdateLoading(true);
+    setReferenceUpdateError('');
+    try {
+      const data = await getDocumentReferenceUpdates(documentId);
+      if (selectedDocumentIdRef.current === documentId) {
+        setReferenceUpdateData(data);
+      }
+    } catch (error) {
+      console.error('Failed to check document reference updates', error);
+      if (selectedDocumentIdRef.current === documentId) {
+        setReferenceUpdateData(null);
+        setReferenceUpdateError('更新狀態尚未載入，請確認服務連線後重試。');
+      }
+    } finally {
+      if (selectedDocumentIdRef.current === documentId) {
+        setIsReferenceUpdateLoading(false);
+      }
+    }
+  };
+
   const handleSelectDocument = async (doc: any) => {
+    selectedDocumentIdRef.current = doc.documentId;
     setSelectedDoc(doc);
     setDetailTab('structure');
     setRelationData(null);
     setRelationError('');
+    setReferenceUpdateData(null);
+    setReferenceUpdateError('');
     void loadDocumentRelations(doc.documentId);
+    void loadDocumentReferenceUpdates(doc.documentId);
 
     try {
       const response = await api.get(`/api/documents/${doc.documentId}`);
@@ -333,10 +506,26 @@ export default function Documents() {
   const versionHistory = Array.isArray(selectedDoc?.versions)
     ? [...selectedDoc.versions].sort((a: any, b: any) => (b.versionNo ?? 0) - (a.versionNo ?? 0))
     : [];
+  const referenceAlertDocuments = documents.filter((doc) => Number(doc.referenceUpdateCount) > 0);
+  const referenceAlertOccurrenceCount = referenceAlertDocuments.reduce(
+    (total, doc) => total + Number(doc.affectedReferenceOccurrenceCount || 0),
+    0
+  );
+  const displayedDocuments = [...documents].sort((left, right) => (
+    Number(Number(right.referenceUpdateCount) > 0) - Number(Number(left.referenceUpdateCount) > 0)
+  ));
+  const checkedOutDocumentCount = documents.filter((doc) => Boolean(doc.checkedOutBy)).length;
+  const summaryValue = (value: number) => documentLoadError ? '—' : value;
+  const vaultSummaryMetrics = [
+    { label: '目前結果', value: summaryValue(documents.length), icon: FileText, tone: 'text-slate-600', valueTone: 'text-slate-900' },
+    { label: '參照異常', value: summaryValue(referenceAlertDocuments.length), icon: AlertTriangle, tone: 'text-amber-600', valueTone: 'text-amber-700' },
+    { label: '已出庫', value: summaryValue(checkedOutDocumentCount), icon: Lock, tone: 'text-orange-600', valueTone: 'text-orange-700' },
+    { label: '可用', value: summaryValue(documents.length - checkedOutDocumentCount), icon: Unlock, tone: 'text-emerald-600', valueTone: 'text-emerald-700' }
+  ];
 
   return (
     <div className="flex h-full flex-col p-0 sm:p-4 md:p-6 animate-in fade-in duration-500">
-      <div className="flex justify-between items-end mb-6">
+      <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight flex items-center">
             <Server className="mr-3 text-[#D4AF37]" size={28} />
@@ -344,11 +533,35 @@ export default function Documents() {
           </h1>
           <p className="text-gray-600 mt-2 text-sm">搜尋、檢視與管理伺服器上的設計圖檔</p>
         </div>
+        <div
+          className="grid w-full grid-cols-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm sm:grid-cols-4 xl:w-auto xl:min-w-[34rem]"
+          aria-label="目前 Vault 搜尋結果摘要"
+        >
+          {vaultSummaryMetrics.map((metric, index) => {
+            const MetricIcon = metric.icon;
+            return (
+              <div
+                key={metric.label}
+                className={`flex min-w-0 items-center gap-2.5 border-gray-100 px-3 py-2.5 ${
+                  index < 2 ? 'border-b' : ''
+                } ${index % 2 === 0 ? 'border-r' : ''} sm:border-b-0 ${index < 3 ? 'sm:border-r' : ''}`}
+              >
+                <MetricIcon size={17} className={`shrink-0 ${metric.tone}`} aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="truncate text-[10px] font-medium tracking-wide text-gray-500">{metric.label}</p>
+                  <p className={`text-lg font-bold leading-5 ${documentLoadError ? 'text-gray-400' : metric.valueTone}`}>
+                    {isLoading ? '…' : metric.value}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
+      <div className="flex flex-col xl:flex-row gap-6 flex-1 min-h-0">
         {/* 左側列表區 */}
-        <div className="flex-1 flex flex-col min-h-0 bg-[#121212] border border-gray-800 rounded-xl overflow-hidden shadow-2xl">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#121212] shadow-2xl">
           <div className="p-4 border-b border-gray-800 bg-gray-900/50">
             <form onSubmit={handleSearch} className="flex flex-col gap-2 sm:flex-row">
               <div className="relative min-w-0 flex-1">
@@ -359,7 +572,7 @@ export default function Documents() {
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="搜尋檔名、料號..."
+                  placeholder="搜尋檔名、圖號、料號..."
                   className="block w-full pl-10 pr-3 py-2 border border-gray-700 rounded-lg leading-5 bg-gray-800/50 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] sm:text-sm transition-all"
                 />
               </div>
@@ -400,36 +613,82 @@ export default function Documents() {
                 篩選
               </button>
             </form>
-            <p className="mt-2 text-xs text-gray-500 sm:hidden">表格可左右滑動查看料號、類型、版次與狀態。</p>
+            {documentLoadError && !isLoading && (
+              <div
+                className="mt-3 flex flex-col gap-3 rounded-lg border border-rose-500/60 bg-rose-950/40 px-3 py-3 text-rose-100 shadow-[0_0_0_1px_rgba(244,63,94,0.06)] sm:flex-row sm:items-center sm:justify-between"
+                role="alert"
+              >
+                <div className="flex min-w-0 items-start gap-2.5">
+                  <AlertCircle size={19} className="mt-0.5 shrink-0 text-rose-400" aria-hidden="true" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold">目前無法載入圖面清單</p>
+                    <p className="mt-0.5 text-xs leading-5 text-rose-200/80">{documentLoadError}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void fetchDocuments(query, selectedType, selectedStatus)}
+                  className="inline-flex shrink-0 items-center justify-center rounded-lg border border-rose-400/50 bg-rose-500/15 px-3 py-2 text-xs font-semibold text-rose-100 transition-colors hover:bg-rose-500/25 focus:outline-none focus:ring-2 focus:ring-rose-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={isLoading}
+                >
+                  <RefreshCw size={14} className="mr-1.5" aria-hidden="true" />
+                  重新連線
+                </button>
+              </div>
+            )}
+            {referenceAlertDocuments.length > 0 && !isLoading && !documentLoadError && (
+              <div
+                className="mt-3 flex flex-col gap-2 rounded-lg border border-amber-500/60 bg-amber-950/40 px-3 py-2.5 text-amber-100 shadow-[0_0_0_1px_rgba(245,158,11,0.05)] sm:flex-row sm:items-center sm:justify-between"
+                role="status"
+              >
+                <div className="flex min-w-0 items-start gap-2">
+                  <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-400" aria-hidden="true" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold">
+                      目前清單有 {referenceAlertDocuments.length} 份文件需更新子文件參照
+                    </p>
+                    <p className="mt-0.5 text-xs leading-5 text-amber-200/75">
+                      共 {referenceAlertOccurrenceCount} 個參照位置；異常文件已置頂，選取警示列查看版本差異與處理步驟。
+                    </p>
+                  </div>
+                </div>
+                <span className="shrink-0 self-start rounded-full border border-amber-700/70 bg-amber-900/50 px-2.5 py-1 text-xs font-semibold text-amber-200 sm:self-auto">
+                  需處理 {referenceAlertDocuments.length}
+                </span>
+              </div>
+            )}
+            <p className="mt-2 text-xs text-gray-500 sm:hidden">檔名下方會直接標示參照異常；表格可左右滑動查看其他欄位。</p>
           </div>
 
           <div className="flex-1 overflow-auto">
-            <table className="min-w-[760px] divide-y divide-gray-800 text-sm">
+            <table className="w-full min-w-[900px] divide-y divide-gray-800 text-sm">
               <thead className="bg-[#1a1a1a] sticky top-0 z-10 w-full">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">檔名</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">檔名／參照狀況</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">圖號</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">料號</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">類型</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">版次</th>
+                  <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-400 tracking-wide">版本／版次</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">狀態</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">更新時間</th>
                 </tr>
               </thead>
               <tbody className="bg-[#121212] divide-y divide-gray-800/50">
-                {documents.length === 0 && !isLoading && (
+                {documents.length === 0 && !isLoading && !documentLoadError && (
                   <tr>
-                    <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
                       查無圖檔資料
                     </td>
                   </tr>
                 )}
                 
-                {documents.map((doc) => {
+                {displayedDocuments.map((doc) => {
                   const isSelected = selectedDoc?.documentId === doc.documentId;
                   const isCheckedOutWip = Boolean(
                     doc.checkedOutBy &&
                     String(doc.currentLifecycleState || '').toLowerCase() === 'wip'
                   );
+                  const hasReferenceUpdates = Number(doc.referenceUpdateCount) > 0;
 
                   return (
                   <tr 
@@ -438,14 +697,30 @@ export default function Documents() {
                     className={`cursor-pointer transition-colors ${
                       isSelected
                         ? 'bg-gray-800/80 border-l-2 border-[#D4AF37]'
+                        : hasReferenceUpdates
+                          ? 'bg-amber-950/20 hover:bg-amber-950/30 border-l-2 border-amber-500/90'
                         : isCheckedOutWip
                           ? 'bg-orange-950/20 hover:bg-orange-950/30 border-l-2 border-orange-500/80'
                           : 'hover:bg-gray-800/40 border-l-2 border-transparent'
                     }`}
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-200 font-medium flex items-center">
+                    <td className="px-6 py-4 text-gray-200 font-medium flex items-center">
                       <VersionThumbnail versionId={doc.currentVersionId} className="mr-3 h-10 w-10" />
-                      <span className="min-w-0 truncate">{doc.fileName}</span>
+                      <div className="min-w-0">
+                        <p className="truncate whitespace-nowrap">{doc.fileName}</p>
+                        {hasReferenceUpdates && (
+                          <span
+                            className="mt-1 inline-flex items-center gap-1 rounded border border-amber-600/60 bg-amber-900/40 px-1.5 py-0.5 text-[10px] font-semibold leading-4 text-amber-200"
+                            title={`目前父文件有 ${doc.referenceUpdateCount} 個舊版子文件參照項目，共 ${doc.affectedReferenceOccurrenceCount} 個參照位置；選取此列查看處理步驟。`}
+                          >
+                            <AlertTriangle size={11} aria-hidden="true" />
+                            需更新 {doc.referenceUpdateCount} 項 · {doc.affectedReferenceOccurrenceCount} 處
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap font-mono text-gray-200">
+                      {doc.drawingNumber || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-400">{doc.partNumber || '-'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -457,7 +732,10 @@ export default function Documents() {
                         {doc.documentType}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-400 text-center">{doc.revisionLabel || '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <p className="text-xs font-semibold text-gray-200">Ver. {doc.currentVersionNo ?? '-'}</p>
+                      <p className="mt-0.5 text-[10px] text-gray-500">Rev. {doc.revisionLabel || '-'}</p>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {doc.checkedOutBy ? (
                         <span className="flex items-center gap-1 text-[10px] text-orange-400 bg-orange-400/10 px-1.5 py-0.5 rounded border border-orange-400/20">
@@ -485,23 +763,40 @@ export default function Documents() {
 
         {/* 右側預覽區 (Bom Tree / Info) */}
         {selectedDoc && (
-          <div className="w-full lg:w-96 flex flex-col min-h-0 bg-[#121212] border border-gray-800 rounded-xl shadow-2xl animate-in slide-in-from-right-4 duration-300">
+          <div className="flex min-h-0 w-full flex-col rounded-xl border border-gray-800 bg-[#121212] shadow-2xl animate-in slide-in-from-right-4 duration-300 xl:w-[26rem] 2xl:w-[32rem]">
             <div className="p-4 border-b border-gray-800 bg-[#1a1a1a]">
               <VersionThumbnail
                 versionId={selectedDoc.currentVersionId}
                 className="mb-4 h-40 w-full rounded-lg"
                 iconSize={48}
               />
-              <div className="flex justify-between items-start">
-                <h3 className="text-sm border border-gray-700 bg-gray-800 px-2 py-0.5 rounded text-gray-400 font-mono mb-2 inline-block">
-                  {selectedDoc.partNumber || 'No Part Number'}
-                </h3>
+              <div className="mb-3 grid grid-cols-2 gap-2">
+                <div className="min-w-0 rounded border border-gray-700 bg-gray-800 px-2 py-1.5">
+                  <p className="text-[10px] text-gray-500">圖號</p>
+                  <p className="truncate font-mono text-xs text-gray-200" title={selectedDoc.drawingNumber || '-'}>
+                    {selectedDoc.drawingNumber || '-'}
+                  </p>
+                </div>
+                <div className="min-w-0 rounded border border-gray-700 bg-gray-800 px-2 py-1.5">
+                  <p className="text-[10px] text-gray-500">料號</p>
+                  <p className="truncate font-mono text-xs text-gray-200" title={selectedDoc.partNumber || '-'}>
+                    {selectedDoc.partNumber || '-'}
+                  </p>
+                </div>
               </div>
               <h2 className="text-xl font-bold text-white break-all mb-1">{selectedDoc.fileName}</h2>
               <div className="flex items-center text-xs text-gray-400 mt-2 space-x-4">
                 <span>Rev: <span className="text-gray-200 font-medium">{selectedDoc.revisionLabel}</span></span>
                 <span>Type: <span className="text-gray-200">{selectedDoc.documentType}</span></span>
               </div>
+
+              <ReferenceUpdateWarning
+                data={referenceUpdateData}
+                isLoading={isReferenceUpdateLoading}
+                error={referenceUpdateError}
+                isCheckedOut={Boolean(selectedDoc.checkedOutBy)}
+                onRetry={() => loadDocumentReferenceUpdates(selectedDoc.documentId)}
+              />
 
               {/* Checkout Controls */}
               <div className="mt-4 flex gap-2">
@@ -524,7 +819,10 @@ export default function Documents() {
                       onClick={async () => {
                         if (confirm('確定要復原出庫嗎？您的修改將不會被儲存。')) {
                           await undoCheckOutDocument(selectedDoc.documentId);
-                          fetchDocuments(query);
+                          setSelectedDoc((current: any) => current
+                            ? { ...current, checkedOutBy: null, checkedOutAt: null }
+                            : current);
+                          void fetchDocuments(query);
                         }
                       }}
                       className="bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white border border-gray-700 px-3 py-2 rounded text-xs transition-colors"
@@ -693,8 +991,11 @@ export default function Documents() {
         onClose={() => setIsCheckOutModalOpen(false)}
         documentId={selectedDoc?.documentId}
         fileName={selectedDoc?.fileName}
-        onSuccess={() => {
-          fetchDocuments(query);
+        onSuccess={(checkedOutBy) => {
+          setSelectedDoc((current: any) => current
+            ? { ...current, checkedOutBy, checkedOutAt: new Date().toISOString() }
+            : current);
+          void fetchDocuments(query);
           setIsCheckOutModalOpen(false);
         }}
       />

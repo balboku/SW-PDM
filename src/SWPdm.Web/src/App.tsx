@@ -50,16 +50,24 @@ const MenuLink = ({ to, icon, label, active }: any) => {
   );
 };
 
+const AppContent = () => {
+  const location = useLocation();
+
+  return (
+    <Layout sidebar={<Sidebar />} fullWidth={location.pathname === '/documents'}>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/ingest" element={<UploadPage />} />
+        <Route path="/documents" element={<Documents />} />
+      </Routes>
+    </Layout>
+  );
+};
+
 function App() {
   return (
     <BrowserRouter>
-      <Layout sidebar={<Sidebar />}>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/ingest" element={<UploadPage />} />
-          <Route path="/documents" element={<Documents />} />
-        </Routes>
-      </Layout>
+      <AppContent />
     </BrowserRouter>
   );
 }
