@@ -22,8 +22,8 @@ const Sidebar = () => {
 
       <nav className="flex min-w-0 flex-1 gap-1 md:block md:space-y-2">
         <MenuLink to="/" icon={<Home size={20} />} label="系統概覽" active={isActive('/')} />
-        <MenuLink to="/ingest" icon={<UploadCloud size={20} />} label="檔案入庫 (Ingest)" active={isActive('/ingest')} />
-        <MenuLink to="/documents" icon={<Search size={20} />} label="圖檔搜尋" active={isActive('/documents')} />
+        <MenuLink to="/ingest" icon={<UploadCloud size={20} />} label="首次匯入" active={isActive('/ingest')} />
+        <MenuLink to="/documents" icon={<Search size={20} />} label="圖檔中心" active={isActive('/documents')} />
       </nav>
       
       <div className="hidden pt-4 border-t border-gray-800 text-xs text-center text-gray-500 md:block">
@@ -37,6 +37,7 @@ const MenuLink = ({ to, icon, label, active }: any) => {
   return (
     <Link
       to={to}
+      aria-current={active ? 'page' : undefined}
       className={`flex min-w-0 flex-1 items-center justify-center space-x-2 rounded-lg px-2 py-2.5 transition-colors md:flex-none md:justify-start md:space-x-3 md:px-4 md:py-3 ${
         active 
           ? 'bg-[#404040] text-white font-medium' 
@@ -44,7 +45,7 @@ const MenuLink = ({ to, icon, label, active }: any) => {
       }`}
     >
       <span className="flex-none">{icon}</span>
-      <span className="truncate text-xs sm:text-sm md:text-base">{label}</span>
+      <span className="text-xs sm:text-sm md:text-base">{label}</span>
       {active && <div className="ml-auto hidden w-1.5 h-1.5 rounded-full bg-[#D4AF37] md:block"></div>}
     </Link>
   );

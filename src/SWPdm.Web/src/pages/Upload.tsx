@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { UploadCloud, CheckCircle, AlertCircle, RefreshCw, AlertTriangle, SearchCheck, File as FileIcon, FolderOpen } from 'lucide-react';
 import { Card, Button } from '../components/ui';
+import { Link } from 'react-router-dom';
 import { BatchUploadPanel } from '../components/BatchUploadPanel';
 import { uploadTempFile, ingestCad, parseSolidWorksFile } from '../lib/api';
 
@@ -194,20 +195,23 @@ export default function UploadPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-[#171717]">CAD 入庫</h1>
-        <p className="mt-2 text-[#404040]">上傳 SolidWorks 零件或組合件前，可以先解析檔內屬性，確認必要欄位是否完整。</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-[#171717] sm:text-3xl">首次匯入 CAD</h1>
+        <p className="mt-2 text-sm text-[#404040]">新圖檔由此匯入；已出庫修改的圖檔，請回原文件進行「修改後入庫」。</p>
+        <Link to="/documents" className="mt-3 inline-block text-sm font-medium text-blue-700 underline">前往圖檔中心選取原文件</Link>
       </div>
 
-      <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4">
+      <details className="rounded-lg border border-amber-300 bg-amber-50 p-4">
+        <summary className="cursor-pointer text-sm font-semibold text-amber-900">匯入前檢查：CAD 必須填寫品號</summary>
+        <div className="mt-3 flex items-start gap-3">
         <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
         <div className="text-sm text-amber-800">
-          <p className="mb-1 font-semibold">上傳前檢查</p>
           <p>
             系統會從 CAD 自訂屬性中讀取 <code className="rounded bg-amber-100 px-1 font-mono">PartNumber</code> 或
             <code className="ml-1 rounded bg-amber-100 px-1 font-mono">品號</code> 作為料號。建議先按下「先解析屬性」，確認檔案內真的有讀到值，再進行入庫。
           </p>
         </div>
-      </div>
+        </div>
+      </details>
 
       <div className="grid grid-cols-2 gap-2 rounded-lg border border-gray-200 bg-white p-1 shadow-sm">
         <button
@@ -237,7 +241,7 @@ export default function UploadPage() {
       </div>
 
       {uploadMode === 'single' ? (
-      <Card className="p-8">
+      <Card className="p-4 sm:p-8">
         {status === 'success' ? (
           <div className="py-12 text-center">
             <CheckCircle className="mx-auto mb-4 h-16 w-16 text-green-500" />
@@ -247,7 +251,8 @@ export default function UploadPage() {
               <br />
               檔案已完成解析並寫入資料庫。
             </p>
-            <Button onClick={resetForm}>重新上傳</Button>
+            <Link to="/documents" className="mr-3 inline-block rounded-md bg-gray-900 px-4 py-2 text-sm text-white">前往圖檔中心</Link>
+            <Button onClick={resetForm} variant="secondary">繼續匯入</Button>
           </div>
         ) : status === 'uploading' || status === 'parsing' || status === 'processing' ? (
           <div className="flex flex-col items-center py-16 text-center">
@@ -269,8 +274,9 @@ export default function UploadPage() {
           <div className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">上傳/入庫人員</label>
+                <label htmlFor="ingest-user" className="block text-sm font-medium text-gray-700 mb-1">上傳/入庫人員</label>
                 <input 
+                  id="ingest-user"
                   type="text" 
                   value={userName} 
                   onChange={(e) => setUserName(e.target.value)}
@@ -282,7 +288,7 @@ export default function UploadPage() {
             <div
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleFileDrop}
-              className={`cursor-pointer rounded-xl border-2 border-dashed p-12 text-center transition-colors hover:bg-gray-50 ${
+              className={`cursor-pointer rounded-xl border-2 border-dashed p-5 text-center transition-colors hover:bg-gray-50 sm:p-12 ${
                 file ? 'border-accent bg-accent/5' : 'border-gray-300'
               }`}
             >
@@ -296,7 +302,7 @@ export default function UploadPage() {
               <label htmlFor="file-upload" className="flex cursor-pointer flex-col items-center">
                 <UploadCloud className="mb-4 h-12 w-12 text-gray-400" />
                 {file ? (
-                  <div className="text-lg font-medium text-primary">{file.name}</div>
+                  <div className="max-w-full break-all text-lg font-medium text-primary">{file.name}</div>
                 ) : (
                   <>
                     <div className="text-lg font-medium text-primary">拖曳 CAD 檔案到這裡，或點擊選擇</div>
@@ -307,11 +313,11 @@ export default function UploadPage() {
             </div>
 
             {status === 'error' && (
-              <div className="flex items-start space-x-3 rounded-lg bg-red-50 p-4 text-red-700">
+              <div role="alert" className="flex items-start space-x-3 rounded-lg bg-red-50 p-4 text-red-700">
                 <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0" />
                 <div>
-                  <h3 className="font-medium">處理失敗</h3>
-                  <p className="mt-1 text-sm">{errorMessage}</p>
+                  <h3 className="font-medium">尚未完成，請確認檔案後重試，或重新選擇 CAD 檔案。</h3>
+                  <details className="mt-2 text-sm"><summary className="cursor-pointer">查看失敗原因</summary><p className="mt-1 break-all">{errorMessage}</p></details>
                 </div>
               </div>
             )}

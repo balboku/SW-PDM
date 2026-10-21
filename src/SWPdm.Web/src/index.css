@@ -8,6 +8,14 @@
   body {
     @apply font-sans bg-background text-text antialiased;
   }
+  button:focus-visible, a:focus-visible, summary:focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 2px;
+  }
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
 }
 
 /* 隱藏網頁捲軸但保留捲動功能 */

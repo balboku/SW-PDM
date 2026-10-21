@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronRight, ChevronDown, File, Archive, Loader2, Download } from 'lucide-react';
-import { getVersionChildren, downloadVersion } from '../lib/api';
+import { getVersionChildren } from '../lib/api';
 
 interface BomNode {
   childVersionId?: number;
@@ -8,20 +8,26 @@ interface BomNode {
   packageRelativePath?: string;
   quantity: number;
   childDocumentType?: string; // 根據實際 API 回傳欄位
+  referenceStatus?: string;
+  referenceIssue?: string;
+  referenceMatchMethod?: string;
 }
 
 interface BomTreeViewProps {
   rootVersionId: number;
+  onDownload: (versionId: number, fileName?: string) => void;
 }
 
 const BomTreeNode: React.FC<{ 
   node: BomNode, 
-  depth: number 
-}> = ({ node, depth }) => {
+  depth: number;
+  onDownload: (versionId: number, fileName?: string) => void;
+}> = ({ node, depth, onDownload }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [children, setChildren] = useState<BomNode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [error, setError] = useState(false);
 
   // 判斷是否為組合件 (透過附檔名或 API 欄位)
   const displayFileName = node.childOriginalFileName || node.packageRelativePath || 'Unknown File';
@@ -30,14 +36,18 @@ const BomTreeNode: React.FC<{
   const toggleExpand = async () => {
     if (!isAssembly || !node.childVersionId) return;
 
-    if (!isExpanded && !hasLoaded) {
+    if (!hasLoaded) {
       setIsLoading(true);
+      setError(false);
       try {
         const data = await getVersionChildren(node.childVersionId);
         setChildren(data);
         setHasLoaded(true);
       } catch (error) {
         console.error('Failed to load children', error);
+        setError(true);
+        setIsExpanded(true);
+        return;
       } finally {
         setIsLoading(false);
       }
@@ -50,20 +60,24 @@ const BomTreeNode: React.FC<{
     <div>
       <div 
         className={`flex items-center py-1.5 hover:bg-gray-800 transition-colors cursor-pointer text-sm`}
-        style={{ paddingLeft: `${depth * 20 + 8}px` }}
+        style={{ paddingLeft: `${Math.min(depth, 5) * 16 + 8}px` }}
         onClick={toggleExpand}
       >
-        <div className="w-5 flex justify-center items-center mr-1 text-gray-400">
-          {isAssembly ? (
-            isLoading ? (
+        <div className="min-w-5 shrink-0 flex justify-center items-center mr-1 text-gray-400">
+          {!node.childVersionId ? (
+            <span title={node.referenceIssue || '請上傳完整資料夾，並在 SolidWorks 確認參照後重新入庫。'}
+              className="whitespace-nowrap text-red-300 text-[10px] bg-red-900/20 px-1 rounded border border-red-900/30">
+              {node.referenceStatus === 'Broken' ? '關聯待確認' : '缺少參照'}
+            </span>
+          ) : isAssembly ? (
+            <button type="button" aria-label={`${isExpanded ? '收合' : '展開'} ${displayFileName}`} aria-expanded={isExpanded}
+              disabled={isLoading} onClick={event => { event.stopPropagation(); void toggleExpand(); }} className="rounded p-1 focus-visible:ring-2 focus-visible:ring-blue-400">{isLoading ? (
               <Loader2 size={14} className="animate-spin" />
             ) : isExpanded ? (
               <ChevronDown size={14} />
             ) : (
               <ChevronRight size={14} />
-            )
-          ) : !node.childVersionId ? (
-            <span className="text-red-500 font-bold text-[10px] bg-red-900/20 px-1 rounded border border-red-900/30">M</span>
+            )}</button>
           ) : (
             <span className="w-3.5" /> // Empty space alignment
           )}
@@ -73,7 +87,7 @@ const BomTreeNode: React.FC<{
           {isAssembly ? <Archive size={16} className={node.childVersionId ? "text-yellow-500" : "text-gray-600"} /> : <File size={16} className={node.childVersionId ? "text-blue-400" : "text-gray-600"} />}
         </div>
         
-        <span className={`flex-1 font-medium truncate ${node.childVersionId ? 'text-gray-200' : 'text-gray-500 italic'}`} title={displayFileName}>
+        <span className={`min-w-0 flex-1 font-medium truncate ${node.childVersionId ? 'text-gray-200' : 'text-gray-400 italic'}`} title={`${displayFileName}\n${node.referenceIssue || node.referenceMatchMethod || ''}`}>
           {displayFileName}
         </span>
         
@@ -87,15 +101,20 @@ const BomTreeNode: React.FC<{
           <button
             onClick={(e) => {
               e.stopPropagation();
-              downloadVersion(node.childVersionId!);
+              onDownload(node.childVersionId!, node.childOriginalFileName || node.packageRelativePath);
             }}
             className="ml-2 p-1 text-gray-500 hover:text-[#D4AF37] hover:bg-gray-700/50 rounded transition-all"
             title="下載此檔案"
+            aria-label={`下載 ${displayFileName}`}
           >
             <Download size={14} />
           </button>
         )}
       </div>
+      {error && <div role="alert" className="m-2 rounded border border-red-800 p-3 text-xs text-red-200">
+        子件尚未載入，請重試；這不代表沒有子件。
+        <button onClick={toggleExpand} className="ml-2 underline">重新載入子件</button>
+      </div>}
 
       {isExpanded && children.length > 0 && (
         <div className="flex flex-col relative before:absolute before:left-3 before:top-0 before:bottom-0 before:w-px before:bg-gray-700">
@@ -104,6 +123,7 @@ const BomTreeNode: React.FC<{
               key={`${child.childVersionId}-${idx}`} 
               node={child} 
               depth={depth + 1} 
+              onDownload={onDownload}
             />
           ))}
         </div>
@@ -111,34 +131,41 @@ const BomTreeNode: React.FC<{
       
       {isExpanded && hasLoaded && children.length === 0 && (
         <div style={{ paddingLeft: `${(depth + 1) * 20 + 8}px` }} className="text-xs text-gray-500 py-1 italic">
-          No items found
+          此組合件沒有下層項目，不需再展開。
         </div>
       )}
     </div>
   );
 };
 
-export const BomTreeView: React.FC<BomTreeViewProps> = ({ rootVersionId }) => {
+export const BomTreeView: React.FC<BomTreeViewProps> = ({ rootVersionId, onDownload }) => {
   const [rootChildren, setRootChildren] = useState<BomNode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    let active = true;
     const fetchRootChildren = async () => {
       setIsLoading(true);
+      setError(false);
+      setRootChildren([]);
       try {
         const data = await getVersionChildren(rootVersionId);
-        setRootChildren(data);
+        if (active) setRootChildren(data);
       } catch (error) {
         console.error('Failed to load root children', error);
+        if (active) setError(true);
       } finally {
-        setIsLoading(false);
+        if (active) setIsLoading(false);
       }
     };
 
     if (rootVersionId) {
-      fetchRootChildren();
+      void fetchRootChildren();
     }
-  }, [rootVersionId]);
+    return () => { active = false; };
+  }, [rootVersionId, attempt]);
 
   if (isLoading) {
     return (
@@ -149,6 +176,11 @@ export const BomTreeView: React.FC<BomTreeViewProps> = ({ rootVersionId }) => {
     );
   }
 
+  if (error) return <div role="alert" className="rounded border border-red-800 p-3 text-sm text-red-200">
+    結構尚未載入，請重新載入；請勿據此判斷沒有子件。
+    <button onClick={() => setAttempt(value => value + 1)} className="mt-2 block underline">重新載入結構</button>
+  </div>;
+
   if (rootChildren.length === 0) {
     return <div className="p-4 text-sm text-gray-500 text-center bg-gray-800/20 rounded-lg border border-gray-800">無子零件或尚未解析 BOM。</div>;
   }
@@ -156,7 +188,7 @@ export const BomTreeView: React.FC<BomTreeViewProps> = ({ rootVersionId }) => {
   return (
     <div className="border border-gray-800 rounded-lg bg-[#1a1a1a] overflow-hidden">
       <div className="px-4 py-2 border-b border-gray-800 bg-gray-800/30 text-xs font-semibold text-gray-400 tracking-wider">
-        Structure
+        BOM 結構
       </div>
       <div className="py-2">
         {rootChildren.map((child, idx) => (
@@ -164,6 +196,7 @@ export const BomTreeView: React.FC<BomTreeViewProps> = ({ rootVersionId }) => {
             key={`${child.childVersionId}-${idx}`} 
             node={child} 
             depth={0} 
+            onDownload={onDownload}
           />
         ))}
       </div>

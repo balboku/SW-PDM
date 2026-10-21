@@ -196,7 +196,7 @@ export const CheckInModal: React.FC<CheckInModalProps> = ({
   const partNumberChange = result?.partNumberChange;
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="圖檔入庫 (Check-in)">
+    <Modal isOpen={isOpen} onClose={handleClose} title="修改後入庫 (Check-in)">
       <div className="space-y-5">
         <div className="rounded-lg border border-green-900/20 bg-green-900/10 p-3">
           <p className="text-xs leading-5 text-green-200">

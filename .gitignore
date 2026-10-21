@@ -23,6 +23,8 @@ appsettings.*.json
 vault_storage/
 scratch/db-backups/
 *.json
+!src/SWPdm.Web/package.json
+!src/SWPdm.Web/package-lock.json
 !global.json
 !gen-lang-client-*.json
 gen-lang-client-*.json

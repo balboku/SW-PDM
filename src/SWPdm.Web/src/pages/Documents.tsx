@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { Search, Filter, Loader2, Download, PackageOpen, Server, FileText, Archive, History, Link2, AlertCircle, AlertTriangle, RefreshCw, GitBranch, ArrowRight } from 'lucide-react';
-import { api, searchDocuments, downloadAssemblyZip, downloadVersion, getVersionThumbnailUrl, undoCheckOutDocument, checkAssemblyUpdates, getDocumentRelations, getDocumentReferenceUpdates } from '../lib/api';
+import { api, searchDocuments, downloadAssemblyZip, downloadVersion, getVersionThumbnailUrl, checkAssemblyUpdates, getDocumentRelations, getDocumentReferenceUpdates } from '../lib/api';
 import { BomTreeView } from '../components/BomTreeView';
 import { CheckOutModal } from '../components/CheckOutModal';
 import { CheckInModal } from '../components/CheckInModal';
-import { Modal } from '../components/ui';
+import { CancelCheckoutModal } from '../components/CancelCheckoutModal';
+import { Modal, Drawer } from '../components/ui';
 import { Lock, Unlock, LogOut, LogIn } from 'lucide-react';
 
 interface VersionThumbnailProps {
@@ -45,23 +47,27 @@ interface RelatedDrawing {
 }
 
 interface RelatedDrawingsPanelProps {
+  isDrawing?: boolean;
   drawings: RelatedDrawing[];
   isLoading: boolean;
   error: string;
   onRetry: () => void;
+  onDownload: (versionId: number, fileName?: string) => void;
 }
 
 const RelatedDrawingsPanel: React.FC<RelatedDrawingsPanelProps> = ({
+  isDrawing,
   drawings,
   isLoading,
   error,
-  onRetry
+  onRetry,
+  onDownload
 }) => (
   <section className="mt-4 rounded-lg border border-gray-800 bg-[#1a1a1a]">
     <div className="flex items-center justify-between border-b border-gray-800 px-4 py-2">
       <h5 className="flex items-center text-xs font-semibold tracking-wider text-gray-300">
         <Link2 size={14} className="mr-2 text-purple-400" />
-        關聯 2D 工程圖
+        {isDrawing ? '參照的 3D 模型' : '關聯 2D 工程圖'}
       </h5>
       {!isLoading && !error && (
         <span className="rounded bg-gray-800 px-2 py-0.5 text-[10px] text-gray-400">
@@ -73,7 +79,7 @@ const RelatedDrawingsPanel: React.FC<RelatedDrawingsPanelProps> = ({
     {isLoading ? (
       <div className="flex items-center justify-center px-4 py-6 text-xs text-gray-400">
         <Loader2 size={14} className="mr-2 animate-spin text-[#D4AF37]" />
-        正在反查工程圖...
+        正在查詢關聯...
       </div>
     ) : error ? (
       <div className="px-4 py-4 text-xs text-red-300" role="alert">
@@ -90,9 +96,9 @@ const RelatedDrawingsPanel: React.FC<RelatedDrawingsPanelProps> = ({
       </div>
     ) : drawings.length === 0 ? (
       <div className="px-4 py-5 text-xs text-gray-400">
-        <p className="font-medium text-gray-300">尚未找到關聯工程圖。</p>
+        <p className="font-medium text-gray-300">{isDrawing ? '尚未找到已確認的 3D 模型參照。' : '尚未找到關聯工程圖。'}</p>
         <p className="mt-1 leading-5">
-          下一步：到「CAD 入庫」使用資料夾批次匯入 3D 與 SLDDRW，
+          下一步：到「首次匯入」使用資料夾批次匯入 3D 與 SLDDRW，
           或確認工程圖內部參考仍指向這個模型。
         </p>
       </div>
@@ -111,9 +117,9 @@ const RelatedDrawingsPanel: React.FC<RelatedDrawingsPanelProps> = ({
             </div>
             <button
               type="button"
-              onClick={() => downloadVersion(drawing.versionId)}
+              onClick={() => onDownload(drawing.versionId, drawing.originalFileName)}
               className="rounded p-1.5 text-gray-500 hover:bg-gray-800 hover:text-[#D4AF37]"
-              title="下載工程圖"
+              title={isDrawing ? '下載模型' : '下載工程圖'}
               aria-label={`下載 ${drawing.originalFileName}`}
             >
               <Download size={14} />
@@ -128,11 +134,13 @@ const RelatedDrawingsPanel: React.FC<RelatedDrawingsPanelProps> = ({
 interface IdentityChangePanelProps {
   identityOrigin: any;
   derivedDocuments: any[];
+  onDownload: (versionId: number, fileName?: string) => void;
 }
 
 const IdentityChangePanel: React.FC<IdentityChangePanelProps> = ({
   identityOrigin,
-  derivedDocuments
+  derivedDocuments,
+  onDownload
 }) => {
   if (!identityOrigin && derivedDocuments.length === 0) return null;
 
@@ -157,7 +165,7 @@ const IdentityChangePanel: React.FC<IdentityChangePanelProps> = ({
             <span className="truncate font-mono font-medium text-amber-200">{identityOrigin.newPartNumber}</span>
             <button
               type="button"
-              onClick={() => downloadVersion(identityOrigin.sourceVersionId)}
+              onClick={() => onDownload(identityOrigin.sourceVersionId)}
               className="ml-auto shrink-0 rounded p-1.5 text-gray-500 hover:bg-amber-950/40 hover:text-amber-300"
               title="下載衍生時的來源版本"
               aria-label={`下載來源品號 ${identityOrigin.oldPartNumber} 的版本`}
@@ -183,7 +191,7 @@ const IdentityChangePanel: React.FC<IdentityChangePanelProps> = ({
                 {item.targetVersionId && (
                   <button
                     type="button"
-                    onClick={() => downloadVersion(item.targetVersionId)}
+                    onClick={() => onDownload(item.targetVersionId)}
                     className="ml-auto shrink-0 rounded p-1.5 text-gray-500 hover:bg-amber-950/40 hover:text-amber-300"
                     title="下載新品號目前版本"
                     aria-label={`下載新品號 ${item.newPartNumber}`}
@@ -289,14 +297,14 @@ const ReferenceUpdateWarning: React.FC<ReferenceUpdateWarningProps> = ({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-sm font-bold text-amber-100">
-              發現 {data.updateCount} 個舊版子文件參照
+              {data.updateCount} 個子文件有新版可用
             </h3>
             <span className="rounded-full border border-amber-700/70 bg-amber-900/50 px-2 py-0.5 text-[10px] font-semibold text-amber-200">
               {data.affectedOccurrenceCount} 個參照位置
             </span>
           </div>
           <p className="mt-1 text-xs leading-5 text-amber-100/80">
-            目前父文件仍指向子文件先前版本，內容可能不是最新。
+            目前保留原簽入版本。若符合設計基準可維持不變；需要更新時再出庫處理。
           </p>
         </div>
       </div>
@@ -347,12 +355,28 @@ const ReferenceUpdateWarning: React.FC<ReferenceUpdateWarningProps> = ({
 export default function Documents() {
   const [query, setQuery] = useState('');
   const [documents, setDocuments] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [documentLoadError, setDocumentLoadError] = useState('');
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
+  const [detailError, setDetailError] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [downloadState, setDownloadState] = useState<{ versionId: number; fileName: string; status: 'loading' | 'success' | 'error' } | null>(null);
+  const downloadFeedback = useRef<HTMLDivElement>(null);
+  const downloadRequestId = useRef(0);
+  const [actionMessage, setActionMessage] = useState('');
+  const [appliedFilters, setAppliedFilters] = useState({ query: '', type: 'All', status: 'All' });
   const [isCheckOutModalOpen, setIsCheckOutModalOpen] = useState(false);
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
+  const [isUndoModalOpen, setIsUndoModalOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageInfo, setPageInfo] = useState<any>({ totalCount: 0, totalPages: 1, newerReferenceDocumentCount: 0, missingReferenceDocumentCount: 0, checkedOutCount: 0 });
+  const searchRequestId = useRef(0);
+  const [isPackageBusy, setIsPackageBusy] = useState(false);
+  const [legacyApi, setLegacyApi] = useState(false);
   const [packAndGoTarget, setPackAndGoTarget] = useState<number | null>(null);
+  const [isPackageOptionsLoading, setIsPackageOptionsLoading] = useState(false);
+  const packageTargetRef = useRef<number | null>(null);
+  const packageErrorRef = useRef<HTMLDivElement>(null);
   const [packAndGoUpdates, setPackAndGoUpdates] = useState<any[]>([]);
   const [packAndGoSelections, setPackAndGoSelections] = useState<Record<number, number>>({});
   const [packAndGoRelatedDrawings, setPackAndGoRelatedDrawings] = useState<RelatedDrawing[]>([]);
@@ -369,17 +393,28 @@ export default function Documents() {
   const [selectedStatus, setSelectedStatus] = useState('All');
   const selectedDocumentIdRef = useRef<number | null>(null);
 
-  const fetchDocuments = async (searchQuery: string = query, type: string = selectedType, status: string = selectedStatus) => {
+  const fetchDocuments = async (searchQuery: string = query, type: string = selectedType, status: string = selectedStatus, targetPage = page) => {
+    const requestId = ++searchRequestId.current;
     setIsLoading(true);
     setDocumentLoadError('');
     try {
-      const data = await searchDocuments(searchQuery, type, status);
-      setDocuments(Array.isArray(data) ? data : []);
+      const data = await searchDocuments(searchQuery, type, status, targetPage);
+      if (requestId !== searchRequestId.current) return;
+      setAppliedFilters({ query: searchQuery, type, status });
+      if (Array.isArray(data)) {
+        setLegacyApi(true); setDocuments(data); setPage(1);
+        setPageInfo({ totalCount: data.length, totalPages: 1, newerReferenceDocumentCount: data.filter(d => d.referenceUpdateCount > 0).length,
+          missingReferenceDocumentCount: 0, checkedOutCount: data.filter(d => d.checkedOutBy).length });
+        return;
+      }
+      if (!Array.isArray(data?.items)) throw new Error('資料格式不正確');
+      setLegacyApi(false);
+      setDocuments(data.items); setPageInfo(data); setPage(data.page);
     } catch (error) {
       console.error('Failed to search documents', error);
-      setDocumentLoadError('請先確認 PDM 主機服務仍在執行，再重新連線；若仍失敗，請通知系統管理者檢查內網 API。');
+      if (requestId === searchRequestId.current) setDocumentLoadError('請按「重新載入清單」再試。若持續失敗，請確認 PDM 服務與網路連線；不需要重新匯入圖檔。');
     } finally {
-      setIsLoading(false);
+      if (requestId === searchRequestId.current) setIsLoading(false);
     }
   };
 
@@ -387,9 +422,36 @@ export default function Documents() {
     fetchDocuments();
   }, []);
 
+  useEffect(() => {
+    if (packAndGoPreviewError) packageErrorRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [packAndGoPreviewError]);
+  useEffect(() => { downloadFeedback.current?.scrollIntoView({ block: 'nearest' }); }, [downloadState]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchDocuments(query, selectedType, selectedStatus);
+    fetchDocuments(query, selectedType, selectedStatus, 1);
+  };
+
+  const clearFilters = () => {
+    setQuery(''); setSelectedType('All'); setSelectedStatus('All');
+    void fetchDocuments('', 'All', 'All', 1);
+  };
+  const hasActiveFilters = Boolean(appliedFilters.query.trim() || appliedFilters.type !== 'All' || appliedFilters.status !== 'All');
+  const closeDetails = () => { selectedDocumentIdRef.current = null; downloadRequestId.current++; setSelectedDoc(null); };
+
+  const handleDownload = async (versionId: number, fileName?: string) => {
+    if (downloadState?.status === 'loading') return;
+    const requestId = ++downloadRequestId.current;
+    const extension = ({ Part: '.sldprt', Assembly: '.sldasm', Drawing: '.slddrw' } as Record<string, string>)[selectedDoc?.documentType] || '';
+    const originalName = fileName || selectedDoc?.fileName || `version_${versionId}`;
+    const fallbackFileName = fileName || /\.sld(prt|asm|drw)$/i.test(originalName) ? originalName : originalName + extension;
+    setDownloadState({ versionId, fileName: fallbackFileName, status: 'loading' });
+    try {
+      await downloadVersion(versionId, fallbackFileName);
+      if (downloadRequestId.current === requestId) setDownloadState({ versionId, fileName: fallbackFileName, status: 'success' });
+    } catch {
+      if (downloadRequestId.current === requestId) setDownloadState({ versionId, fileName: fallbackFileName, status: 'error' });
+    }
   };
 
   const loadDocumentRelations = async (documentId: number) => {
@@ -397,13 +459,14 @@ export default function Documents() {
     setRelationError('');
     try {
       const data = await getDocumentRelations(documentId);
-      setRelationData(data);
+      if (selectedDocumentIdRef.current === documentId) setRelationData(data);
     } catch (error: any) {
       console.error('Failed to load document relations', error);
-      setRelationData(null);
-      setRelationError(error.response?.data?.detail || error.message || '無法載入關聯資料');
+      if (selectedDocumentIdRef.current === documentId) {
+        setRelationData(null); setRelationError(error.response?.data?.detail || error.message || '無法載入關聯資料');
+      }
     } finally {
-      setIsRelationLoading(false);
+      if (selectedDocumentIdRef.current === documentId) setIsRelationLoading(false);
     }
   };
 
@@ -431,6 +494,11 @@ export default function Documents() {
   const handleSelectDocument = async (doc: any) => {
     selectedDocumentIdRef.current = doc.documentId;
     setSelectedDoc(doc);
+    downloadRequestId.current++;
+    setActionMessage('');
+    setDetailError(false);
+    setDetailLoading(true);
+    setDownloadState(null);
     setDetailTab('structure');
     setRelationData(null);
     setRelationError('');
@@ -448,10 +516,15 @@ export default function Documents() {
       ));
     } catch (error) {
       console.error('Failed to load document details', error);
+      if (selectedDocumentIdRef.current === doc.documentId) setDetailError(true);
+    } finally {
+      if (selectedDocumentIdRef.current === doc.documentId) setDetailLoading(false);
     }
   };
 
   const handlePackAndGoClick = async (versionId: number) => {
+    packageTargetRef.current = versionId;
+    setIsPackageOptionsLoading(true);
     setPackAndGoTarget(versionId);
     setPackAndGoUpdates([]);
     setPackAndGoSelections({});
@@ -461,6 +534,7 @@ export default function Documents() {
 
     try {
       const result = await checkAssemblyUpdates(versionId);
+      if (packageTargetRef.current !== versionId) return;
       const updates = Array.isArray(result?.updates) ? result.updates : [];
       const drawings = Array.isArray(result?.relatedDrawings) ? result.relatedDrawings : [];
       const selections = updates.reduce((acc: Record<number, number>, item: any) => {
@@ -473,15 +547,18 @@ export default function Documents() {
       setPackAndGoSelections(selections);
       setPackAndGoRelatedDrawings(drawings);
     } catch (error: any) {
+      if (packageTargetRef.current !== versionId) return;
       console.error('Failed to check package updates', error);
       setIncludeDrawings(false);
       setPackAndGoPreviewError(
         error.response?.data?.detail || error.message || '無法載入 Pack & Go 預覽'
       );
-    }
+    } finally { if (packageTargetRef.current === versionId) setIsPackageOptionsLoading(false); }
   };
 
   const closePackAndGoModal = () => {
+    packageTargetRef.current = null;
+    setIsPackageOptionsLoading(false);
     setPackAndGoTarget(null);
     setPackAndGoUpdates([]);
     setPackAndGoSelections({});
@@ -490,16 +567,23 @@ export default function Documents() {
     setIncludeDrawings(true);
   };
 
-  const handlePackAndGoDownload = (mode: 'original' | 'selected') => {
-    if (packAndGoTarget) {
-      const overrides = mode === 'selected'
-        ? Object.entries(packAndGoSelections).map(([sourceVersionId, selectedVersionId]) => `${sourceVersionId}:${selectedVersionId}`)
-        : [];
-
-      downloadAssemblyZip(packAndGoTarget, false, overrides, includeDrawings);
-    }
-
-    closePackAndGoModal();
+  const handlePackAndGoDownload = async (mode: 'original' | 'selected') => {
+    if (!packAndGoTarget || isPackageBusy || isPackageOptionsLoading) return;
+    setIsPackageBusy(true);
+    setPackAndGoPreviewError('');
+    const overrides = mode === 'selected'
+      ? Object.entries(packAndGoSelections).map(([source, selected]) => `${source}:${selected}`)
+      : [];
+    try {
+      await downloadAssemblyZip(packAndGoTarget, false, overrides, includeDrawings);
+      closePackAndGoModal();
+    } catch (error: any) {
+      let detail = error.response?.data?.detail;
+      if (error.response?.data instanceof Blob) {
+        try { detail = JSON.parse(await error.response.data.text()).detail; } catch { /* retain fallback */ }
+      }
+      setPackAndGoPreviewError(detail || '套件尚未下載，請確認參照或重新選版後再試。');
+    } finally { setIsPackageBusy(false); }
   };
 
   const canPackAndGo = selectedDoc && ['Assembly', 'Drawing'].includes(selectedDoc.documentType);
@@ -512,29 +596,32 @@ export default function Documents() {
     0
   );
   const displayedDocuments = [...documents].sort((left, right) => (
+    Number(Number(right.missingReferenceCount) > 0) - Number(Number(left.missingReferenceCount) > 0) ||
     Number(Number(right.referenceUpdateCount) > 0) - Number(Number(left.referenceUpdateCount) > 0)
   ));
-  const checkedOutDocumentCount = documents.filter((doc) => Boolean(doc.checkedOutBy)).length;
+  const checkedOutDocumentCount = pageInfo.checkedOutCount;
   const summaryValue = (value: number) => documentLoadError ? '—' : value;
   const vaultSummaryMetrics = [
-    { label: '目前結果', value: summaryValue(documents.length), icon: FileText, tone: 'text-slate-600', valueTone: 'text-slate-900' },
-    { label: '參照異常', value: summaryValue(referenceAlertDocuments.length), icon: AlertTriangle, tone: 'text-amber-600', valueTone: 'text-amber-700' },
+    { label: legacyApi ? '已載入（非全部）' : '全部結果', value: summaryValue(pageInfo.totalCount), icon: FileText, tone: 'text-slate-600', valueTone: 'text-slate-900' },
+    { label: '缺失／待確認', value: legacyApi ? '未檢測' : summaryValue(pageInfo.missingReferenceDocumentCount), icon: AlertTriangle, tone: 'text-amber-600', valueTone: 'text-amber-700' },
     { label: '已出庫', value: summaryValue(checkedOutDocumentCount), icon: Lock, tone: 'text-orange-600', valueTone: 'text-orange-700' },
-    { label: '可用', value: summaryValue(documents.length - checkedOutDocumentCount), icon: Unlock, tone: 'text-emerald-600', valueTone: 'text-emerald-700' }
+    { label: '有新版參照', value: summaryValue(pageInfo.newerReferenceDocumentCount), icon: History, tone: 'text-amber-600', valueTone: 'text-amber-700' }
   ];
 
   return (
-    <div className="flex h-full flex-col p-0 sm:p-4 md:p-6 animate-in fade-in duration-500">
+    <div className="flex h-full flex-col animate-in fade-in duration-500">
       <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight flex items-center">
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center sm:text-3xl">
             <Server className="mr-3 text-[#D4AF37]" size={28} />
             圖檔中心 (Vault)
           </h1>
-          <p className="text-gray-600 mt-2 text-sm">搜尋、檢視與管理伺服器上的設計圖檔</p>
+          {legacyApi && <details className="mt-2 max-w-xl text-sm text-amber-800"><summary className="cursor-pointer">清單最多顯示 50 筆，請使用搜尋縮小範圍</summary><p className="mt-2">目前 API 回傳有限筆數，並非全部圖面。未檢測不代表沒有缺失；本版取消出庫只解除選取文件，不會自動處理整批。</p></details>}
+          <p className="text-gray-600 mt-2 text-sm">選取圖檔查看明細、下載或辦理出入庫。</p>
+          <Link to="/ingest" className="mt-3 inline-flex rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-blue-500">首次匯入 CAD</Link>
         </div>
         <div
-          className="grid w-full grid-cols-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm sm:grid-cols-4 xl:w-auto xl:min-w-[34rem]"
+          className="grid w-full grid-cols-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm lg:grid-cols-4 xl:w-auto xl:min-w-[34rem]"
           aria-label="目前 Vault 搜尋結果摘要"
         >
           {vaultSummaryMetrics.map((metric, index) => {
@@ -544,11 +631,11 @@ export default function Documents() {
                 key={metric.label}
                 className={`flex min-w-0 items-center gap-2.5 border-gray-100 px-3 py-2.5 ${
                   index < 2 ? 'border-b' : ''
-                } ${index % 2 === 0 ? 'border-r' : ''} sm:border-b-0 ${index < 3 ? 'sm:border-r' : ''}`}
+                } ${index % 2 === 0 ? 'border-r' : ''} lg:border-b-0 ${index < 3 ? 'lg:border-r' : ''}`}
               >
                 <MetricIcon size={17} className={`shrink-0 ${metric.tone}`} aria-hidden="true" />
                 <div className="min-w-0">
-                  <p className="truncate text-[10px] font-medium tracking-wide text-gray-500">{metric.label}</p>
+                  <p className="text-xs font-medium tracking-wide text-gray-600">{metric.label}</p>
                   <p className={`text-lg font-bold leading-5 ${documentLoadError ? 'text-gray-400' : metric.valueTone}`}>
                     {isLoading ? '…' : metric.value}
                   </p>
@@ -559,29 +646,31 @@ export default function Documents() {
         </div>
       </div>
 
-      <div className="flex flex-col xl:flex-row gap-6 flex-1 min-h-0">
+      <div className="flex flex-col gap-6 flex-1 min-h-0">
         {/* 左側列表區 */}
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#121212] shadow-2xl">
+        <div className="flex w-full min-h-0 min-w-0 flex-1 self-start flex-col overflow-hidden rounded-xl border border-gray-800 bg-[#121212] shadow-2xl">
           <div className="p-4 border-b border-gray-800 bg-gray-900/50">
-            <form onSubmit={handleSearch} className="flex flex-col gap-2 sm:flex-row">
-              <div className="relative min-w-0 flex-1">
+            <form onSubmit={handleSearch} className="grid grid-cols-2 gap-2 xl:flex">
+              <div className="relative col-span-2 min-w-0 xl:flex-1">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
                   <Search size={18} />
                 </div>
                 <input
+                  aria-label="搜尋檔名、品名、圖號或料號"
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="搜尋檔名、圖號、料號..."
+                  placeholder="搜尋檔名、品名、圖號、料號..."
                   className="block w-full pl-10 pr-3 py-2 border border-gray-700 rounded-lg leading-5 bg-gray-800/50 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] sm:text-sm transition-all"
                 />
               </div>
 
               <select
+                aria-label="圖檔類型"
                 value={selectedType}
                 onChange={(e) => {
                   setSelectedType(e.target.value);
-                  fetchDocuments(query, e.target.value, selectedStatus);
+                  fetchDocuments(query, e.target.value, selectedStatus, 1);
                 }}
                 className="w-full bg-gray-800/50 text-gray-200 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#D4AF37] sm:w-auto"
               >
@@ -592,10 +681,11 @@ export default function Documents() {
               </select>
 
               <select
+                aria-label="出庫狀態"
                 value={selectedStatus}
                 onChange={(e) => {
                   setSelectedStatus(e.target.value);
-                  fetchDocuments(query, selectedType, e.target.value);
+                  fetchDocuments(query, selectedType, e.target.value, 1);
                 }}
                 className="w-full bg-gray-800/50 text-gray-200 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#D4AF37] sm:w-auto"
               >
@@ -606,7 +696,7 @@ export default function Documents() {
 
               <button
                 type="submit"
-                className="inline-flex w-full items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-[#D4AF37] hover:bg-[#c2a033] shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-[#D4AF37] disabled:opacity-50 sm:w-auto"
+                className="col-span-2 inline-flex w-full items-center justify-center px-4 py-2 border border-transparent text-sm font-semibold rounded-lg text-gray-950 bg-[#D4AF37] hover:bg-[#c2a033] shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-[#D4AF37] disabled:opacity-50 xl:w-auto"
                 disabled={isLoading}
               >
                 {isLoading ? <Loader2 size={16} className="animate-spin mr-2" /> : <Filter size={16} className="mr-2" />}
@@ -632,7 +722,7 @@ export default function Documents() {
                   disabled={isLoading}
                 >
                   <RefreshCw size={14} className="mr-1.5" aria-hidden="true" />
-                  重新連線
+                  重新載入清單
                 </button>
               </div>
             )}
@@ -645,43 +735,61 @@ export default function Documents() {
                   <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-400" aria-hidden="true" />
                   <div className="min-w-0">
                     <p className="text-sm font-bold">
-                      目前清單有 {referenceAlertDocuments.length} 份文件需更新子文件參照
+                      本頁有 {referenceAlertDocuments.length} 份文件的參照有新版可用
                     </p>
                     <p className="mt-0.5 text-xs leading-5 text-amber-200/75">
-                      共 {referenceAlertOccurrenceCount} 個參照位置；異常文件已置頂，選取警示列查看版本差異與處理步驟。
+                      共 {referenceAlertOccurrenceCount} 個位置；保留舊版不一定是錯誤，請依設計基準確認是否更新。
                     </p>
                   </div>
                 </div>
                 <span className="shrink-0 self-start rounded-full border border-amber-700/70 bg-amber-900/50 px-2.5 py-1 text-xs font-semibold text-amber-200 sm:self-auto">
-                  需處理 {referenceAlertDocuments.length}
+                  待確認 {referenceAlertDocuments.length}
                 </span>
               </div>
             )}
-            <p className="mt-2 text-xs text-gray-500 sm:hidden">檔名下方會直接標示參照異常；表格可左右滑動查看其他欄位。</p>
+            {hasActiveFilters && documents.length > 0 && <button type="button" onClick={clearFilters} disabled={isLoading} className="mt-3 rounded px-2 py-1 text-sm text-gray-200 underline">清除搜尋條件</button>}
           </div>
 
-          <div className="flex-1 overflow-auto">
-            <table className="w-full min-w-[900px] divide-y divide-gray-800 text-sm">
-              <thead className="bg-[#1a1a1a] sticky top-0 z-10 w-full">
+          {isLoading && <p role="status" className="px-4 py-3 text-sm text-gray-300">正在載入圖檔清單，請稍候…</p>}
+          {documents.length === 0 && !isLoading && !documentLoadError && <section className="px-5 py-10 text-center" aria-label="圖檔清單空狀態">
+            <p className="text-lg font-semibold text-gray-100">{hasActiveFilters ? '找不到符合條件的圖檔' : '圖庫尚無圖檔'}</p>
+            <p className="mt-2 text-sm text-gray-300">{hasActiveFilters ? '請清除搜尋條件或換個關鍵字，不需要重新匯入。' : '請先匯入 SolidWorks 圖檔，再回這裡搜尋與查看關聯。'}</p>
+            {hasActiveFilters ? <button type="button" onClick={clearFilters} className="mt-5 rounded-md bg-[#D4AF37] px-4 py-3 text-sm font-semibold text-gray-950">清除搜尋條件</button>
+              : <Link to="/ingest" className="mt-5 inline-block rounded-md bg-[#D4AF37] px-4 py-3 text-sm font-semibold text-gray-950">首次匯入 CAD</Link>}
+          </section>}
+          <div key={page} className="max-h-[60vh] flex-1 overflow-auto overscroll-contain" aria-busy={isLoading}>
+            <div className="divide-y divide-gray-700 lg:hidden">
+              {displayedDocuments.map(doc => <button key={doc.documentId} type="button" data-document-row
+                onClick={() => handleSelectDocument(doc)} aria-label={`查看 ${doc.fileName} 明細`}
+                className={`block w-full p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-400 ${selectedDoc?.documentId === doc.documentId ? 'bg-gray-800' : 'hover:bg-gray-900'}`}>
+                <p className="break-all text-sm font-semibold text-gray-100">{doc.fileName}</p>
+                <p className="mt-1 break-words text-xs text-gray-300">品名：{doc.partName || '未填寫／待確認'}</p>
+                <dl className="mt-3 grid grid-cols-2 gap-3 text-xs">
+                  <div className="min-w-0"><dt className="text-gray-400">圖號</dt><dd className="mt-1 break-all font-mono text-gray-100">{doc.drawingNumber || '未填寫'}</dd></div>
+                  <div className="min-w-0"><dt className="text-gray-400">料號</dt><dd className="mt-1 break-all font-mono text-gray-100">{doc.partNumber || '未填寫'}</dd></div>
+                </dl>
+                <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                  <span className={doc.checkedOutBy ? 'text-orange-300' : 'text-green-300'}>{doc.checkedOutBy ? `已出庫：${doc.checkedOutBy}` : '可用'}</span>
+                  <span className="text-gray-300">{doc.documentType} · Ver. {doc.currentVersionNo ?? '-'} / Rev. {doc.revisionLabel || '-'}</span>
+                  {Number(doc.missingReferenceCount) > 0 && <span className="text-red-300">缺失／待確認 {doc.missingReferenceCount} 處</span>}
+                  {Number(doc.referenceUpdateCount) > 0 && <span className="text-amber-300">有新版參照 {doc.referenceUpdateCount} 項</span>}
+                </div>
+                <span className="mt-3 block text-xs font-medium text-blue-300">查看明細 →</span>
+              </button>)}
+            </div>
+            <table className="hidden w-full min-w-[580px] table-fixed divide-y divide-gray-800 text-sm lg:table">
+              <thead className="bg-[#1a1a1a] sticky top-0 z-10 w-full whitespace-nowrap">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">檔名／參照狀況</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">圖號</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">料號</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">類型</th>
-                  <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-400 tracking-wide">版本／版次</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">狀態</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 tracking-wide">更新時間</th>
+                  <th scope="col" className="w-[32%] px-3 py-3 text-left text-xs font-medium text-gray-300">檔名／參照狀況</th>
+                  <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-300">圖號</th>
+                  <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-300">料號</th>
+                  <th scope="col" className="hidden px-3 py-3 text-left text-xs font-medium text-gray-300 xl:table-cell">類型</th>
+                  <th scope="col" className="px-3 py-3 text-center text-xs font-medium text-gray-300">版本／版次</th>
+                  <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-300">狀態</th>
+                  <th scope="col" className="hidden px-3 py-3 text-left text-xs font-medium text-gray-300 2xl:table-cell">更新時間</th>
                 </tr>
               </thead>
               <tbody className="bg-[#121212] divide-y divide-gray-800/50">
-                {documents.length === 0 && !isLoading && !documentLoadError && (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
-                      查無圖檔資料
-                    </td>
-                  </tr>
-                )}
-                
                 {displayedDocuments.map((doc) => {
                   const isSelected = selectedDoc?.documentId === doc.documentId;
                   const isCheckedOutWip = Boolean(
@@ -692,6 +800,7 @@ export default function Documents() {
 
                   return (
                   <tr 
+                    data-document-row
                     key={doc.documentId}
                     onClick={() => handleSelectDocument(doc)}
                     className={`cursor-pointer transition-colors ${
@@ -704,26 +813,34 @@ export default function Documents() {
                           : 'hover:bg-gray-800/40 border-l-2 border-transparent'
                     }`}
                   >
-                    <td className="px-6 py-4 text-gray-200 font-medium flex items-center">
+                    <td className="px-3 py-4 text-gray-200 font-medium">
+                      <div className="flex min-w-0 items-center">
                       <VersionThumbnail versionId={doc.currentVersionId} className="mr-3 h-10 w-10" />
                       <div className="min-w-0">
-                        <p className="truncate whitespace-nowrap">{doc.fileName}</p>
+                        <button type="button" aria-label={`查看 ${doc.fileName} 明細`} title={doc.fileName}
+                          onClick={event => { event.stopPropagation(); void handleSelectDocument(doc); }}
+                          className="block max-w-full truncate text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400">{doc.fileName}</button>
+                        <p className="mt-1 truncate text-xs font-normal text-gray-400">品名：{doc.partName || '未填寫／待確認'}</p>
+                        {Number(doc.missingReferenceCount) > 0 && <span className="mt-1 mr-2 inline-flex rounded border border-red-600/60 bg-red-950/40 px-1.5 py-0.5 text-[10px] text-red-200">
+                          缺失／待確認 {doc.missingReferenceCount} 處
+                        </span>}
                         {hasReferenceUpdates && (
                           <span
                             className="mt-1 inline-flex items-center gap-1 rounded border border-amber-600/60 bg-amber-900/40 px-1.5 py-0.5 text-[10px] font-semibold leading-4 text-amber-200"
                             title={`目前父文件有 ${doc.referenceUpdateCount} 個舊版子文件參照項目，共 ${doc.affectedReferenceOccurrenceCount} 個參照位置；選取此列查看處理步驟。`}
                           >
                             <AlertTriangle size={11} aria-hidden="true" />
-                            需更新 {doc.referenceUpdateCount} 項 · {doc.affectedReferenceOccurrenceCount} 處
+                            有新版 {doc.referenceUpdateCount} 項 · {doc.affectedReferenceOccurrenceCount} 處
                           </span>
                         )}
                       </div>
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap font-mono text-gray-200">
+                    <td title={doc.drawingNumber || ''} className="truncate px-3 py-4 font-mono text-xs text-gray-200">
                       {doc.drawingNumber || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-400">{doc.partNumber || '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td title={doc.partNumber || ''} className="truncate px-3 py-4 text-xs text-gray-300">{doc.partNumber || '-'}</td>
+                    <td className="hidden px-3 py-4 xl:table-cell">
                       <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-md ${
                         doc.documentType === 'Assembly' ? 'bg-yellow-900/40 text-yellow-500' : 
                         doc.documentType === 'Drawing' ? 'bg-purple-900/40 text-purple-400' : 
@@ -732,14 +849,14 @@ export default function Documents() {
                         {doc.documentType}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-3 py-4 whitespace-nowrap text-center">
                       <p className="text-xs font-semibold text-gray-200">Ver. {doc.currentVersionNo ?? '-'}</p>
                       <p className="mt-0.5 text-[10px] text-gray-500">Rev. {doc.revisionLabel || '-'}</p>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-4">
                       {doc.checkedOutBy ? (
                         <span className="flex items-center gap-1 text-[10px] text-orange-400 bg-orange-400/10 px-1.5 py-0.5 rounded border border-orange-400/20">
-                          <Lock size={10} /> {doc.checkedOutBy}
+                          <Lock size={10} className="shrink-0" /> <span className="break-all">已出庫：{doc.checkedOutBy}</span>
                         </span>
                       ) : (
                         <span className="flex items-center gap-1 text-[10px] text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded border border-green-400/20">
@@ -747,7 +864,7 @@ export default function Documents() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-xs">
+                    <td className="hidden px-3 py-4 text-gray-400 text-xs 2xl:table-cell">
                       {new Date(doc.updatedAt).toLocaleString('zh-TW', {
                          year: 'numeric', month: '2-digit', day: '2-digit',
                          hour: '2-digit', minute: '2-digit'
@@ -759,32 +876,62 @@ export default function Documents() {
               </tbody>
             </table>
           </div>
+            <nav aria-label="圖檔清單分頁" className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-800 p-3 text-xs text-gray-300">
+              <span>{documentLoadError ? '清單尚未載入，筆數未確認' : `共 ${pageInfo.totalCount} 份 · 第 ${page} / ${pageInfo.totalPages} 頁 · 本頁 ${documents.length} 份`}</span>
+              <div className="flex gap-2">
+                <button disabled={isLoading || Boolean(documentLoadError) || page <= 1} onClick={() => fetchDocuments(query, selectedType, selectedStatus, page - 1)} className="rounded border border-gray-600 px-3 py-2 disabled:opacity-40">上一頁</button>
+                <button disabled={isLoading || Boolean(documentLoadError) || page >= pageInfo.totalPages} onClick={() => fetchDocuments(query, selectedType, selectedStatus, page + 1)} className="rounded border border-gray-600 px-3 py-2 disabled:opacity-40">下一頁</button>
+              </div>
+            </nav>
         </div>
 
         {/* 右側預覽區 (Bom Tree / Info) */}
         {selectedDoc && (
-          <div className="flex min-h-0 w-full flex-col rounded-xl border border-gray-800 bg-[#121212] shadow-2xl animate-in slide-in-from-right-4 duration-300 xl:w-[26rem] 2xl:w-[32rem]">
+          <Drawer isOpen onClose={closeDetails} title="圖檔明細" contentKey={selectedDoc.documentId}>
+          <div className="flex min-w-0 flex-col bg-[#121212]">
             <div className="p-4 border-b border-gray-800 bg-[#1a1a1a]">
+              {detailLoading && <p role="status" className="mb-3 text-sm text-gray-300">正在載入明細，請稍候再操作…</p>}
+              {detailError && <div role="alert" className="mb-3 rounded border border-red-700 bg-red-950/30 p-3 text-sm text-red-200">
+                <p>明細尚未完整載入，請重試後再辦理出入庫。</p>
+                <button onClick={() => handleSelectDocument(selectedDoc)} className="mt-2 rounded border border-red-400 px-3 py-2">重新載入明細</button>
+              </div>}
+              {actionMessage && <p role="status" className="mb-3 rounded border border-green-700 bg-green-950/30 p-3 text-sm text-green-200">{actionMessage}</p>}
+              {downloadState && <div ref={downloadFeedback} role={downloadState.status === 'error' ? 'alert' : 'status'} className={`mb-3 rounded border p-3 text-sm ${downloadState.status === 'error' ? 'border-red-700 bg-red-950/30 text-red-200' : 'border-gray-600 text-gray-200'}`}>
+                {downloadState.status === 'loading' ? '正在準備下載，請稍候…' : downloadState.status === 'success' ? '檔案已交給瀏覽器下載，請查看瀏覽器的下載紀錄。' : '檔案尚未下載，請重試；持續失敗請確認 Vault 原檔是否存在。'}
+                {downloadState.status === 'error' && <button onClick={() => handleDownload(downloadState.versionId, downloadState.fileName)} className="mt-2 block rounded border border-red-400 px-3 py-2">重試下載</button>}
+              </div>}
               <VersionThumbnail
                 versionId={selectedDoc.currentVersionId}
-                className="mb-4 h-40 w-full rounded-lg"
+                className="mb-4 h-20 w-full rounded-lg sm:h-28"
                 iconSize={48}
               />
               <div className="mb-3 grid grid-cols-2 gap-2">
                 <div className="min-w-0 rounded border border-gray-700 bg-gray-800 px-2 py-1.5">
                   <p className="text-[10px] text-gray-500">圖號</p>
-                  <p className="truncate font-mono text-xs text-gray-200" title={selectedDoc.drawingNumber || '-'}>
+                  <p className="break-all font-mono text-xs text-gray-200">
                     {selectedDoc.drawingNumber || '-'}
                   </p>
                 </div>
                 <div className="min-w-0 rounded border border-gray-700 bg-gray-800 px-2 py-1.5">
                   <p className="text-[10px] text-gray-500">料號</p>
-                  <p className="truncate font-mono text-xs text-gray-200" title={selectedDoc.partNumber || '-'}>
+                  <p className="break-all font-mono text-xs text-gray-200">
                     {selectedDoc.partNumber || '-'}
                   </p>
                 </div>
               </div>
               <h2 className="text-xl font-bold text-white break-all mb-1">{selectedDoc.fileName}</h2>
+              <p className="text-sm text-gray-300">品名：{selectedDoc.partName || '未填寫／待確認'}</p>
+              {selectedDoc.propertySources && <details className="mt-2 text-xs text-gray-400">
+                <summary className="cursor-pointer">屬性來源與衝突</summary>
+                {Object.entries(selectedDoc.propertySources).map(([key, value]: [string, any]) => <p key={key} className="mt-2 break-words">
+                  {({ partNumber: '品號', partName: '品名', revision: '版次', drawingNumber: '圖號' } as Record<string, string>)[key]}：
+                  {value.conflicts?.length ? `有衝突 ${value.conflicts.join(' / ')}，請統一 CAD 屬性` : value.source || '未設定，請在 CAD 填寫'}
+                </p>)}
+              </details>}
+              {Number(selectedDoc.missingReferenceCount) > 0 && <div className="mt-3 rounded border border-red-800 bg-red-950/30 p-3 text-xs text-red-200">
+                <p>有 {selectedDoc.missingReferenceCount} 處參照缺失或待確認，完整套件下載會暫停。</p>
+                <p className="mt-1">請查看下方結構樹，補齊原始檔案、在 SolidWorks 確認參照並重新儲存，再由出庫人入庫。</p>
+              </div>}
               <div className="flex items-center text-xs text-gray-400 mt-2 space-x-4">
                 <span>Rev: <span className="text-gray-200 font-medium">{selectedDoc.revisionLabel}</span></span>
                 <span>Type: <span className="text-gray-200">{selectedDoc.documentType}</span></span>
@@ -799,10 +946,11 @@ export default function Documents() {
               />
 
               {/* Checkout Controls */}
-              <div className="mt-4 flex gap-2">
+              <div className="mt-4 flex flex-wrap gap-2">
                 {!selectedDoc.checkedOutBy ? (
                   <button 
                     onClick={() => setIsCheckOutModalOpen(true)}
+                    disabled={detailLoading || detailError}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-xs font-medium flex items-center justify-center gap-2 transition-colors"
                   >
                     <LogOut size={14} /> 出庫 (Check-out)
@@ -811,28 +959,24 @@ export default function Documents() {
                   <>
                     <button 
                       onClick={() => setIsCheckInModalOpen(true)}
+                      disabled={detailLoading || detailError}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-xs font-medium flex items-center justify-center gap-2 transition-colors"
                     >
-                      <LogIn size={14} /> 入庫 (Check-in)
+                      <LogIn size={14} /> 修改後入庫
                     </button>
                     <button 
-                      onClick={async () => {
-                        if (confirm('確定要復原出庫嗎？您的修改將不會被儲存。')) {
-                          await undoCheckOutDocument(selectedDoc.documentId);
-                          setSelectedDoc((current: any) => current
-                            ? { ...current, checkedOutBy: null, checkedOutAt: null }
-                            : current);
-                          void fetchDocuments(query);
-                        }
-                      }}
+                      onClick={() => setIsUndoModalOpen(true)}
+                      disabled={detailLoading || detailError}
                       className="bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white border border-gray-700 px-3 py-2 rounded text-xs transition-colors"
                       title="Undo Checkout"
                     >
-                      復原
+                      取消出庫
                     </button>
                   </>
                 )}
               </div>
+              {!selectedDoc.checkedOutBy && <button onClick={() => setIsUndoModalOpen(true)}
+                disabled={detailLoading || detailError} className="mt-2 text-xs text-gray-300 underline">檢查出庫狀態</button>}
             </div>
 
             <div className="p-4 flex-1 min-h-0 flex flex-col">
@@ -861,7 +1005,7 @@ export default function Documents() {
                 </button>
               </div>
 
-              <div className="flex-1 min-h-0 overflow-auto">
+              <div className="min-w-0">
                 {detailTab === 'structure' ? (
                   <div className="h-full">
                     <div className="mb-3 flex items-center justify-between gap-3">
@@ -880,7 +1024,7 @@ export default function Documents() {
                     </div>
 
                     {canPackAndGo && selectedDoc.currentVersionId ? (
-                      <BomTreeView rootVersionId={selectedDoc.currentVersionId} />
+                      <BomTreeView key={selectedDoc.currentVersionId} rootVersionId={selectedDoc.currentVersionId} onDownload={handleDownload} />
                     ) : (
                       <div className="rounded-lg border border-gray-800/70 bg-gray-900/30 p-4">
                         <p className="text-sm font-medium text-gray-300">此零件沒有向下 BOM。</p>
@@ -889,7 +1033,7 @@ export default function Documents() {
                         </p>
                         {selectedDoc.currentVersionId && (
                           <button
-                            onClick={() => downloadVersion(selectedDoc.currentVersionId)}
+                            onClick={() => handleDownload(selectedDoc.currentVersionId)}
                             className="mt-3 flex items-center rounded bg-[#D4AF37] px-3 py-2 text-xs font-medium text-gray-950 shadow transition-colors hover:bg-[#c2a033]"
                           >
                             <Download size={14} className="mr-2" /> 下載 3D 檔案
@@ -899,15 +1043,20 @@ export default function Documents() {
                     )}
 
                     <RelatedDrawingsPanel
-                      drawings={Array.isArray(relationData?.drawings) ? relationData.drawings : []}
+                      isDrawing={selectedDoc.documentType === 'Drawing'}
+                      drawings={selectedDoc.documentType === 'Drawing'
+                        ? (relationData?.references ?? []).filter((r: any) => r.depth === 1)
+                        : (relationData?.drawings ?? [])}
                       isLoading={isRelationLoading}
                       error={relationError}
                       onRetry={() => loadDocumentRelations(selectedDoc.documentId)}
+                      onDownload={handleDownload}
                     />
 
                     <IdentityChangePanel
                       identityOrigin={relationData?.identityOrigin ?? null}
                       derivedDocuments={Array.isArray(relationData?.derivedDocuments) ? relationData.derivedDocuments : []}
+                      onDownload={handleDownload}
                     />
                   </div>
                 ) : (
@@ -955,7 +1104,7 @@ export default function Documents() {
 
                               <div className="flex shrink-0 items-center gap-1.5">
                                 <button
-                                  onClick={() => downloadVersion(v.versionId)}
+                                  onClick={() => handleDownload(v.versionId, v.originalFileName)}
                                   className="inline-flex h-8 w-8 items-center justify-center rounded border border-gray-700 bg-gray-800 text-gray-400 hover:border-[#D4AF37]/60 hover:text-white transition-colors"
                                   title="單檔下載"
                                   aria-label={`下載 Ver. ${v.versionNo} 單檔`}
@@ -983,6 +1132,7 @@ export default function Documents() {
               </div>
             </div>
           </div>
+          </Drawer>
         )}
       </div>
 
@@ -992,6 +1142,7 @@ export default function Documents() {
         documentId={selectedDoc?.documentId}
         fileName={selectedDoc?.fileName}
         onSuccess={(checkedOutBy) => {
+          setActionMessage(`出庫完成，由 ${checkedOutBy} 鎖定。下一步：下載圖檔，在 SolidWorks 修改並儲存後，再使用「修改後入庫」。`);
           setSelectedDoc((current: any) => current
             ? { ...current, checkedOutBy, checkedOutAt: new Date().toISOString() }
             : current);
@@ -1012,25 +1163,31 @@ export default function Documents() {
           setIsCheckInModalOpen(false);
         }}
       />
+      <CancelCheckoutModal isOpen={isUndoModalOpen} documentId={selectedDoc?.documentId} fileName={selectedDoc?.fileName}
+        onClose={() => setIsUndoModalOpen(false)} onSuccess={() => {
+          void fetchDocuments();
+          if (selectedDoc) void handleSelectDocument({ ...selectedDoc, checkedOutBy: null, checkedOutAt: null });
+        }} />
       <Modal
         isOpen={packAndGoTarget !== null}
-        onClose={closePackAndGoModal}
+        onClose={() => !isPackageBusy && closePackAndGoModal()}
         title="Pack & Go 版本選擇"
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-300">
             下載前確認套件範圍。預設保留原簽入 BOM，並包含目前找到的關聯 2D 工程圖。
           </p>
+          {isPackageOptionsLoading && <p role="status" className="text-sm text-gray-300">正在載入版本及工程圖，請稍候…</p>}
 
           {packAndGoPreviewError && (
-            <div className="rounded border border-red-900/40 bg-red-950/20 p-3 text-xs text-red-300" role="alert">
-              <p className="font-medium">工程圖預覽未完成；目前只能下載既有 BOM。</p>
+            <div ref={packageErrorRef} className="break-all rounded border border-red-900/40 bg-red-950/20 p-3 text-xs text-red-300" role="alert">
+              <p className="font-medium">套件尚未建立；請修正參照或調整版本／工程圖範圍後重試。</p>
               <p className="mt-1 text-red-400">{packAndGoPreviewError}</p>
             </div>
           )}
 
           <label className={`block rounded-lg border p-3 ${
-            packAndGoPreviewError
+            isPackageBusy
               ? 'cursor-not-allowed border-gray-800 bg-gray-900/40 opacity-60'
               : 'cursor-pointer border-purple-900/40 bg-purple-950/20 hover:border-purple-700/60'
           }`}>
@@ -1038,13 +1195,13 @@ export default function Documents() {
               <input
                 type="checkbox"
                 checked={includeDrawings}
-                disabled={Boolean(packAndGoPreviewError)}
-                onChange={(event) => setIncludeDrawings(event.target.checked)}
+                disabled={isPackageBusy || isPackageOptionsLoading}
+                onChange={(event) => { setIncludeDrawings(event.target.checked); }}
                 className="mt-0.5 h-4 w-4 accent-purple-500"
               />
               <div className="min-w-0">
                 <p className="text-sm font-medium text-white">
-                  包含關聯 2D 工程圖（{packAndGoRelatedDrawings.length}）
+                  包含關聯 2D 工程圖（{isPackageOptionsLoading ? '載入中' : packAndGoRelatedDrawings.length}）
                 </p>
                 <p className="mt-1 text-xs leading-5 text-gray-400">
                   {packAndGoRelatedDrawings.length > 0
@@ -1077,9 +1234,10 @@ export default function Documents() {
           <div className="space-y-3">
             <button
               onClick={() => handlePackAndGoDownload('original')}
+              disabled={isPackageBusy || isPackageOptionsLoading}
               className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-left text-sm text-gray-200 transition-colors hover:border-[#D4AF37]/60 hover:bg-gray-700"
             >
-              <span className="block font-medium text-white">下載原簽入版本</span>
+              <span className="block font-medium text-white">{isPackageBusy ? '正在檢查與建立套件…' : '下載原簽入版本'}</span>
               <span className="mt-1 block text-xs text-gray-400">
                 維持當初 BOM；工程圖依上方勾選加入
               </span>
@@ -1087,7 +1245,7 @@ export default function Documents() {
 
             {packAndGoUpdates.length === 0 ? (
               <p className="rounded-lg border border-green-900/30 bg-green-950/20 px-3 py-2 text-xs text-green-300">
-                BOM 內檔案沒有其他版本需要選擇，可直接下載。
+                尚無其他版本選項；可依目前範圍下載。
               </p>
             ) : (
               <div className="rounded-lg border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-4">
@@ -1107,10 +1265,12 @@ export default function Documents() {
                     </div>
                     <select
                       value={packAndGoSelections[item.sourceVersionId] ?? item.sourceVersionId}
-                      onChange={(e) => setPackAndGoSelections((current) => ({
+                      disabled={isPackageBusy}
+                      aria-label={`${item.originalFileName} 的套件版本`}
+                      onChange={(e) => { setPackAndGoSelections((current) => ({
                         ...current,
                         [item.sourceVersionId]: Number(e.target.value)
-                      }))}
+                      })); }}
                       className="w-full rounded-md border border-gray-800 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#D4AF37]"
                     >
                       {(item.versions || []).map((version: any) => (
@@ -1127,6 +1287,7 @@ export default function Documents() {
 
               <button
                 onClick={() => handlePackAndGoDownload('selected')}
+                disabled={isPackageBusy || isPackageOptionsLoading}
                 className="mt-4 w-full rounded-lg border border-[#D4AF37]/40 bg-[#D4AF37]/10 px-4 py-3 text-left text-sm text-gray-200 transition-colors hover:border-[#D4AF37] hover:bg-[#D4AF37]/20"
               >
                 <span className="block font-medium text-white">下載所選版本</span>
@@ -1134,8 +1295,11 @@ export default function Documents() {
                   依照版本選擇與工程圖勾選組成 Pack & Go
                 </span>
               </button>
+              <button disabled={isPackageBusy} className="mt-2 text-xs text-gray-300 underline"
+                onClick={() => { setPackAndGoSelections({}); }}>重設版本選擇</button>
             </div>
             )}
+
           </div>
         </div>
       </Modal>

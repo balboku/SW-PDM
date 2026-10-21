@@ -1,9 +1,11 @@
 import axios from 'axios';
+import { downloadFileName } from './ui-model';
 
 // 動態取得 API 位址，支援區域網路分享
 const API_HOST = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+export const API_BASE = (import.meta as any).env?.VITE_PDM_API_URL || `http://${API_HOST}:5000`;
 export const api = axios.create({
-  baseURL: `http://${API_HOST}:5000`,
+  baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -15,7 +17,7 @@ export const uploadTempFile = async (file: File) => {
   
   // Use a completely clean axios instance or omit the Content-Type header 
   // so the browser automatically handles the multipart boundary.
-  const response = await axios.post(`http://${API_HOST}:5000/api/web/upload-temp`, formData);
+  const response = await axios.post(`${API_BASE}/api/web/upload-temp`, formData);
   return response.data;
 };
 
@@ -33,7 +35,7 @@ export const ingestCadBatch = async (
   formData.append('changeReason', changeReason);
 
   const response = await axios.post(
-    `http://${API_HOST}:5000/api/ingest/cad-batch`,
+    `${API_BASE}/api/ingest/cad-batch`,
     formData
   );
   return response.data;
@@ -85,12 +87,14 @@ export const getSystemStatus = async () => {
   return response.data;
 };
 
+export const getDatabaseStatus = async () => (await api.get('/api/database/status')).data;
+
 export const checkAssemblyUpdates = async (rootVersionId: number) => {
   const response = await api.get(`/api/assemblies/${rootVersionId}/check-updates`);
   return response.data;
 };
 
-export const downloadAssemblyZip = (
+export const downloadAssemblyZip = async (
   rootVersionId: number,
   useLatest: boolean = false,
   versionOverrides: string[] = [],
@@ -101,20 +105,33 @@ export const downloadAssemblyZip = (
     includeDrawings: String(includeDrawings)
   });
   versionOverrides.forEach((override) => params.append('versionOverrides', override));
-  window.open(`http://${API_HOST}:5000/api/assemblies/${rootVersionId}/download-zip?${params.toString()}`, '_blank');
+  const response = await api.get(`/api/assemblies/${rootVersionId}/download-zip?${params.toString()}`, { responseType: 'blob' });
+  const url = URL.createObjectURL(response.data);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `assembly_${rootVersionId}.zip`;
+  anchor.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
-export const downloadVersion = (versionId: number) => {
-  window.open(`http://${API_HOST}:5000/api/versions/${versionId}/download`, '_blank');
+export const downloadVersion = async (versionId: number, fallbackFileName: string) => {
+  const response = await api.get(`/api/versions/${versionId}/download`, { responseType: 'blob' });
+  const disposition = String(response.headers['content-disposition'] || '');
+  const url = URL.createObjectURL(response.data);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = downloadFileName(disposition, fallbackFileName);
+  anchor.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
 export const getVersionThumbnailUrl = (versionId: number) => {
-  return `http://${API_HOST}:5000/api/versions/${versionId}/thumbnail`;
+  return `${API_BASE}/api/versions/${versionId}/thumbnail`;
 };
 
-export const searchDocuments = async (query: string = '', documentType: string = '', status: string = '') => {
+export const searchDocuments = async (query: string = '', documentType: string = '', status: string = '', page = 1) => {
   const response = await api.get('/api/documents/search', {
-    params: { query, documentType, status }
+    params: { query, documentType, status, paged: true, page, pageSize: 50 }
   });
   return response.data;
 };
