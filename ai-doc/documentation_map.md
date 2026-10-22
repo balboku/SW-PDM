@@ -2,7 +2,26 @@
 
 更新日期：2026-10-22
 
-## 目前交付：DEV-013 整批出庫安全復原後端隔離通過
+## 最新完成：DEV-013 限定 migration 與 main 本機套用
+
+使用者後續明確核准僅DEV-013兩張批次表、必要索引與遷移紀錄；已成功套用20261022073552_AddCheckoutBatches。
+API5000已切至固定main 74cecca（PID24072）；Web5174仍為PID27392，前端與main無差異，未重啟。
+同成品SQLite／PG各67/67、前端邏輯13/13及實際migration後的隔離HTTP均通過；目前庫只執行該筆migration，其餘操作均唯讀。
+既有業務資料／歷史BOM、舊結構、序號、舊8筆遷移、Vault及設定指紋未變；新表0筆、歷史紀錄共9筆。
+見[本機套用、正式核准與驗證紀錄](reports/local-checkout-batch-main-2026-10-22.md)。
+紀錄沿用codex/local-batch-preflight-20261022，尚未commit／push；原dirty工作區52項變更不動。
+DEV-014、DEV-015（含批次畫面）、其他migration與歷史BOM修復仍不在本次範圍；不得封存正在服務的本worktree。
+
+## 前次預檢：DEV-013 當時因 schema 授權不足暫停
+
+2026-10-22使用者要求套用main 74cecca，但仍禁止migration或更動目前庫。
+強制READ ONLY查詢確認5432/swpdm缺少pdm_checkout_batches與pdm_checkout_batch_items，對應遷移紀錄0筆。
+未切換API5000／Web5174，仍保留DEV-012固定成品；不以手動建表或其他儲存繞過限制。
+本次main SQLite67/67、前端純邏輯13/13通過，PostgreSQL沿用既有67/67，未重跑／重啟PG。
+詳細SQL、TRX與限制見[本機套用預檢](qc/batch-checkout-recovery-qc-2026-10-22.md#本機套用預檢2026-10-22未切換)。
+紀錄位於codex/local-batch-preflight-20261022；本段是當時狀態，後續精確schema授權與套用已完成，見上節。
+
+## 已完成：DEV-013 整批出庫安全復原後端隔離通過
 
 基準main 2f22791，分支codex/batch-checkout-recovery-20261022，重用checkout-reused-contract乾淨worktree。
 只做批次鎖快照、預覽與安全復原，見[DEV-013](dev_task.md#dev-0132026-10-22-整批出庫安全復原)

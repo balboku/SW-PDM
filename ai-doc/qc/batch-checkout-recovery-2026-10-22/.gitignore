@@ -1,0 +1,4 @@
+# Only these sanitized DEV-013 evidence artifacts override the repository-wide JSON ignore.
+!dev013-local-before.json
+!dev013-local-after.json
+!dev013-local-isolated-http.json

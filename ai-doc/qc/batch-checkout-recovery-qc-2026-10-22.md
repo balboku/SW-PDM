@@ -1,6 +1,7 @@
 # DEV-013 整批出庫安全復原：後端隔離驗證
 
-日期：2026-10-22，Asia/Taipei。判定：後端契約隔離通過；未正式套用、未執行任何migration，未連線目前5432/swpdm。
+日期：2026-10-22，Asia/Taipei。原隔離／Git階段判定：後端契約通過；未正式套用、未執行任何migration，當時未連線目前5432/swpdm。
+後續本機套用預檢只READ ONLY確認schema，因缺兩張批次表暫停切換；詳見本文末節。
 基準main 2f22791b4a739c8e4543dc4b42ae8dbcad784d45；分支codex/batch-checkout-recovery-20261022。
 工作目錄：C:/Users/user/.codex/worktrees/checkout-reused-contract-20261022/SW-PDM。
 原實作階段未commit／push；使用者後續另行核准，產品與隔離證據已以d5c910be1f1142098b07d2d74fded946291313af提交並push至此分支。
@@ -110,3 +111,68 @@ SQLite指令前清除SWPDM_CONTRACT_PG；PG指令前只設為Host=127.0.0.1;Port
 - 原codex/trial-feedback-20261016的52項未提交變更及tracked／index指紋保留，沒有stage或帶入main。
   main worktree仍位於frontend-clarity-20261021，其中既有固定成品不得封存或清除。
 - 本次合併狀態僅再更新本QC、dev_task與documentation_map三份文件並提交；最終main SHA以遠端ref與完成回報辨識。
+
+## 本機套用預檢（2026-10-22，未切換）
+
+判定：隔離重驗通過；目前環境套用未完成，因schema前置條件與使用者「不migration／不改目前庫」限制衝突，等待範圍決策。
+使用者後續要求將main套用本機，但未授權放寬上述限制；不是工具端blocked by policy，正式唯讀檢查成功。
+本節不撤銷DEV-013後端完成／main合併判定，也不把本機套用標為完成。
+
+### 來源與本次重驗
+
+- 固定來源main 74cecca15d800bb92b731757651f26046e7d7d83；src／tests／lib／solution與功能d5c910b完全相同。
+  原dirty工作區仍不帶入。紀錄分支codex/local-batch-preflight-20261022只保存文件與本次TRX，尚未commit／push。
+- 明確清除SWPDM_CONTRACT_PG後，執行main的Release ContractTests，使用新SQLite記憶體庫及GUID私有Vault；
+  67/67、0失敗／0跳過，涵蓋批次取得／預覽／復原、既有鎖與新鎖保護、競爭及中途失敗回滾。
+  [本次TRX](batch-checkout-recovery-2026-10-22/dev013-main-preflight-sqlite.trx)原樣複製，SHA256為C86A4A235A38762538383C6B452D89327829A3A977E00AB91440A2039A076920。
+- node兩檔前端純邏輯13/13通過；PostgreSQL67/67沿用前次同產品／測試樹的證據，本輪未啟動或重跑PG測試。
+- 未新增／修正產品、測試或設定，未生成或執行migration，未啟動新API；不能把此結果當成本機切換或批次UI通過。
+
+### 目前庫強制唯讀 schema 檢查
+
+從既有設定解析連線於程序內使用，不輸出密碼；先限定localhost／127.0.0.1、5432、swpdm。
+psql同時使用PGOPTIONS=-c default_transaction_read_only=on及REPEATABLE READ READ ONLY交易，查完ROLLBACK。
+只SELECT系統目錄及對應遷移紀錄，不呼叫出庫、入庫或其他寫入端點：
+
+```text
+read_only|on
+target|swpdm|5432
+table|pdm_checkout_batches|MISSING
+table|pdm_checkout_batch_items|MISSING
+dev013_migration|0
+ROLLBACK
+```
+
+初次PowerShell雙引號字串解析失敗，該次未執行SQL；改用literal here-string後取得上述唯讀結果。
+沒有執行DDL／DML／migration、EnsureCreated、手動建表、回填、權限變更或目前業務資料／歷史BOM修復。
+
+### 未切換的理由與現況
+
+- CheckoutBatchService.CheckOutAsync在同一交易內更新鎖並寫入CheckoutBatches；缺表時不能正常完成出庫。
+  因此不可只更換執行檔，亦不得改成記憶體紀錄、跳過批次保存或手動建表來迴避使用者限制。
+- 唯讀CIM確認API5000仍為PID23348，執行local-main-49f98a6-20261022/api/SWPdm.Api.exe；
+  Web5174仍為PID27392，服務既有local-main-e40f3e4-20261022/site，沒有停止或重啟任一服務。
+- 既有API與Sample固定DLL SHA仍分別為19F1B68FF2572BB5B9B6EED5237ADFB623C032AB16576CD8062F0AF5E31E7554及
+  DB8375AE6228BB5B412415912DFD80B63AFAA0A0911A579F26E224F5C0A420AF；測試建置沒有覆寫目前固定成品。
+- 目前資料庫只做上述唯讀schema確認；未重新取得業務內容指紋，不宣稱逐表資料重驗。
+  Vault實體圖檔與設定不更動，原dirty工作區的tracked／index指紋與52項status維持不變。
+
+恢復條件：使用者選擇保持目前庫不變並另建獨立測試環境，或另行明確核准僅DEV-013兩張表、索引及遷移紀錄的schema套用後再切換。
+兩者都不自動執行，亦不將當前「套用」請求解讀為撤銷「禁止migration／改庫」限制；批次前端仍屬DEV-015。
+
+## 後續限定 migration 與本機套用（2026-10-22，已完成）
+
+使用者後續明確核准僅DEV-013 migration新增兩張批次表、必要索引與遷移紀錄，再套用main與隔離驗證；不得修改業務資料／歷史BOM或帶入其他後端。
+此新授權只取代上節schema阻塞，不授權其他migration或資料修復。
+
+- 固定main 74cecca新建獨立publish與測試成品，API／Sample／interop SHA完全一致；原dirty工作區52項變更及tracked／index指紋不變。
+- 全新55433叢集PostgreSQL67/67（0失敗／0跳過）；SQLite67/67、前端邏輯13/13，皆重新執行。
+- 對目前庫僅唯讀匯出schema、不複製業務資料，在專用隔離庫還原結構／8筆遷移metadata後，只演練DEV-013 SQL。
+  再以實際固定API5002、四筆合成文件與三筆BOM驗證新增／沿用鎖、actor403、預覽、復原、重送、新鎖保護與原單檔相容；歷史BOM／版本與既有鎖指紋不變。
+- 5432/swpdm只執行20261022073552_AddCheckoutBatches；精確生成Up與護欄SQL逐字比對，兩張新表、兩PK、一Restrict FK、一查詢索引及一筆EF紀錄成功同交易COMMIT。
+- 舊7表、歷史BOM、舊8筆migration、72欄／20約束／23索引／7序號、Vault及設定前後指紋一致；兩張新表0筆、migration共9筆。
+- 5001強制唯讀預檢通過後，核對舊PID23348來源再切換5000至新PID24072；DB連通、health／search／批次查詢均200，LAN同樣正常。
+  Web5174的PID27392及前端JS SHA未變；不改前端或批次畫面，不宣稱DEV-015或真實CAD幾何驗收。
+- 5001／5002及新55433已停止；本輪合成驗證庫已移除，contract GUID庫後檢0個。保留原固定成品供API回復，不執行schema Down。
+- 初次schema工具參數／隔離空public schema衝突及驗證器UTC序列化400均保留在套用紀錄；只修正隔離工具流程，產品碼未改。
+- 本輪紀錄沿用codex/local-batch-preflight-20261022，未stage／commit／push。完整命令、來源、限制及[證據連結見本機套用報告](../reports/local-checkout-batch-main-2026-10-22.md)。

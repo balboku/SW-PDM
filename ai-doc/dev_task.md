@@ -1,15 +1,18 @@
 # SW-PDM DEV 任務
 
 更新日期：2026-10-22
-文件狀態：2026-10-22 取消出庫／Reused 契約切片已合併main，完成隔離畫面驗證及本機固定成品套用。未混入其他未完成後端、未執行migration；其餘既有交付狀態為歷史紀錄。
+文件狀態：DEV-013限定migration與main本機套用已完成，未混入其他未完成後端或修改既有業務資料／歷史BOM；其餘階段限制與交付狀態保留為歷史紀錄。
 
-目前交付：DEV-013整批出庫安全復原後端隔離通過，基準main 2f22791；不部署、不執行migration、不連線目前資料庫。
-新增批次表模型與未執行migration原始碼；不混入DEV-014／015、完整Auth或原dirty後端。
-功能提交d5c910b及狀態提交ef40c1b已由codex/batch-checkout-recovery-20261022快轉合併main並push，遠端SHA已核對；未正式套用或執行migration。
+最新本機套用：使用者已明確核准僅DEV-013 migration；5432/swpdm已套用20261022073552_AddCheckoutBatches，API5000已切至固定main 74cecca。
+兩張新表、兩個主鍵、一個Restrict外鍵、一個查詢索引及一筆遷移紀錄新增完成；既有業務資料／歷史BOM、舊結構、序號、Vault及設定指紋不變。
+同成品SQLite／PG各67/67、前端邏輯13/13、實際遷移後隔離HTTP驗證通過；[本次套用紀錄](reports/local-checkout-batch-main-2026-10-22.md)。
+目前交付：DEV-013整批出庫安全復原後端隔離通過，原開發基準main 2f22791；原隔離開發階段未連線目前資料庫，migration未執行。
+原隔離階段只新增模型與migration原始碼，本次後續已限定套用；不混入DEV-014／015、完整Auth或原dirty後端。
+功能提交d5c910b及狀態提交ef40c1b已由codex/batch-checkout-recovery-20261022快轉合併main並push；本次後續套用已完成，紀錄尚未commit／push。
 DEV-012本機套用紀錄已合併main並push；[套用與隔離驗證](reports/local-ingest-integrity-main-2026-10-22.md)
-保留固定成品與當時資料指紋證據，本輪不重新操作該環境。
+保留舊固定成品及歷史資料指紋；DEV-013只替換API，Web5174沿用與main相同的既有前端，沒有重啟。
 
-本機套用結果：先前工具拒絕經正式require_escalated／auto_review續作，桌面／平板／手機與錯誤恢復驗證通過；5000／5174已使用main e40f3e4固定成品，目前DB／Vault及原WIP指紋不變。[本輪紀錄](reports/local-checkout-reused-main-2026-10-22.md)保留切換異常、恢復與後驗證。未執行migration；真實CAD寫入測試不在本輪。
+歷史契約切片套用結果：先前工具拒絕經正式require_escalated／auto_review續作，桌面／平板／手機與錯誤恢復驗證通過；當時5000／5174使用main e40f3e4固定成品，DB／Vault及原WIP指紋不變。[當時紀錄](reports/local-checkout-reused-main-2026-10-22.md)保留切換異常、恢復與後驗證。該階段未執行migration；最新狀態以上方DEV-013為準。
 
 ## 總任務清單
 
@@ -17,15 +20,16 @@ DEV-012本機套用紀錄已合併main並push；[套用與隔離驗證](reports/
   - 摘要：WIP 同 Rev 建立新 Ver、相同身分與內容沿用、直接參照與設計依賴分流。
   - 來源 ID：2026-10-22 使用者同意先完成 WIP、共用件與解析器整合。
   - 下一步：DEV-013後端隔離已通過，可依其結果獨立續接DEV-014；本輪不延伸至其他後端或資料寫入。
-  - 阻塞 / 恢復條件：仍禁止migration、目前資料／歷史BOM修復；原隔離階段的不部署限制已由本次套用授權取代。
+  - 阻塞 / 恢復條件：除另行核准的DEV-013外，仍禁止其他migration、目前資料／歷史BOM修復；原隔離階段的不部署限制已由後續套用授權取代。
   - 證據：reports/local-ingest-integrity-main-2026-10-22.md；同成品SQLite／PG各41項與11份原生CAD。
   - 計入交付：是
 
-- ✓ DEV-013 [交付點] [後端隔離通過] [P1] [未正式套用] 整批出庫安全復原
+- ✓ DEV-013 [交付點] [後端及本機套用通過] [P1] [限定遷移已套用] 整批出庫安全復原
   - 摘要：持久記錄當次新取得的鎖，依批次預覽並安全復原；既有鎖與新作業鎖不解除。
   - 來源 ID：2026-10-22 使用者指定接續 DEV-013，禁止正式套用、migration 與目前資料寫入。
-  - 下一步：已合併main並push，可續接DEV-014獨立切片；批次畫面仍由DEV-015整合，schema與部署未授權執行。
-  - 證據：qc/batch-checkout-recovery-qc-2026-10-22.md；SQLite／PG各67項、前端邏輯13項。
+  - 下一步：本次套用紀錄待使用者決定是否提交／push；批次畫面仍由DEV-015另行整合。
+  - 阻塞 / 恢復條件：本次只核准DEV-013新增結構；其他migration、業務／歷史BOM修復仍未授權。
+  - 證據：reports/local-checkout-batch-main-2026-10-22.md；同成品SQLite／PG各67項、前端邏輯13項及隔離HTTP。
   - 計入交付：是
 
 - ○ DEV-014 [交付點] [待前置驗證] [P0] [後續獨立切片] 完整套件與副本參照重寫
@@ -181,7 +185,7 @@ SQLite HTTP 41/41、PostgreSQL 16.14 HTTP 41/41（0 略過）、既有前端邏�
 
 ## DEV-013：2026-10-22 整批出庫安全復原
 
-狀態：後端契約隔離通過，未正式套用／未執行migration。基準 main 2f22791；
+狀態：後端契約隔離通過，後續限定migration與本機套用亦已完成；原開發基準main 2f22791。
 分支 codex/batch-checkout-recovery-20261022，重用乾淨 checkout-reused-contract worktree。
 
 - 使用者決策與範圍：新增批次取得鎖的永久紀錄、查詢、唯讀預覽與復原；只含必要模型／服務／端點／測試。
@@ -196,9 +200,9 @@ SQLite HTTP 41/41、PostgreSQL 16.14 HTTP 41/41（0 略過）、既有前端邏�
 - 資料：只新增兩張批次表的模型與未執行migration原始碼，不改既有文件／版本／BOM欄位。
   SQLite記憶體庫與127.0.0.1:55433全新contract cluster逐例EnsureCreated，不執行migration。
 - 不在原實作階段：DEV-014套件、DEV-015清單與批次前端、parser／入庫規則、Auth、舊鎖推導／回填、部署、commit／push。
-  使用者後續已分別核准本切片commit／push及合併main／push；正式套用或執行migration仍不在本輪。
+  使用者後續已分別核准本切片commit／push及合併main／push；再核准僅DEV-013 migration與本機套用，見下方後續套用結果。
   未記錄的歷史出庫仍只支援原單檔取消；actor是自填操作防護，不是登入授權。
-- 停止條件：需要目前5432/swpdm、Vault、服務5000／5174或歷史BOM寫入、執行migration、放寬鎖保護或帶入其他dirty後端時停止。
+- 原隔離階段停止條件：需要目前5432/swpdm、Vault、服務5000／5174或歷史BOM寫入、執行migration、放寬鎖保護或帶入其他dirty後端時停止；後續限定套用例外見下節。
 - 驗收：新批次永久紀錄、排除既有鎖、本人／他人／新鎖／版本改變／已入庫／刪除／重送／併發與中途失敗回滾皆有HTTP證據；
   原41項契約及前端13項回歸、Release建置；SQLite與PG分列，不把API通過視為前端驗收。
 
@@ -223,6 +227,15 @@ SQLite與全新PostgreSQL16.14各67/67（原41＋新增26），前端純邏輯13
 臨時55433叢集已停止，測試庫後檢0個；未連線目前庫或操作正式服務。
 後續Git指示已完成：功能與證據d5c910b及狀態ef40c1b已合併main並push；本次整合重用既有證據，不重跑測試或操作服務／資料庫。
 詳見[QC與TRX雜湊](qc/batch-checkout-recovery-qc-2026-10-22.md)；本結果不是批次UI或正式schema套用驗收。
+
+### 後續限定 migration 與本機套用結果
+
+上述禁止部署／migration是原實作階段邊界；使用者後續明確核准僅20261022073552_AddCheckoutBatches及main本機套用。
+已經隔離schema演練、同成品SQLite／PG各67項與實際API驗證後，於5432/swpdm單一交易新增兩表／必要約束索引／一筆紀錄。
+既有七張業務表（含歷史BOM）內容、舊8筆遷移、72欄／20約束／23索引、7序號、Vault及設定指紋不變；兩張新表0筆。
+API5000已使用main 74cecca固定成品，Web5174未變；本輪未執行其他migration或對目前庫呼叫寫入API。
+驗收與停止條件：SQL只允許本migration；舊資料／來源／設定不同、隔離測試不過或未知服務owner即停止；失敗只回復API，不自動Down或修資料。
+實際結果／回復方式／首次驗證腳本問題見[本機套用紀錄](reports/local-checkout-batch-main-2026-10-22.md)。本次紀錄未commit／push，DEV-015批次畫面仍未完成。
 
 ## DEV-001：2026-10-22 契約修正切片
 

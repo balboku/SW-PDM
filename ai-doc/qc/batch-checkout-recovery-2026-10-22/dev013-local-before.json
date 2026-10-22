@@ -1,0 +1,38 @@
+{
+  "Database": [
+    "target|swpdm|5432|on",
+    "pdm_documents|0|d751713988987e9331980363e24189ce",
+    "pdm_document_versions|0|d751713988987e9331980363e24189ce",
+    "pdm_custom_properties|0|d751713988987e9331980363e24189ce",
+    "pdm_bom_occurrences|0|d751713988987e9331980363e24189ce",
+    "pdm_document_identity_changes|0|d751713988987e9331980363e24189ce",
+    "pdm_numbering_rules|0|d751713988987e9331980363e24189ce",
+    "pdm_number_sequences|0|d751713988987e9331980363e24189ce",
+    "original_history|8|be58dea1120e1a086ed7bc547f4a5d47",
+    "history|20260415104839_InitialCreate|8.0.11",
+    "history|20260415113504_ChangeGoogleDriveToLocalStorage|8.0.11",
+    "history|20260415131806_EnterpriseFeatures|8.0.11",
+    "history|20260415160318_EnterpriseNumbering|8.0.11",
+    "history|20260423105804_AllowDuplicateStorageFileIds|8.0.11",
+    "history|20260430121116_AddThumbnailStorageId|8.0.11",
+    "history|20260507105814_AddDocumentVersionChangeReason|8.0.11",
+    "history|20260804090408_AddDocumentIdentityChanges|8.0.11",
+    "old_columns|72|a763eb21e7b29be3029359b006459dd6",
+    "old_constraints|20|30da589ab828e884ed6ed991f19251df",
+    "old_indexes|23|af3f066438845accffaad9f7a991bd37",
+    "sequences|7|f78d00c1e95691a34f8b708b19204535",
+    "tables|__EFMigrationsHistory,pdm_bom_occurrences,pdm_custom_properties,pdm_document_identity_changes,pdm_document_versions,pdm_documents,pdm_number_sequences,pdm_numbering_rules",
+    "dev013_tables|MISSING|MISSING"
+  ],
+  "VaultFiles": [],
+  "ConfigHashes": [
+    {
+      "Name": "appsettings.json",
+      "SHA256": "E69D4651458971C90F77F60CE272ED4DBE029F660126DF5DF20973617F4258F2"
+    },
+    {
+      "Name": "appsettings.Development.json",
+      "SHA256": "E69D4651458971C90F77F60CE272ED4DBE029F660126DF5DF20973617F4258F2"
+    }
+  ]
+}

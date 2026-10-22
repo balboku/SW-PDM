@@ -1,0 +1,148 @@
+{
+  "Passed": true,
+  "Commit": "74cecca15d800bb92b731757651f26046e7d7d83",
+  "Target": "127.0.0.1:5002 / 55433/dev013_schema_verification",
+  "Checkout": {
+    "message": "Checked out successfully",
+    "checkedOutBy": "User",
+    "batchId": "367d44db-7a81-455e-a4d7-173f0a78867e",
+    "acquiredCount": 3,
+    "reusedLockCount": 1
+  },
+  "Preview": {
+    "scope": "CheckoutBatch",
+    "batchId": "367d44db-7a81-455e-a4d7-173f0a78867e",
+    "rootDocumentId": 1,
+    "actor": "User",
+    "canRestore": true,
+    "restorableCount": 3,
+    "items": [
+      {
+        "documentId": 1,
+        "versionId": 1,
+        "lockTime": "2026-10-22T17:00:15.26589+08:00",
+        "fileName": "synthetic-root.sldasm",
+        "canRestore": true,
+        "code": "Restorable",
+        "reason": "可解除這次批次取得的鎖。"
+      },
+      {
+        "documentId": 3,
+        "versionId": 3,
+        "lockTime": "2026-10-22T17:00:15.26589+08:00",
+        "fileName": "synthetic-child.sldprt",
+        "canRestore": true,
+        "code": "Restorable",
+        "reason": "可解除這次批次取得的鎖。"
+      },
+      {
+        "documentId": 4,
+        "versionId": 4,
+        "lockTime": "2026-10-22T17:00:15.26589+08:00",
+        "fileName": "synthetic-drawing.slddrw",
+        "canRestore": true,
+        "code": "Restorable",
+        "reason": "可解除這次批次取得的鎖。"
+      }
+    ]
+  },
+  "WrongActorStatus": 403,
+  "Undo": {
+    "scope": "CheckoutBatch",
+    "batchId": "367d44db-7a81-455e-a4d7-173f0a78867e",
+    "restoredCount": 3,
+    "restoredDocumentIds": [
+      1,
+      3,
+      4
+    ],
+    "skipped": []
+  },
+  "Repeat": {
+    "scope": "CheckoutBatch",
+    "batchId": "367d44db-7a81-455e-a4d7-173f0a78867e",
+    "restoredCount": 0,
+    "restoredDocumentIds": [],
+    "skipped": [
+      {
+        "documentId": 1,
+        "versionId": 1,
+        "lockTime": "2026-10-22T17:00:15.26589+08:00",
+        "fileName": "synthetic-root.sldasm",
+        "canRestore": false,
+        "code": "AlreadyRestored",
+        "reason": "此筆已復原，不會解除後續取得的新鎖。"
+      },
+      {
+        "documentId": 3,
+        "versionId": 3,
+        "lockTime": "2026-10-22T17:00:15.26589+08:00",
+        "fileName": "synthetic-child.sldprt",
+        "canRestore": false,
+        "code": "AlreadyRestored",
+        "reason": "此筆已復原，不會解除後續取得的新鎖。"
+      },
+      {
+        "documentId": 4,
+        "versionId": 4,
+        "lockTime": "2026-10-22T17:00:15.26589+08:00",
+        "fileName": "synthetic-drawing.slddrw",
+        "canRestore": false,
+        "code": "AlreadyRestored",
+        "reason": "此筆已復原，不會解除後續取得的新鎖。"
+      }
+    ]
+  },
+  "NextCheckout": {
+    "message": "Checked out successfully",
+    "checkedOutBy": "User",
+    "batchId": "4fceb585-1361-43a9-891e-6a59f3ea99c0",
+    "acquiredCount": 1,
+    "reusedLockCount": 0
+  },
+  "OldReplay": {
+    "scope": "CheckoutBatch",
+    "batchId": "367d44db-7a81-455e-a4d7-173f0a78867e",
+    "restoredCount": 0,
+    "restoredDocumentIds": [],
+    "skipped": [
+      {
+        "documentId": 1,
+        "versionId": 1,
+        "lockTime": "2026-10-22T17:00:15.26589+08:00",
+        "fileName": "synthetic-root.sldasm",
+        "canRestore": false,
+        "code": "AlreadyRestored",
+        "reason": "此筆已復原，不會解除後續取得的新鎖。"
+      },
+      {
+        "documentId": 3,
+        "versionId": 3,
+        "lockTime": "2026-10-22T17:00:15.26589+08:00",
+        "fileName": "synthetic-child.sldprt",
+        "canRestore": false,
+        "code": "AlreadyRestored",
+        "reason": "此筆已復原，不會解除後續取得的新鎖。"
+      },
+      {
+        "documentId": 4,
+        "versionId": 4,
+        "lockTime": "2026-10-22T17:00:15.26589+08:00",
+        "fileName": "synthetic-drawing.slddrw",
+        "canRestore": false,
+        "code": "AlreadyRestored",
+        "reason": "此筆已復原，不會解除後續取得的新鎖。"
+      }
+    ]
+  },
+  "SingleUndo": {
+    "restoredCount": 1,
+    "restoredDocumentIds": [
+      1
+    ],
+    "scope": "SingleDocument"
+  },
+  "Before": "versions|4|439d4a82712636cf123a970b228533e4\nbom|3|9db6826060d26c1528b550ee834d63ae\nreused|User|2026-10-22 08:00:00+08",
+  "After": "versions|4|439d4a82712636cf123a970b228533e4\nbom|3|9db6826060d26c1528b550ee834d63ae\nreused|User|2026-10-22 08:00:00+08",
+  "VaultFileCount": 0
+}
