@@ -3,7 +3,7 @@
 日期：2026-10-22（Asia/Taipei）。判定：本機套用及隔離驗證完成，既有業務資料與歷史BOM未變。
 固定來源main：74cecca15d800bb92b731757651f26046e7d7d83（功能d5c910b）；同一代理依序執行PM／QA／QC，非獨立人員審查。
 紀錄分支：codex/local-batch-preflight-20261022，保留前次預檢紀錄；證據提交6dde08d47b06fcb52b6bb27812c43821f4c02947已push，遠端SHA已核對。
-尚未合併main；本段發布狀態以後續純文件提交保存，最終分支SHA以遠端ref辨識。
+來源分支550ce47b30d4900975b12e62270eab435d7138fb已依後續指示快轉合併main並push；本次合併狀態另以純文件提交保存，最終main SHA以遠端ref辨識。
 
 ## 明確授權、驗收與停止條件
 
@@ -104,7 +104,7 @@ Rollback-Api.ps1只允許停止本固定exe的5000，再啟動舊49f98a6固定�
 本輪受開發PM／QA/QC規則影響，先通過精確migration與資料保護關卡再切換服務；沒有把Git合併視為已部署。
 本機DEV-013後端已可用；批次操作畫面仍屬DEV-015，現有前端只保留原單檔取消，不能宣稱整批畫面已完成。
 actor仍為自填操作人，不是完整登入授權；DEV-014／015、其他migration、原dirty後端與業務／歷史BOM修復均未混入。
-原套用交付時未commit／push；使用者後續已核准發布，現已完成下節紀錄分支push。合併main需後續指示，不自動執行。
+原套用交付時未commit／push；使用者後續已分別核准發布及合併main，兩者均已完成，見下節發布與合併紀錄。
 
 ## 紀錄提交與 GitHub 發布（2026-10-22）
 
@@ -120,3 +120,16 @@ actor仍為自填操作人，不是完整登入授權；DEV-014／015、其他mi
 - 原dirty工作區52項status及tracked／index指紋不變；main仍74cecca15d800bb92b731757651f26046e7d7d83。
   未合併main、未force push或建立PR；只操作Git／文件，未執行測試／建置／SQL／migration、未重啟服務或改Vault。
 - 本節與入口的發布狀態僅以後續純文件提交保存，不新增產品或驗證結果；分支最終SHA以遠端ref與完成回報為準。
+
+## 紀錄分支 main 合併（2026-10-22）
+
+- 使用者明確要求將codex/local-batch-preflight-20261022合併main並push；仍禁止其他未完成後端、其他migration及業務資料／歷史BOM變更。
+- 合併前本機與遠端main均74cecca15d800bb92b731757651f26046e7d7d83，來源分支均550ce47b30d4900975b12e62270eab435d7138fb；worktree乾淨，無啟用hook或push workflow。
+- 明確核對15個檔案allowlist，僅兩筆已發布的紀錄提交；產品／測試／lib／solution與main無差異。
+  10份證據SHA及Git blob位元組一致；前次預檢、同成品SQLite及PG三份TRX皆67/67、0失敗／0跳過，未以重跑取代原證據。
+- 首次Git blob查核因Join-Path產生Windows反斜線而無法定位物件，護欄在合併前停止；改用repository正斜線路徑後驗證成功，未改任何證據檔案。
+- git switch main後以git merge --ff-only快轉至550ce47，再正常git push origin main:refs/heads/main；git ls-remote確認遠端main與來源分支均550ce47。
+  未改寫來源分支、未force push／刪分支／建立PR；使用既有worktree，不建立或清除執行中服務依賴的成品。
+- 本次只操作Git與文件：沒有連線資料庫、沒有執行任何SQL／migration／EnsureCreated、沒有呼叫API／重啟服務／改Vault或設定，也沒有重新建置或執行測試。
+  原dirty工作區仍52項status，tracked及index指紋不變；資料不變的證據沿用原套用階段，不宣稱本次重新擷取現況快照。
+- 合併後只更新本報告、QC、dev_task及documentation_map四份文件並提交/push；這筆純文件提交不變更產品或測試，最終main SHA以遠端ref與完成回報辨識。

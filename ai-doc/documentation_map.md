@@ -9,7 +9,8 @@ API5000已切至固定main 74cecca（PID24072）；Web5174仍為PID27392，前�
 同成品SQLite／PG各67/67、前端邏輯13/13及實際migration後的隔離HTTP均通過；目前庫只執行該筆migration，其餘操作均唯讀。
 既有業務資料／歷史BOM、舊結構、序號、舊8筆遷移、Vault及設定指紋未變；新表0筆、歷史紀錄共9筆。
 見[本機套用、正式核准與驗證紀錄](reports/local-checkout-batch-main-2026-10-22.md)。
-紀錄提交6dde08d已push至codex/local-batch-preflight-20261022，遠端SHA已核對；未合併main，原dirty工作區52項變更不動。
+紀錄分支codex/local-batch-preflight-20261022（證據6dde08d、狀態550ce47）已快轉合併main並push，遠端SHA已核對；原dirty工作區52項變更不動。
+此次合併只含15個文件／證據檔案；重用既有驗證、不連線資料庫、不執行migration或切換服務，詳見報告的main合併紀錄。
 DEV-014、DEV-015（含批次畫面）、其他migration與歷史BOM修復仍不在本次範圍；不得封存正在服務的本worktree。
 
 ## 前次預檢：DEV-013 當時因 schema 授權不足暫停

@@ -1,7 +1,7 @@
 # DEV-013 整批出庫安全復原：後端隔離驗證
 
 日期：2026-10-22，Asia/Taipei。原隔離／Git階段判定：後端契約通過；未正式套用、未執行任何migration，當時未連線目前5432/swpdm。
-後續預檢曾因缺兩表暫停；使用者再明確核准限定migration，現已完成本機套用與隔離驗證，紀錄6dde08d已push，未合併main；詳見本文末節及套用報告。
+後續預檢曾因缺兩表暫停；使用者再明確核准限定migration，現已完成本機套用與隔離驗證，紀錄分支550ce47亦已合併main並push；詳見本文末節及套用報告。
 基準main 2f22791b4a739c8e4543dc4b42ae8dbcad784d45；分支codex/batch-checkout-recovery-20261022。
 工作目錄：C:/Users/user/.codex/worktrees/checkout-reused-contract-20261022/SW-PDM。
 原實作階段未commit／push；使用者後續另行核准，產品與隔離證據已以d5c910be1f1142098b07d2d74fded946291313af提交並push至此分支。
@@ -178,3 +178,11 @@ ROLLBACK
 - 原套用交付時未stage／commit／push；使用者後續核准發布，紀錄6dde08d已push至codex/local-batch-preflight-20261022，遠端SHA已核對，main仍74cecca。
   僅15個文件／證據檔案，產品／測試樹不變；複核TRX與SHA，不重跑測試、不連線資料庫或操作服務。
   完整命令、來源、限制及[證據連結見本機套用報告](../reports/local-checkout-batch-main-2026-10-22.md)。
+
+## 本機套用紀錄分支 main 合併（2026-10-22）
+
+- 使用者後續明確核准codex/local-batch-preflight-20261022合併main並push；不混入其他後端、不執行其他migration或修改業務資料／歷史BOM。
+- main由74cecca快轉至來源550ce47b30d4900975b12e62270eab435d7138fb並正常push，遠端main及來源分支SHA已核對一致；未force push或建立PR。
+- 只有6dde08d與550ce47兩筆紀錄提交、15個ai-doc文件／證據檔案，src／tests／lib／solution無差異；10份證據SHA與提交blob位元組吻合，三份本次TRX皆67/67。
+- 只重核既有證據與Git，未重跑測試／建置、未連線任何資料庫或呼叫API、未執行SQL／migration、未重啟服務或修改Vault／設定；原dirty工作區52項與tracked／index指紋不變。
+- 首次blob查核因Windows反斜線路徑停止於合併前，改為Git正斜線路徑後通過，證據未變；合併後僅以純文件提交保存本節與入口狀態，最終main SHA以遠端ref及完成回報辨識。
