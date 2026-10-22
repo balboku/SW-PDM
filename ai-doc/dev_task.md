@@ -6,7 +6,7 @@
 目前狀態：使用者另核准本機套用，DEV-012已以固定main49f98a6成品在API5000啟動，前端5174沿用未變固定成品。
 同SHA Release成品的SQLite41/41、PG16.14 41/41、原生CAD11份及前端邏輯13/13通過；
 目前DB／migration／Vault／設定與原WIP指紋前後一致，未執行migration。
-本機套用紀錄444a92e已提交並push至codex/local-ingest-integrity-20261022，遠端SHA已核對，尚未合併main；
+本機套用紀錄444a92e及狀態提交749e201已由codex/local-ingest-integrity-20261022快轉合併main並push，遠端SHA已核對；
 [套用與隔離驗證](reports/local-ingest-integrity-main-2026-10-22.md)。
 DEV-013～015未混入；下方先前套用紀錄保留其當時來源與範圍。
 
@@ -17,7 +17,7 @@ DEV-013～015未混入；下方先前套用紀錄保留其當時來源與範圍�
 - ✓ DEV-012 [交付點] [核心切片通過] [P0] [本機已套用／資料未變] 入庫版本、共用件與解析器整合
   - 摘要：WIP 同 Rev 建立新 Ver、相同身分與內容沿用、直接參照與設計依賴分流。
   - 來源 ID：2026-10-22 使用者同意先完成 WIP、共用件與解析器整合。
-  - 下一步：可續接DEV-013獨立切片；本輪套用紀錄已push、尚未合併main，不延伸至其他後端或資料寫入。
+  - 下一步：可續接DEV-013獨立切片；本輪套用紀錄已合併main並push，不延伸至其他後端或資料寫入。
   - 阻塞 / 恢復條件：仍禁止migration、目前資料／歷史BOM修復；原隔離階段的不部署限制已由本次套用授權取代。
   - 證據：reports/local-ingest-integrity-main-2026-10-22.md；同成品SQLite／PG各41項與11份原生CAD。
   - 計入交付：是

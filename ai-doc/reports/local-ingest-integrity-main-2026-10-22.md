@@ -3,8 +3,8 @@
 日期：2026-10-22（Asia/Taipei）。狀態：已完成本機 API5000 套用及固定前端5174啟動，
 目前資料庫／Vault／設定及原未完成工作區指紋前後一致，未執行 migration。
 固定來源 main 49f98a6f57dc01f6575434c4b141648d2bed4c41，產品提交 4bbed8d。
-本機套用紀錄已依後續授權提交並push；紀錄分支codex/local-ingest-integrity-20261022，尚未合併main。
-證據提交444a92e40dbd466bb19387f872abd653afa0d580，遠端SHA已核對。
+本機套用紀錄已依後續授權提交並push，紀錄分支codex/local-ingest-integrity-20261022已快轉合併main並push。
+證據提交444a92e40dbd466bb19387f872abd653afa0d580，來源分支最終749e2019919afda7790921c8447fd3b118c1ae93，遠端SHA已核對。
 
 ## 使用者邊界與 QA 契約
 
@@ -119,7 +119,7 @@ API復原：上述新成品父目錄的Rollback-Api.ps1。
 - DEV-013～015仍未完成；批次取消、完整套件／跨工作站SolidWorks開啟、其他組態及真實異常UI不在本輪。
 - 本輪新建測試PG及私有CAD副本不是正式資料修復，不使用清空前資料ID、不改歷史BOM。
 
-## GitHub 紀錄存檔
+## GitHub 紀錄存檔（分支提交階段）
 
 - 2026-10-22使用者另行授權提交並push本次本機套用紀錄，不混入其他未完成後端、不migration或更動目前資料庫。
 - 提交444a92e40dbd466bb19387f872abd653afa0d580僅含上述8個ai-doc文件與證據檔；
@@ -129,4 +129,16 @@ API復原：上述新成品父目錄的Rollback-Api.ps1。
 - 本次Git存檔僅核對文件、證據與Git，沒有重跑測試／建置、操作服務、連線資料庫或執行migration。
   上述部署與資料不變結果是前次驗證證據，不宣稱本次重新驗證了執行中服務。
 - 首次push已成功，其後核對腳本發生字元型別錯誤；改以唯讀ref核對成功，未重複push或改變main。
-- 本節及入口文件的已推送狀態另以文件提交保存；其最終提交SHA由遠端分支及本次完成回報辨識，避免自指提交雜湊。
+- 本節及入口文件的已推送狀態以749e201另行提交保存；本節main尚未合併的敘述為當時狀態，後續整合見下節。
+
+## main 合併紀錄（2026-10-22）
+
+- 使用者明確核准將codex/local-ingest-integrity-20261022合併main並push，仍不混入其他未完成後端、不migration或更動目前資料庫。
+- main由49f98a6f57dc01f6575434c4b141648d2bed4c41快轉至749e2019919afda7790921c8447fd3b118c1ae93並push；
+  git ls-remote確認main與來源分支均為749e201，未force push、未改寫來源分支。
+- 合併範圍僅前述8個ai-doc文件／證據；產品、測試原始碼、設定、依賴與migration均無差異。
+  本次只再同步本報告、dev_task與documentation_map的合併狀態，不新增產品變更。
+- 合併前重讀既有SQLite及PostgreSQL TRX，兩份均41/41、0失敗、0跳過；SHA256與已提交blob位元組吻合，diff檢查通過。
+  此為證據完整性核對，未重跑測試／建置、未連線資料庫、未操作服務或重新部署。
+- 原codex/trial-feedback-20261016工作區的52項未提交變更保留，未stage或帶入main；固定成品所在worktree未封存或清除。
+- 本次合併狀態另以純文件提交保存；最終main提交SHA以GitHub ref及完成回報辨識。
