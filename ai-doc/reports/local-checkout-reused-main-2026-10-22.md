@@ -4,13 +4,21 @@
 
 ## GitHub 紀錄存檔範圍
 
-使用者於同日另行核准將本次本機套用、正式核准及隔離畫面驗證紀錄提交並push。目標為獨立紀錄分支 `codex/local-checkout-reused-20261022`，以main `e40f3e4`為父提交，不合併main。
+使用者於同日另行核准將本次本機套用、正式核准及隔離畫面驗證紀錄提交並push。該存檔階段目標為獨立紀錄分支 `codex/local-checkout-reused-20261022`，以main `e40f3e4`為父提交，當時不合併main；後續新增的main合併授權與結果見下節。
 
 - 僅含本報告、`ai-doc/dev_task.md`、`ai-doc/documentation_map.md`及本次 `ai-doc/qc/local-checkout-reused-2026-10-22/` 證據。
 - 證據含16張有效截圖、13/13通過的TRX、UI量測及SHA256清單；09號裁切截圖不納入。
 - 證據目錄內 `.gitattributes` 僅對 `*.trx`／`*.txt` 設定 `-text`，防止Git自動換行轉換改變原始位元組，保留既有雜湊；不改測試結果、圖片或產品設定。
 - 不含產品程式、其他未完成後端、migration、設定檔、憑證、成品、啟動腳本、原始資料庫內容或Vault圖檔。
 - 此存檔步驟不重跑測試、不重新部署、不重啟服務，也不連線或更動目前資料庫；沿用本報告已完成的驗證證據。
+
+## 紀錄分支合併 main（2026-10-22）
+
+- 使用者後續明確核准將 `codex/local-checkout-reused-20261022` 合併main並push，仍排除其他未完成後端、migration及目前資料庫操作。
+- 重新抓取遠端兩個指定refs後，確認main為 `e40f3e4`，紀錄分支為 `8fe92c3dbc845e26f4bc9084cc6105cc4e48c0f0`，差異僅23個ai-doc文件／證據檔，且可快轉。
+- main已從 `e40f3e4` 以 `--ff-only` 合併至 `8fe92c3`；其後僅補充本報告的合併紀錄，不修改產品或測試。
+- 合併後18項證據雜湊全數吻合，`src`／`tests`／`lib`內容與原main基準一致；原工作目錄的未完成變更保留。
+- 本次僅做Git合併、文件存檔與main推送；不重建、不重跑測試、不重新部署或重啟服務，不連線資料庫、不執行migration。遠端完成狀態以Git main ref及交付回報核對。
 
 ## 正式核准續作與最終結果
 
@@ -84,7 +92,7 @@ Now What人工理解檢查：Reused→預覽取消或保留出庫返回；他人
 - 來源 main `e40f3e473755b4e8611ca2450e4cab41b45d926c`；產品修正 `0eb41e4`，不含原工作目錄尚未完成的後端。
 - 只重建、驗證及切換 API 5000／Web 5174；不執行 migration、不呼叫目前資料庫的寫入端點、不改目前 Vault。
 - 寫入操作只在 SQLite 記憶體 fixture／獨立暫存 Vault 驗證。CAD 解析使用合成 parser，不代表真實 SolidWorks 入庫驗收。
-- 原套用／驗證階段不commit／push；後續使用者已另外核准僅將本次紀錄提交並push至獨立文件分支 `codex/local-checkout-reused-20261022`，不合併main。
+- 原套用／驗證階段不commit／push；後續使用者另外核准獨立文件分支存檔，再新增main合併與push授權，兩階段範圍及結果見上節。
 
 ## QA 計畫及停止條件（切換前建立）
 
