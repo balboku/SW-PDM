@@ -8,7 +8,7 @@
 只做批次鎖快照、預覽與安全復原，見[DEV-013](dev_task.md#dev-0132026-10-22-整批出庫安全復原)
 及[ADR-003](decisions/ADR-003-checkout-batch-recovery.md)。資料模型／migration原始碼只離線準備，測試庫僅EnsureCreated。
 不部署、不執行migration、不讀寫目前5432/swpdm或Vault；原dirty工作區與執行中固定成品不動。
-DEV-014與DEV-015（含批次畫面）不混入本輪，尚未commit／push。
+DEV-014與DEV-015（含批次畫面）未混入；功能與證據提交d5c910b已push至上述分支，遠端SHA核對一致，尚未合併main。
 SQLite／PostgreSQL16.14各67/67、前端純邏輯13/13、Release建置通過；臨時55433叢集已停止。
 詳見[QC／首次失敗修復／TRX與雜湊](qc/batch-checkout-recovery-qc-2026-10-22.md)。
 下一步可獨立接DEV-014；本次不代表新表已套用或批次UI已完成。

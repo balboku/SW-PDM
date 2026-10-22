@@ -3,7 +3,8 @@
 日期：2026-10-22，Asia/Taipei。判定：後端契約隔離通過；未正式套用、未執行任何migration，未連線目前5432/swpdm。
 基準main 2f22791b4a739c8e4543dc4b42ae8dbcad784d45；分支codex/batch-checkout-recovery-20261022。
 工作目錄：C:/Users/user/.codex/worktrees/checkout-reused-contract-20261022/SW-PDM。
-本輪未commit／push／合併main，產品與必要測試／文件變更仍在此專用分支。
+原實作階段未commit／push；使用者後續另行核准，產品與隔離證據已以d5c910be1f1142098b07d2d74fded946291313af提交並push至此分支。
+遠端SHA已核對；尚未合併main或正式套用。
 
 ## 邊界與實作
 
@@ -81,3 +82,16 @@ SQLite指令前清除SWPDM_CONTRACT_PG；PG指令前只設為Host=127.0.0.1;Port
   原8筆歷史migration原始碼不變，本輪沒有既有資料回填／歷史BOM修復。
 - actor是現有自填操作人，不是登入授權；完整Auth需另一範圍決策，不將本次防誤解鎖當成身分安全保證。
 - DEV-014套件與DEV-015批次UI整合未實作；本輪無畫面變更／截圖、未重驗真實SolidWorks或跨工作站幾何，不宣稱端到端UI通過。
+
+## GitHub 提交範圍（2026-10-22）
+
+- 使用者另核准提交DEV-013整批出庫安全復原與隔離驗證紀錄並push，不混入其他未完成後端、不正式套用、不migration或更動目前資料庫。
+- 功能與證據提交d5c910be1f1142098b07d2d74fded946291313af已push至
+  [codex/batch-checkout-recovery-20261022](https://github.com/balboku/SW-PDM/tree/codex/batch-checkout-recovery-20261022)。
+- 僅選擇性stage本切片22個檔案：checkout／cancel服務與端點、必要DI、批次模型／新migration原始碼與snapshot、
+  必要測試／README、ADR／任務入口／QC及原樣TRX／SHA。新表仍未套用；未帶入其他migration、parser、ingestion、套件、VaultSearch、前端或設定變更。
+- 發布前重讀既有證據：最終SQLite／PG各67/67，0失敗／0跳過；首次失敗仍為58/61、3失敗。
+  三份TRX的SHA256吻合，暫存blob與原檔位元組一致；diff檢查通過。未重新執行測試、建置、migration或啟動任何服務。
+- git ls-remote確認功能提交與遠端分支一致，main仍為2f22791b4a739c8e4543dc4b42ae8dbcad784d45；未建立PR或合併main。
+  原dirty工作區的52項status與tracked／index指紋保持不變。
+- 本節及兩個入口的已推送狀態另以純文件提交保存，產品與測試內容不再修改；最終分支SHA以遠端ref及完成回報辨識。

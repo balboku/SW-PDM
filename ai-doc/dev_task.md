@@ -5,6 +5,7 @@
 
 目前交付：DEV-013整批出庫安全復原後端隔離通過，基準main 2f22791；不部署、不執行migration、不連線目前資料庫。
 新增批次表模型與未執行migration原始碼；不混入DEV-014／015、完整Auth或原dirty後端。
+功能與隔離證據已以d5c910b提交並push至codex/batch-checkout-recovery-20261022，遠端SHA已核對；尚未合併main或正式套用。
 DEV-012本機套用紀錄已合併main並push；[套用與隔離驗證](reports/local-ingest-integrity-main-2026-10-22.md)
 保留固定成品與當時資料指紋證據，本輪不重新操作該環境。
 
@@ -194,7 +195,8 @@ SQLite HTTP 41/41、PostgreSQL 16.14 HTTP 41/41（0 略過）、既有前端邏�
   POST undo-checkout及舊checkin別名共用保護。缺欄位400、非本人403、找不到批次404、競爭409，重送只回0筆及排除原因。
 - 資料：只新增兩張批次表的模型與未執行migration原始碼，不改既有文件／版本／BOM欄位。
   SQLite記憶體庫與127.0.0.1:55433全新contract cluster逐例EnsureCreated，不執行migration。
-- 不在本輪：DEV-014套件、DEV-015清單與批次前端、parser／入庫規則、Auth、舊鎖推導／回填、部署、commit／push。
+- 不在原實作階段：DEV-014套件、DEV-015清單與批次前端、parser／入庫規則、Auth、舊鎖推導／回填、部署、commit／push。
+  使用者後續已另核准本切片commit／push；仍不合併main、正式套用或執行migration。
   未記錄的歷史出庫仍只支援原單檔取消；actor是自填操作防護，不是登入授權。
 - 停止條件：需要目前5432/swpdm、Vault、服務5000／5174或歷史BOM寫入、執行migration、放寬鎖保護或帶入其他dirty後端時停止。
 - 驗收：新批次永久紀錄、排除既有鎖、本人／他人／新鎖／版本改變／已入庫／刪除／重送／併發與中途失敗回滾皆有HTTP證據；
@@ -218,7 +220,8 @@ QC完成後再更新狀態；任何必測未通過不標完成。下一步為DEV
 
 SQLite與全新PostgreSQL16.14各67/67（原41＋新增26），前端純邏輯13/13，Release及UiFixture接線建置0警告／0錯誤。
 保留首次58/61失敗及修復紀錄；離線EF模型一致、migration僅兩張新表原始碼，未執行。
-臨時55433叢集已停止，測試庫後檢0個；未連線目前庫或操作正式服務，未commit／push。
+臨時55433叢集已停止，測試庫後檢0個；未連線目前庫或操作正式服務。
+後續Git指示已完成：功能與證據提交d5c910b已push，main未變；本次存檔不重跑測試或操作服務／資料庫。
 詳見[QC與TRX雜湊](qc/batch-checkout-recovery-qc-2026-10-22.md)；本結果不是批次UI或正式schema套用驗收。
 
 ## DEV-001：2026-10-22 契約修正切片
