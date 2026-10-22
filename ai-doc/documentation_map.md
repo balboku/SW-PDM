@@ -8,7 +8,7 @@
 前端5174沿用未變固定成品；SQLite41/41、PG41/41、真實CAD11份與邏輯13/13通過。
 目前5432/swpdm、migration、Vault、設定及原dirty工作區指紋前後一致；不執行migration。
 詳見[本機套用與隔離驗證](reports/local-ingest-integrity-main-2026-10-22.md)。
-紀錄位於本機codex/local-ingest-integrity-20261022，尚未commit／push。
+紀錄444a92e已提交並push至codex/local-ingest-integrity-20261022，遠端SHA已核對，尚未合併main。
 此worktree內固定成品正供服務使用，不可封存／清除；不使用會migration的start.ps1。
 
 ## 前階段：DEV-012 入庫核心合併 main（當時未套用）

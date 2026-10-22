@@ -3,7 +3,8 @@
 日期：2026-10-22（Asia/Taipei）。狀態：已完成本機 API5000 套用及固定前端5174啟動，
 目前資料庫／Vault／設定及原未完成工作區指紋前後一致，未執行 migration。
 固定來源 main 49f98a6f57dc01f6575434c4b141648d2bed4c41，產品提交 4bbed8d。
-本輪只保存本機紀錄，尚未 commit／push；紀錄分支 codex/local-ingest-integrity-20261022。
+本機套用紀錄已依後續授權提交並push；紀錄分支codex/local-ingest-integrity-20261022，尚未合併main。
+證據提交444a92e40dbd466bb19387f872abd653afa0d580，遠端SHA已核對。
 
 ## 使用者邊界與 QA 契約
 
@@ -110,10 +111,22 @@ API復原：上述新成品父目錄的Rollback-Api.ps1。
 ## Git 邊界與未驗證範圍
 
 - 本輪紀錄僅dev_task、documentation_map、本報告、既有QC入口狀態及TRX／SHA文字；
-  產品、設定、依賴宣告與測試原始碼均與main49f98a6相同。未commit／push。
+  產品、設定、依賴宣告與測試原始碼均與main49f98a6相同，已提交並push紀錄分支。
 - CAD、金鑰、目前資料庫／Vault、固定執行檔、啟動腳本與本機指紋JSON不納入Git。
   [證據雜湊](../qc/local-ingest-integrity-2026-10-22/sha256.txt)，.gitattributes避免TRX換行轉換。
 - 提交前一般diff檢查將原始TRX的CRLF判為行尾空白；僅對本證據目錄的TRX宣告cr-at-eol，
   保留其他空白檢查，未改TRX內容。暫存blob與原檔雜湊一致，並重新核對兩份41/41計數。
 - DEV-013～015仍未完成；批次取消、完整套件／跨工作站SolidWorks開啟、其他組態及真實異常UI不在本輪。
 - 本輪新建測試PG及私有CAD副本不是正式資料修復，不使用清空前資料ID、不改歷史BOM。
+
+## GitHub 紀錄存檔
+
+- 2026-10-22使用者另行授權提交並push本次本機套用紀錄，不混入其他未完成後端、不migration或更動目前資料庫。
+- 提交444a92e40dbd466bb19387f872abd653afa0d580僅含上述8個ai-doc文件與證據檔；
+  已push至[紀錄分支](https://github.com/balboku/SW-PDM/tree/codex/local-ingest-integrity-20261022)。
+- git ls-remote確認紀錄分支SHA一致，main仍為49f98a6f57dc01f6575434c4b141648d2bed4c41；未建立PR或合併main。
+- 提交前重讀既有兩份TRX：各41/41、0失敗、0跳過，SHA256吻合；暫存blob與原檔位元組一致。
+- 本次Git存檔僅核對文件、證據與Git，沒有重跑測試／建置、操作服務、連線資料庫或執行migration。
+  上述部署與資料不變結果是前次驗證證據，不宣稱本次重新驗證了執行中服務。
+- 首次push已成功，其後核對腳本發生字元型別錯誤；改以唯讀ref核對成功，未重複push或改變main。
+- 本節及入口文件的已推送狀態另以文件提交保存；其最終提交SHA由遠端分支及本次完成回報辨識，避免自指提交雜湊。
