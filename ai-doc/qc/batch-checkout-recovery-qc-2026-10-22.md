@@ -4,7 +4,7 @@
 基準main 2f22791b4a739c8e4543dc4b42ae8dbcad784d45；分支codex/batch-checkout-recovery-20261022。
 工作目錄：C:/Users/user/.codex/worktrees/checkout-reused-contract-20261022/SW-PDM。
 原實作階段未commit／push；使用者後續另行核准，產品與隔離證據已以d5c910be1f1142098b07d2d74fded946291313af提交並push至此分支。
-遠端SHA已核對；尚未合併main或正式套用。
+後續使用者再核准合併，來源ef40c1b已快轉合併main並push、遠端SHA已核對；未正式套用或執行migration。
 
 ## 邊界與實作
 
@@ -83,7 +83,7 @@ SQLite指令前清除SWPDM_CONTRACT_PG；PG指令前只設為Host=127.0.0.1;Port
 - actor是現有自填操作人，不是登入授權；完整Auth需另一範圍決策，不將本次防誤解鎖當成身分安全保證。
 - DEV-014套件與DEV-015批次UI整合未實作；本輪無畫面變更／截圖、未重驗真實SolidWorks或跨工作站幾何，不宣稱端到端UI通過。
 
-## GitHub 提交範圍（2026-10-22）
+## GitHub 提交範圍（2026-10-22，分支發布階段）
 
 - 使用者另核准提交DEV-013整批出庫安全復原與隔離驗證紀錄並push，不混入其他未完成後端、不正式套用、不migration或更動目前資料庫。
 - 功能與證據提交d5c910be1f1142098b07d2d74fded946291313af已push至
@@ -94,4 +94,19 @@ SQLite指令前清除SWPDM_CONTRACT_PG；PG指令前只設為Host=127.0.0.1;Port
   三份TRX的SHA256吻合，暫存blob與原檔位元組一致；diff檢查通過。未重新執行測試、建置、migration或啟動任何服務。
 - git ls-remote確認功能提交與遠端分支一致，main仍為2f22791b4a739c8e4543dc4b42ae8dbcad784d45；未建立PR或合併main。
   原dirty工作區的52項status與tracked／index指紋保持不變。
-- 本節及兩個入口的已推送狀態另以純文件提交保存，產品與測試內容不再修改；最終分支SHA以遠端ref及完成回報辨識。
+- 本節及兩個入口的已推送狀態以ef40c1b純文件提交保存，產品與測試內容未改；本節main未變／未合併的敘述為當時狀態，後續見下節。
+
+## main 合併紀錄（2026-10-22）
+
+- 使用者明確核准將codex/batch-checkout-recovery-20261022合併main並push；仍不混入其他未完成後端、不正式套用、不執行migration或更動目前資料庫。
+- main由2f22791b4a739c8e4543dc4b42ae8dbcad784d45快轉至ef40c1b7e4e0673326c7c7c47a2fc6c61b848bff並正常push；
+  git ls-remote確認main與來源分支均為ef40c1b。來源分支不改寫、未force push或建立PR。
+- 合併僅含已發布的2筆提交／22個本切片檔案；功能d5c910b至來源ef40c1b的src／tests／lib／solution無差異，
+  合併後產品及測試樹等同來源。未夾帶其他migration、parser、ingestion、套件、VaultSearch、前端或設定變更。
+- 合併前核對三份既有TRX雜湊與已提交blob位元組；最終SQLite／PG各67/67，0失敗／0跳過，首次58/61失敗證據仍保留。
+  重用既有Release／前端邏輯證據，未重跑測試或建置；diff檢查通過。
+- 只操作Git與文件，未連線任何資料庫、未啟動臨時叢集、未執行EF或SQL、未呼叫正式API、未改Vault／設定或重啟服務。
+  新migration仍只在原始碼，沒有套用新表；main合併不代表本機固定成品已切換。
+- 原codex/trial-feedback-20261016的52項未提交變更及tracked／index指紋保留，沒有stage或帶入main。
+  main worktree仍位於frontend-clarity-20261021，其中既有固定成品不得封存或清除。
+- 本次合併狀態僅再更新本QC、dev_task與documentation_map三份文件並提交；最終main SHA以遠端ref與完成回報辨識。
