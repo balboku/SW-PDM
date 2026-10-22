@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="2d957436-9f72-4709-bff5-6c0c87edb4c2" name="user@NB-RD 2026-10-22 10:10:23" runUser="NB-RD\user" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-22T10:10:23.0715189+08:00" queuing="2026-10-22T10:10:23.0715200+08:00" start="2026-10-22T10:10:11.2795746+08:00" finish="2026-10-22T10:10:26.3943511+08:00" />
+  <TestSettings name="default" id="cb8afc58-f0aa-4f3f-b111-2939ed792e44">
+    <Deployment runDeploymentRoot="user_NB-RD_2026-10-22_10_10_23" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="b598e6f5-e88f-48d9-8af3-b8ddf150fd57" testId="02f987fd-a288-07ae-2d23-cadf5ef95d30" testName="SWPdm.ContractTests.ContractTests.CancelPreviewAndAtomicPostOnlyUnlockSelectedDocument" computerName="NB-RD" duration="00:00:00.1695537" startTime="2026-10-22T10:10:26.2406444+08:00" endTime="2026-10-22T10:10:26.2406449+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b598e6f5-e88f-48d9-8af3-b8ddf150fd57" />
+    <UnitTestResult executionId="2c615e2c-1a03-41df-ba13-b545e31681e0" testId="6f9801d8-e90b-2833-faa6-7dde428166c3" testName="SWPdm.ContractTests.ContractTests.ChangedContentStillCreatesVersionUnderExistingRevisionPolicy" computerName="NB-RD" duration="00:00:00.6846690" startTime="2026-10-22T10:10:25.5051079+08:00" endTime="2026-10-22T10:10:25.5051082+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2c615e2c-1a03-41df-ba13-b545e31681e0" />
+    <UnitTestResult executionId="a1820562-cfab-4c89-895b-035e83fa4236" testId="a7b638f7-acad-1bd0-cec9-675939398924" testName="SWPdm.ContractTests.ContractTests.ReusedDoesNotBypassOwnerIdentityOrRenamePolicies(invalid: &quot;filename&quot;)" computerName="NB-RD" duration="00:00:00.1885582" startTime="2026-10-22T10:10:24.3961262+08:00" endTime="2026-10-22T10:10:24.3961269+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a1820562-cfab-4c89-895b-035e83fa4236" />
+    <UnitTestResult executionId="6d38a8d6-1ffc-4870-b75f-5c81aac4136b" testId="cda90eea-86b4-07ac-bf37-20359af401c5" testName="SWPdm.ContractTests.ContractTests.MissingBodyFieldsAndBatchRequestsFailClosed(route: &quot;/api/documents/1/checkin&quot;)" computerName="NB-RD" duration="00:00:00.2531360" startTime="2026-10-22T10:10:23.7413310+08:00" endTime="2026-10-22T10:10:23.7413319+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6d38a8d6-1ffc-4870-b75f-5c81aac4136b" />
+    <UnitTestResult executionId="37f0fed0-d2f9-44df-8c1b-2b52a49d6a9e" testId="6d3f0e11-dd2f-e4f2-64f6-74f34e919b00" testName="SWPdm.ContractTests.ContractTests.ChangesAfterPreviewCannotUnlock(change: &quot;time&quot;)" computerName="NB-RD" duration="00:00:00.1885083" startTime="2026-10-22T10:10:26.0642364+08:00" endTime="2026-10-22T10:10:26.0642368+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="37f0fed0-d2f9-44df-8c1b-2b52a49d6a9e" />
+    <UnitTestResult executionId="678ee5c6-22b6-4064-8fc5-3401ffe52685" testId="12375f0d-077f-7e21-122a-11d6f18f3c37" testName="SWPdm.ContractTests.ContractTests.ReusedDoesNotBypassOwnerIdentityOrRenamePolicies(invalid: &quot;actor&quot;)" computerName="NB-RD" duration="00:00:00.2824188" startTime="2026-10-22T10:10:24.0181325+08:00" endTime="2026-10-22T10:10:24.0181329+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="678ee5c6-22b6-4064-8fc5-3401ffe52685" />
+    <UnitTestResult executionId="3b1b8f07-a6ba-421b-8ac4-f253e8ad3a4b" testId="85ce2bf9-7bc2-879d-58c2-1fbdaa5821c0" testName="SWPdm.ContractTests.ContractTests.ReusedIsRealIngestionResponseWithoutAnyDatabaseOrVaultMutation" computerName="NB-RD" duration="00:00:00.2099697" startTime="2026-10-22T10:10:24.8196582+08:00" endTime="2026-10-22T10:10:24.8196589+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3b1b8f07-a6ba-421b-8ac4-f253e8ad3a4b" />
+    <UnitTestResult executionId="d28c5905-dfdb-46fb-83da-a46d7b7b7310" testId="799d5173-2be7-8609-2f4c-e65c709766b5" testName="SWPdm.ContractTests.ContractTests.ChangesAfterPreviewCannotUnlock(change: &quot;owner&quot;)" computerName="NB-RD" duration="00:00:00.1700518" startTime="2026-10-22T10:10:25.8750029+08:00" endTime="2026-10-22T10:10:25.8750033+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d28c5905-dfdb-46fb-83da-a46d7b7b7310" />
+    <UnitTestResult executionId="88d7440a-1a3e-4d40-b69b-d0dca15e009b" testId="538584e2-3d4f-34cc-2943-bbb076782335" testName="SWPdm.ContractTests.ContractTests.OtherActorNoLockAndMissingDocumentAreVisibleInPreview" computerName="NB-RD" duration="00:00:05.7957200" startTime="2026-10-22T10:10:23.0055170+08:00" endTime="2026-10-22T10:10:23.0055665+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="88d7440a-1a3e-4d40-b69b-d0dca15e009b" />
+    <UnitTestResult executionId="d6a2ef02-5efe-477a-95a2-a47d9e9b42e8" testId="4990c296-a1c6-3a8c-2458-611258166f51" testName="SWPdm.ContractTests.ContractTests.MissingBodyFieldsAndBatchRequestsFailClosed(route: &quot;/api/documents/1/undo-checkout&quot;)" computerName="NB-RD" duration="00:00:00.4521301" startTime="2026-10-22T10:10:23.4717062+08:00" endTime="2026-10-22T10:10:23.4717071+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d6a2ef02-5efe-477a-95a2-a47d9e9b42e8" />
+    <UnitTestResult executionId="44330b32-a860-49e3-adef-4fca01980f67" testId="2d7da700-b5a4-611f-9304-33324b74d855" testName="SWPdm.ContractTests.ContractTests.ChangesAfterPreviewCannotUnlock(change: &quot;version&quot;)" computerName="NB-RD" duration="00:00:00.1982538" startTime="2026-10-22T10:10:25.7041292+08:00" endTime="2026-10-22T10:10:25.7041297+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="44330b32-a860-49e3-adef-4fca01980f67" />
+    <UnitTestResult executionId="f37d1857-2206-4d08-aa9d-23a5d0a74637" testId="6200d9fe-e45e-f95e-1dd8-e647e7f8a2f2" testName="SWPdm.ContractTests.ContractTests.ConcurrentConfirmationsHaveExactlyOneWinner" computerName="NB-RD" duration="00:00:00.2116002" startTime="2026-10-22T10:10:24.6087547+08:00" endTime="2026-10-22T10:10:24.6087555+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f37d1857-2206-4d08-aa9d-23a5d0a74637" />
+    <UnitTestResult executionId="ebfa27a7-4495-43d0-b1b1-8e3a8978fd69" testId="0e643038-677d-3405-ff85-ef94450271e5" testName="SWPdm.ContractTests.ContractTests.ReusedDoesNotBypassOwnerIdentityOrRenamePolicies(invalid: &quot;identity&quot;)" computerName="NB-RD" duration="00:00:00.1878006" startTime="2026-10-22T10:10:24.2067889+08:00" endTime="2026-10-22T10:10:24.2067898+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ebfa27a7-4495-43d0-b1b1-8e3a8978fd69" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="SWPdm.ContractTests.ContractTests.CancelPreviewAndAtomicPostOnlyUnlockSelectedDocument" storage="c:\users\user\.codex\worktrees\frontend-clarity-20261021\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="02f987fd-a288-07ae-2d23-cadf5ef95d30">
+      <Execution id="b598e6f5-e88f-48d9-8af3-b8ddf150fd57" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\frontend-clarity-20261021\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.ContractTests" name="CancelPreviewAndAtomicPostOnlyUnlockSelectedDocument" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.ContractTests.ReusedDoesNotBypassOwnerIdentityOrRenamePolicies(invalid: &quot;filename&quot;)" storage="c:\users\user\.codex\worktrees\frontend-clarity-20261021\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="a7b638f7-acad-1bd0-cec9-675939398924">
+      <Execution id="a1820562-cfab-4c89-895b-035e83fa4236" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\frontend-clarity-20261021\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.ContractTests" name="ReusedDoesNotBypassOwnerIdentityOrRenamePolicies" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.ContractTests.ReusedIsRealIngestionResponseWithoutAnyDatabaseOrVaultMutation" storage="c:\users\user\.codex\worktrees\frontend-clarity-20261021\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="85ce2bf9-7bc2-879d-58c2-1fbdaa5821c0">
+      <Execution id="3b1b8f07-a6ba-421b-8ac4-f253e8ad3a4b" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\frontend-clarity-20261021\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.ContractTests" name="ReusedIsRealIngestionResponseWithoutAnyDatabaseOrVaultMutation" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.ContractTests.ReusedDoesNotBypassOwnerIdentityOrRenamePolicies(invalid: &quot;identity&quot;)" storage="c:\users\user\.codex\worktrees\frontend-clarity-20261021\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="0e643038-677d-3405-ff85-ef94450271e5">
+      <Execution id="ebfa27a7-4495-43d0-b1b1-8e3a8978fd69" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\frontend-clarity-20261021\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.ContractTests" name="ReusedDoesNotBypassOwnerIdentityOrRenamePolicies" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.ContractTests.ChangesAfterPreviewCannotUnlock(change: &quot;version&quot;)" storage="c:\users\user\.codex\worktrees\frontend-clarity-20261021\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="2d7da700-b5a4-611f-9304-33324b74d855">
+      <Execution id="44330b32-a860-49e3-adef-4fca01980f67" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\frontend-clarity-20261021\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.ContractTests" name="ChangesAfterPreviewCannotUnlock" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.ContractTests.MissingBodyFieldsAndBatchRequestsFailClosed(route: &quot;/api/documents/1/undo-checkout&quot;)" storage="c:\users\user\.codex\worktrees\frontend-clarity-20261021\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="4990c296-a1c6-3a8c-2458-611258166f51">
+      <Execution id="d6a2ef02-5efe-477a-95a2-a47d9e9b42e8" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\frontend-clarity-20261021\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.ContractTests" name="MissingBodyFieldsAndBatchRequestsFailClosed" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.ContractTests.ChangesAfterPreviewCannotUnlock(change: &quot;owner&quot;)" storage="c:\users\user\.codex\worktrees\frontend-clarity-20261021\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="799d5173-2be7-8609-2f4c-e65c709766b5">
+      <Execution id="d28c5905-dfdb-46fb-83da-a46d7b7b7310" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\frontend-clarity-20261021\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.ContractTests" name="ChangesAfterPreviewCannotUnlock" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.ContractTests.MissingBodyFieldsAndBatchRequestsFailClosed(route: &quot;/api/documents/1/checkin&quot;)" storage="c:\users\user\.codex\worktrees\frontend-clarity-20261021\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="cda90eea-86b4-07ac-bf37-20359af401c5">
+      <Execution id="6d38a8d6-1ffc-4870-b75f-5c81aac4136b" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\frontend-clarity-20261021\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.ContractTests" name="MissingBodyFieldsAndBatchRequestsFailClosed" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.ContractTests.ChangesAfterPreviewCannotUnlock(change: &quot;time&quot;)" storage="c:\users\user\.codex\worktrees\frontend-clarity-20261021\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="6d3f0e11-dd2f-e4f2-64f6-74f34e919b00">
+      <Execution id="37f0fed0-d2f9-44df-8c1b-2b52a49d6a9e" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\frontend-clarity-20261021\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.ContractTests" name="ChangesAfterPreviewCannotUnlock" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.ContractTests.ConcurrentConfirmationsHaveExactlyOneWinner" storage="c:\users\user\.codex\worktrees\frontend-clarity-20261021\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="6200d9fe-e45e-f95e-1dd8-e647e7f8a2f2">
+      <Execution id="f37d1857-2206-4d08-aa9d-23a5d0a74637" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\frontend-clarity-20261021\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.ContractTests" name="ConcurrentConfirmationsHaveExactlyOneWinner" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.ContractTests.ReusedDoesNotBypassOwnerIdentityOrRenamePolicies(invalid: &quot;actor&quot;)" storage="c:\users\user\.codex\worktrees\frontend-clarity-20261021\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="12375f0d-077f-7e21-122a-11d6f18f3c37">
+      <Execution id="678ee5c6-22b6-4064-8fc5-3401ffe52685" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\frontend-clarity-20261021\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.ContractTests" name="ReusedDoesNotBypassOwnerIdentityOrRenamePolicies" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.ContractTests.ChangedContentStillCreatesVersionUnderExistingRevisionPolicy" storage="c:\users\user\.codex\worktrees\frontend-clarity-20261021\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="6f9801d8-e90b-2833-faa6-7dde428166c3">
+      <Execution id="2c615e2c-1a03-41df-ba13-b545e31681e0" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\frontend-clarity-20261021\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.ContractTests" name="ChangedContentStillCreatesVersionUnderExistingRevisionPolicy" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.ContractTests.OtherActorNoLockAndMissingDocumentAreVisibleInPreview" storage="c:\users\user\.codex\worktrees\frontend-clarity-20261021\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="538584e2-3d4f-34cc-2943-bbb076782335">
+      <Execution id="88d7440a-1a3e-4d40-b69b-d0dca15e009b" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\frontend-clarity-20261021\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.ContractTests" name="OtherActorNoLockAndMissingDocumentAreVisibleInPreview" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="02f987fd-a288-07ae-2d23-cadf5ef95d30" executionId="b598e6f5-e88f-48d9-8af3-b8ddf150fd57" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6f9801d8-e90b-2833-faa6-7dde428166c3" executionId="2c615e2c-1a03-41df-ba13-b545e31681e0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a7b638f7-acad-1bd0-cec9-675939398924" executionId="a1820562-cfab-4c89-895b-035e83fa4236" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cda90eea-86b4-07ac-bf37-20359af401c5" executionId="6d38a8d6-1ffc-4870-b75f-5c81aac4136b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6d3f0e11-dd2f-e4f2-64f6-74f34e919b00" executionId="37f0fed0-d2f9-44df-8c1b-2b52a49d6a9e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="12375f0d-077f-7e21-122a-11d6f18f3c37" executionId="678ee5c6-22b6-4064-8fc5-3401ffe52685" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="85ce2bf9-7bc2-879d-58c2-1fbdaa5821c0" executionId="3b1b8f07-a6ba-421b-8ac4-f253e8ad3a4b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="799d5173-2be7-8609-2f4c-e65c709766b5" executionId="d28c5905-dfdb-46fb-83da-a46d7b7b7310" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="538584e2-3d4f-34cc-2943-bbb076782335" executionId="88d7440a-1a3e-4d40-b69b-d0dca15e009b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4990c296-a1c6-3a8c-2458-611258166f51" executionId="d6a2ef02-5efe-477a-95a2-a47d9e9b42e8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2d7da700-b5a4-611f-9304-33324b74d855" executionId="44330b32-a860-49e3-adef-4fca01980f67" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6200d9fe-e45e-f95e-1dd8-e647e7f8a2f2" executionId="f37d1857-2206-4d08-aa9d-23a5d0a74637" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0e643038-677d-3405-ff85-ef94450271e5" executionId="ebfa27a7-4495-43d0-b1b1-8e3a8978fd69" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="不在清單中的結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有載入的結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="13" executed="13" passed="13" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 8.0.26)&#xD;
+[xUnit.net 00:00:02.52]   Discovering: SWPdm.ContractTests&#xD;
+[xUnit.net 00:00:02.69]   Discovered:  SWPdm.ContractTests&#xD;
+[xUnit.net 00:00:02.70]   Starting:    SWPdm.ContractTests&#xD;
+[xUnit.net 00:00:11.94]   Finished:    SWPdm.ContractTests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

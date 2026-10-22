@@ -1,0 +1,471 @@
+[
+  {
+    "name": "01-desktop-vault",
+    "timestamp": "2026-10-22T03:22:14.422Z",
+    "bodyWidth": 1440,
+    "dialogs": [],
+    "url": "http://127.0.0.1:5175/documents",
+    "viewport": {
+      "height": 900,
+      "width": 1440
+    },
+    "visibleErrors": []
+  },
+  {
+    "name": "02-desktop-reused",
+    "timestamp": "2026-10-22T03:28:17.465Z",
+    "bodyWidth": 1440,
+    "dialogs": [
+      {
+        "label": ":r4:",
+        "rect": {
+          "height": 876,
+          "width": 608,
+          "x": 820,
+          "y": 12
+        }
+      },
+      {
+        "label": ":r1:",
+        "rect": {
+          "height": 643.2000122070312,
+          "width": 512,
+          "x": 464,
+          "y": 128.40000915527344
+        }
+      }
+    ],
+    "url": "http://127.0.0.1:5175/documents",
+    "viewport": {
+      "height": 900,
+      "width": 1440
+    },
+    "visibleErrors": []
+  },
+  {
+    "name": "03-tablet-reused",
+    "timestamp": "2026-10-22T03:28:17.683Z",
+    "bodyWidth": 1024,
+    "dialogs": [
+      {
+        "label": ":r4:",
+        "rect": {
+          "height": 744,
+          "width": 416,
+          "x": 596,
+          "y": 12
+        }
+      },
+      {
+        "label": ":r1:",
+        "rect": {
+          "height": 643.2000122070312,
+          "width": 512,
+          "x": 256,
+          "y": 62.400001525878906
+        }
+      }
+    ],
+    "url": "http://127.0.0.1:5175/documents",
+    "viewport": {
+      "height": 768,
+      "width": 1024
+    },
+    "visibleErrors": []
+  },
+  {
+    "name": "04-phone-reused",
+    "timestamp": "2026-10-22T03:28:17.908Z",
+    "bodyWidth": 390,
+    "dialogs": [
+      {
+        "label": ":r4:",
+        "rect": {
+          "height": 844,
+          "width": 390.3999938964844,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "label": ":r1:",
+        "rect": {
+          "height": 671.2000122070312,
+          "width": 366.3999938964844,
+          "x": 12,
+          "y": 86.4000015258789
+        }
+      }
+    ],
+    "url": "http://127.0.0.1:5175/documents",
+    "viewport": {
+      "height": 844,
+      "width": 390
+    },
+    "visibleErrors": []
+  },
+  {
+    "name": "05-phone-other-actor-blocked",
+    "timestamp": "2026-10-22T03:28:39.603Z",
+    "bodyWidth": 390,
+    "dialogs": [
+      {
+        "label": ":r4:",
+        "rect": {
+          "height": 844,
+          "width": 390.3999938964844,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "label": ":r2:",
+        "rect": {
+          "height": 500.8000183105469,
+          "width": 366.3999938964844,
+          "x": 12,
+          "y": 171.60000610351562
+        }
+      }
+    ],
+    "url": "http://127.0.0.1:5175/documents",
+    "viewport": {
+      "height": 844,
+      "width": 390
+    },
+    "visibleErrors": []
+  },
+  {
+    "name": "06-phone-cancel-preview",
+    "timestamp": "2026-10-22T03:28:40.073Z",
+    "bodyWidth": 390,
+    "dialogs": [
+      {
+        "label": ":r4:",
+        "rect": {
+          "height": 844,
+          "width": 390.3999938964844,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "label": ":r2:",
+        "rect": {
+          "height": 528.7999877929688,
+          "width": 366.3999938964844,
+          "x": 12,
+          "y": 157.60000610351562
+        }
+      }
+    ],
+    "url": "http://127.0.0.1:5175/documents",
+    "viewport": {
+      "height": 844,
+      "width": 390
+    },
+    "visibleErrors": []
+  },
+  {
+    "name": "07-phone-stale-lock-error",
+    "timestamp": "2026-10-22T03:29:10.145Z",
+    "bodyWidth": 390,
+    "dialogs": [
+      {
+        "label": ":r4:",
+        "rect": {
+          "height": 844,
+          "width": 390.3999938964844,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "label": ":r2:",
+        "rect": {
+          "height": 472.8000183105469,
+          "width": 366.3999938964844,
+          "x": 12,
+          "y": 185.6000061035156
+        }
+      }
+    ],
+    "url": "http://127.0.0.1:5175/documents",
+    "viewport": {
+      "height": 844,
+      "width": 390
+    },
+    "visibleErrors": [
+      "鎖定或版本已改變，未解除鎖定。請重新檢查，再決定是否取消。"
+    ]
+  },
+  {
+    "name": "08-phone-preview-service-error",
+    "timestamp": "2026-10-22T03:31:15.225Z",
+    "bodyWidth": 390,
+    "dialogs": [
+      {
+        "label": ":r4:",
+        "rect": {
+          "height": 844,
+          "width": 390.3999938964844,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "label": ":r2:",
+        "rect": {
+          "height": 472.8000183105469,
+          "width": 366.3999938964844,
+          "x": 12,
+          "y": 185.6000061035156
+        }
+      }
+    ],
+    "url": "http://127.0.0.1:5175/documents",
+    "viewport": {
+      "height": 844,
+      "width": 390
+    },
+    "visibleErrors": [
+      "出庫狀態尚未確認，請重新檢查。若持續失敗，請確認前後端服務版本；未解除任何鎖。"
+    ]
+  },
+  {
+    "name": "09-tablet-cancel-recovered",
+    "timestamp": "2026-10-22T03:32:02.399Z",
+    "bodyWidth": 1024,
+    "dialogs": [
+      {
+        "label": ":r4:",
+        "rect": {
+          "height": 744,
+          "width": 416,
+          "x": 596,
+          "y": 12
+        }
+      },
+      {
+        "label": ":r2:",
+        "rect": {
+          "height": 524.7999877929688,
+          "width": 512,
+          "x": 256,
+          "y": 121.5999984741211
+        }
+      }
+    ],
+    "url": "http://127.0.0.1:5175/documents",
+    "viewport": {
+      "height": 768,
+      "width": 1024
+    },
+    "visibleErrors": [],
+    "excluded": true,
+    "reason": "Viewport transition capture was clipped; stable tablet screenshots 12/13/14 are used for acceptance."
+  },
+  {
+    "name": "10-desktop-cancel-recovered",
+    "timestamp": "2026-10-22T03:32:03.665Z",
+    "bodyWidth": 1440,
+    "dialogs": [
+      {
+        "label": ":r4:",
+        "rect": {
+          "height": 876,
+          "width": 608,
+          "x": 820,
+          "y": 12
+        }
+      },
+      {
+        "label": ":r2:",
+        "rect": {
+          "height": 524.7999877929688,
+          "width": 512,
+          "x": 464,
+          "y": 187.6000061035156
+        }
+      }
+    ],
+    "url": "http://127.0.0.1:5175/documents",
+    "viewport": {
+      "height": 900,
+      "width": 1440
+    },
+    "visibleErrors": []
+  },
+  {
+    "name": "11-desktop-cancel-complete",
+    "timestamp": "2026-10-22T03:32:25.285Z",
+    "bodyWidth": 1440,
+    "dialogs": [
+      {
+        "label": ":r4:",
+        "rect": {
+          "height": 876,
+          "width": 608,
+          "x": 820,
+          "y": 12
+        }
+      },
+      {
+        "label": ":r2:",
+        "rect": {
+          "height": 278.3999938964844,
+          "width": 512,
+          "x": 464,
+          "y": 310.8000183105469
+        }
+      }
+    ],
+    "url": "http://127.0.0.1:5175/documents",
+    "viewport": {
+      "height": 900,
+      "width": 1440
+    },
+    "visibleErrors": []
+  },
+  {
+    "name": "12-tablet-no-lock-recheck",
+    "timestamp": "2026-10-22T03:32:34.944Z",
+    "bodyWidth": 1024,
+    "dialogs": [
+      {
+        "label": ":r4:",
+        "rect": {
+          "height": 744,
+          "width": 416,
+          "x": 596,
+          "y": 12
+        }
+      },
+      {
+        "label": ":r2:",
+        "rect": {
+          "height": 468.8000183105469,
+          "width": 512,
+          "x": 256,
+          "y": 149.60000610351562
+        }
+      }
+    ],
+    "url": "http://127.0.0.1:5175/documents",
+    "viewport": {
+      "height": 768,
+      "width": 1024
+    },
+    "visibleErrors": []
+  },
+  {
+    "name": "13-tablet-checkout-preview",
+    "timestamp": "2026-10-22T03:33:16.263Z",
+    "bodyWidth": 1024,
+    "dialogs": [
+      {
+        "label": ":r5:",
+        "rect": {
+          "height": 744,
+          "width": 416,
+          "x": 596,
+          "y": 12
+        }
+      },
+      {
+        "label": ":r0:",
+        "rect": {
+          "height": 472,
+          "width": 512,
+          "x": 256,
+          "y": 148
+        }
+      }
+    ],
+    "url": "http://127.0.0.1:5175/documents",
+    "viewport": {
+      "height": 768,
+      "width": 1024
+    },
+    "visibleErrors": []
+  },
+  {
+    "name": "14-tablet-checkout-complete",
+    "timestamp": "2026-10-22T03:33:30.079Z",
+    "bodyWidth": 1024,
+    "dialogs": [
+      {
+        "label": ":r5:",
+        "rect": {
+          "height": 744,
+          "width": 416,
+          "x": 596,
+          "y": 12
+        }
+      }
+    ],
+    "url": "http://127.0.0.1:5175/documents",
+    "viewport": {
+      "height": 768,
+      "width": 1024
+    },
+    "visibleErrors": []
+  },
+  {
+    "name": "15-phone-fresh-checkout-cancel-complete",
+    "timestamp": "2026-10-22T03:33:58.141Z",
+    "bodyWidth": 390,
+    "dialogs": [
+      {
+        "label": ":r5:",
+        "rect": {
+          "height": 844,
+          "width": 390.3999938964844,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "label": ":r2:",
+        "rect": {
+          "height": 262.3999938964844,
+          "width": 366.3999938964844,
+          "x": 12,
+          "y": 290.8000183105469
+        }
+      }
+    ],
+    "url": "http://127.0.0.1:5175/documents",
+    "viewport": {
+      "height": 844,
+      "width": 390
+    },
+    "visibleErrors": []
+  },
+  {
+    "name": "16-phone-vault-final",
+    "timestamp": "2026-10-22T03:33:58.877Z",
+    "bodyWidth": 390,
+    "dialogs": [],
+    "url": "http://127.0.0.1:5175/documents",
+    "viewport": {
+      "height": 844,
+      "width": 390
+    },
+    "visibleErrors": []
+  },
+  {
+    "name": "17-live-chrome-main",
+    "timestamp": "2026-10-22T03:39:16.272Z",
+    "bodyWidth": 1920,
+    "scripts": [
+      "http://192.168.20.62:5174/assets/index-DKZLPEHx.js"
+    ],
+    "url": "http://192.168.20.62:5174/documents",
+    "viewport": {
+      "height": 842,
+      "width": 1920
+    },
+    "visibleErrors": []
+  }
+]

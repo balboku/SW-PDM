@@ -1,0 +1,3 @@
+# Keep captured evidence byte-for-byte identical to evidence-sha256.txt.
+*.trx -text
+*.txt -text
