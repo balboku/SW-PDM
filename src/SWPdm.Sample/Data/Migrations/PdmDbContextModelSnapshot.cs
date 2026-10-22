@@ -116,6 +116,61 @@ namespace SWPdm.Sample.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SWPdm.Sample.Data.Entities.PdmCheckoutBatch", b =>
+                {
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("batch_id");
+
+                    b.Property<string>("Actor")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("actor");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<long>("RootDocumentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("root_document_id");
+
+                    b.HasKey("BatchId");
+
+                    b.HasIndex("RootDocumentId", "CreatedAt")
+                        .HasDatabaseName("idx_checkout_batches_root_created");
+
+                    b.ToTable("pdm_checkout_batches", (string)null);
+                });
+
+            modelBuilder.Entity("SWPdm.Sample.Data.Entities.PdmCheckoutBatchItem", b =>
+                {
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("batch_id");
+
+                    b.Property<long>("DocumentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("document_id");
+
+                    b.Property<DateTimeOffset>("LockTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lock_time");
+
+                    b.Property<DateTimeOffset?>("RestoredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("restored_at");
+
+                    b.Property<long>("VersionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("version_id");
+
+                    b.HasKey("BatchId", "DocumentId");
+
+                    b.ToTable("pdm_checkout_batch_items", (string)null);
+                });
+
             modelBuilder.Entity("SWPdm.Sample.Data.Entities.PdmCustomProperty", b =>
                 {
                     b.Property<long>("CustomPropertyId")
@@ -504,6 +559,17 @@ namespace SWPdm.Sample.Data.Migrations
                     b.Navigation("ParentVersion");
                 });
 
+            modelBuilder.Entity("SWPdm.Sample.Data.Entities.PdmCheckoutBatchItem", b =>
+                {
+                    b.HasOne("SWPdm.Sample.Data.Entities.PdmCheckoutBatch", "Batch")
+                        .WithMany("Items")
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Batch");
+                });
+
             modelBuilder.Entity("SWPdm.Sample.Data.Entities.PdmCustomProperty", b =>
                 {
                     b.HasOne("SWPdm.Sample.Data.Entities.PdmDocumentVersion", "Version")
@@ -561,6 +627,11 @@ namespace SWPdm.Sample.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Document");
+                });
+
+            modelBuilder.Entity("SWPdm.Sample.Data.Entities.PdmCheckoutBatch", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("SWPdm.Sample.Data.Entities.PdmDocument", b =>

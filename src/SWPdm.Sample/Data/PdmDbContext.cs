@@ -24,6 +24,9 @@ public sealed class PdmDbContext : DbContext
 
     public DbSet<PdmDocumentIdentityChange> DocumentIdentityChanges => Set<PdmDocumentIdentityChange>();
 
+    public DbSet<PdmCheckoutBatch> CheckoutBatches => Set<PdmCheckoutBatch>();
+    public DbSet<PdmCheckoutBatchItem> CheckoutBatchItems => Set<PdmCheckoutBatchItem>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ConfigureDocuments(modelBuilder);
@@ -32,6 +35,32 @@ public sealed class PdmDbContext : DbContext
         ConfigureBomOccurrences(modelBuilder);
         ConfigureNumbering(modelBuilder);
         ConfigureDocumentIdentityChanges(modelBuilder);
+        ConfigureCheckoutBatches(modelBuilder);
+    }
+
+    private static void ConfigureCheckoutBatches(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<PdmCheckoutBatch>(e =>
+        {
+            e.ToTable("pdm_checkout_batches");
+            e.HasKey(x => x.BatchId);
+            e.Property(x => x.BatchId).HasColumnName("batch_id").ValueGeneratedNever();
+            e.Property(x => x.RootDocumentId).HasColumnName("root_document_id");
+            e.Property(x => x.Actor).HasColumnName("actor").HasMaxLength(100);
+            e.Property(x => x.CreatedAt).HasColumnName("created_at");
+            e.HasIndex(x => new { x.RootDocumentId, x.CreatedAt }).HasDatabaseName("idx_checkout_batches_root_created");
+            e.HasMany(x => x.Items).WithOne(x => x.Batch).HasForeignKey(x => x.BatchId).OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<PdmCheckoutBatchItem>(e =>
+        {
+            e.ToTable("pdm_checkout_batch_items");
+            e.HasKey(x => new { x.BatchId, x.DocumentId });
+            e.Property(x => x.BatchId).HasColumnName("batch_id");
+            e.Property(x => x.DocumentId).HasColumnName("document_id");
+            e.Property(x => x.VersionId).HasColumnName("version_id");
+            e.Property(x => x.LockTime).HasColumnName("lock_time");
+            e.Property(x => x.RestoredAt).HasColumnName("restored_at");
+        });
     }
 
     private static void ConfigureDocuments(ModelBuilder modelBuilder)

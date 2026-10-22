@@ -903,145 +903,25 @@ public static class DocumentEndpoints
         });
 
         app.MapPost("/api/documents/{documentId:long}/checkout", async (
-            long documentId,
-            [FromQuery] bool forceIncludeRelations,
-            CheckOutRequest request,
-            IPdmRepository repository,
-            PdmDbContext dbContext,
-            ILogger<Program> _logger,
-            CancellationToken cancellationToken) =>
+            long documentId, [FromQuery] bool forceIncludeRelations, CheckOutRequest request,
+            CheckoutBatchService service, CancellationToken cancellationToken) =>
         {
-            if (string.IsNullOrWhiteSpace(request.CheckOutBy))
-            {
-                return EndpointHelpers.ValidationError(nameof(request.CheckOutBy), "CheckOutBy provider is required.");
-            }
+            try { return Results.Ok(await service.CheckOutAsync(documentId, request.CheckOutBy, forceIncludeRelations, cancellationToken)); }
+            catch (Exception ex) { return EndpointHelpers.ToProblem(ex); }
+        });
 
-            await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-
-            try
-            {
-                var document = await dbContext.Documents.FindAsync(new object[] { documentId }, cancellationToken);
-                if (document is null) return Results.NotFound();
-
-                if (!string.IsNullOrWhiteSpace(document.CheckedOutBy))
-                {
-                    return Results.BadRequest($"Document is already checked out by {document.CheckedOutBy}.");
-                }
-
-                var checkedOutAt = DateTimeOffset.UtcNow;
-                document.CheckedOutBy = request.CheckOutBy;
-                document.CheckedOutAt = checkedOutAt;
-
-                if (forceIncludeRelations && document.CurrentVersionId.HasValue)
-                {
-                    // 1. 取得所有子項目 (Recursive Children)
-                    var children = await repository.GetPackageClosureAsync(document.CurrentVersionId.Value, cancellationToken);
-
-                    // 2. 取得所有子項目關聯的工程圖 (Drawings)
-                    var childDocIds = children.Select(x => x.DocumentId).Distinct().ToList();
-                    var childFilenames = children.Select(x => x.OriginalFileName.ToLower()).ToList();
-                    
-                    _logger.LogInformation("Checking drawings for {Count} child documents during checkout", childDocIds.Count);
-
-                    // A. 透過「文件 ID」找工程圖 (不論參考哪一個版本)
-                    var drawingIdsFromLinks = await dbContext.BomOccurrences
-                        .Where(bom => bom.ChildVersionId.HasValue)
-                        .Join(dbContext.DocumentVersions,
-                              bom => bom.ChildVersionId!.Value,
-                              cv => cv.VersionId,
-                              (bom, cv) => new { bom.ParentVersionId, cv.DocumentId })
-                        .Where(x => childDocIds.Contains(x.DocumentId))
-                        .Join(dbContext.DocumentVersions,
-                              x => x.ParentVersionId,
-                              pv => pv.VersionId,
-                              (x, pv) => new { pv.VersionId, pv.Document.DocumentType })
-                        .Where(x => x.DocumentType == "Drawing")
-                        .Select(x => x.VersionId)
-                        .ToListAsync(cancellationToken);
-
-                    // B. 透過檔名匹配 (Fallback for Missing links)
-                    var drawingsMissingLinks = await dbContext.BomOccurrences
-                        .Where(bom => bom.ChildVersionId == null)
-                        .Join(dbContext.DocumentVersions,
-                              bom => bom.ParentVersionId,
-                              v => v.VersionId,
-                              (bom, v) => new { v.VersionId, v.Document.DocumentType, bom.SourceReferencePath })
-                        .Where(x => x.DocumentType == "Drawing")
-                        .ToListAsync(cancellationToken);
-
-                    var drawingIdsFromFilename = drawingsMissingLinks
-                        .Where(x => !string.IsNullOrEmpty(x.SourceReferencePath) && 
-                                    childFilenames.Contains(Path.GetFileName(x.SourceReferencePath).ToLower()))
-                        .Select(x => x.VersionId)
-                        .ToList();
-
-                    var relatedDrawingVersionIds = drawingIdsFromLinks
-                        .Concat(drawingIdsFromFilename)
-                        .Distinct()
-                        .ToList();
-
-                    _logger.LogInformation("Found {Count} related drawings during checkout", relatedDrawingVersionIds.Count);
-
-                    // 3. 重組鎖定清單：合併 Children 與 Drawings，但排除 Parents 以防止鎖定擴散
-                    var relationVersionIds = children
-                        .Select(x => x.VersionId)
-                        .Concat(relatedDrawingVersionIds)
-                        .Where(versionId => versionId != document.CurrentVersionId.Value)
-                        .Distinct()
-                        .ToList();
-
-                    if (relationVersionIds.Count > 0)
-                    {
-                        var relatedDocuments = await dbContext.Documents
-                            .Where(x => x.CurrentVersionId.HasValue && relationVersionIds.Contains(x.CurrentVersionId.Value))
-                            .ToListAsync(cancellationToken);
-
-                        var blockedDocuments = relatedDocuments
-                            .Where(x => !string.IsNullOrWhiteSpace(x.CheckedOutBy) &&
-                                        !string.Equals(x.CheckedOutBy, request.CheckOutBy, StringComparison.OrdinalIgnoreCase))
-                            .ToList();
-
-                        if (blockedDocuments.Count > 0)
-                        {
-                            await transaction.RollbackAsync(cancellationToken);
-                            return Results.Conflict(new
-                            {
-                                title = "Checkout conflict",
-                                detail = "Cannot check out the complete relation chain because one or more related documents are already checked out by another user.",
-                                conflicts = blockedDocuments.Select(x => new
-                                {
-                                    x.DocumentId,
-                                    x.FileName,
-                                    x.CheckedOutBy,
-                                    x.CheckedOutAt
-                                })
-                            });
-                        }
-
-                        foreach (var relatedDocument in relatedDocuments.Where(x => string.IsNullOrWhiteSpace(x.CheckedOutBy)))
-                        {
-                            relatedDocument.CheckedOutBy = request.CheckOutBy;
-                            relatedDocument.CheckedOutAt = checkedOutAt;
-                        }
-                    }
-                }
-
-                await dbContext.SaveChangesAsync(cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
-
-                return Results.Ok(new { message = "Checked out successfully", checkedOutBy = document.CheckedOutBy });
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync(cancellationToken);
-                return EndpointHelpers.ToProblem(ex);
-            }
+        app.MapGet("/api/documents/{documentId:long}/checkout-batches", async (
+            long documentId, string actor, CheckoutBatchService service, CancellationToken cancellationToken) =>
+        {
+            try { return Results.Ok(await service.ListAsync(documentId, actor, cancellationToken)); }
+            catch (Exception ex) { return EndpointHelpers.ToProblem(ex); }
         });
 
         app.MapGet("/api/documents/{documentId:long}/undo-checkout-preview", async (
-            long documentId, string actor, CancelCheckoutService service, CancellationToken cancellationToken) =>
+            long documentId, string actor, CancelCheckoutService service, CancellationToken cancellationToken,
+            bool includeBatch = false, Guid? batchId = null) =>
         {
-            try { return Results.Ok(await service.PreviewAsync(documentId, actor, cancellationToken)); }
+            try { return Results.Ok(await service.PreviewAsync(documentId, actor, cancellationToken, includeBatch, batchId)); }
             catch (Exception ex) { return EndpointHelpers.ToProblem(ex); }
         });
 

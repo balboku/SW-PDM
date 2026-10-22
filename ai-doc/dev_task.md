@@ -3,12 +3,10 @@
 更新日期：2026-10-22
 文件狀態：2026-10-22 取消出庫／Reused 契約切片已合併main，完成隔離畫面驗證及本機固定成品套用。未混入其他未完成後端、未執行migration；其餘既有交付狀態為歷史紀錄。
 
-目前狀態：使用者另核准本機套用，DEV-012已以固定main49f98a6成品在API5000啟動，前端5174沿用未變固定成品。
-同SHA Release成品的SQLite41/41、PG16.14 41/41、原生CAD11份及前端邏輯13/13通過；
-目前DB／migration／Vault／設定與原WIP指紋前後一致，未執行migration。
-本機套用紀錄444a92e及狀態提交749e201已由codex/local-ingest-integrity-20261022快轉合併main並push，遠端SHA已核對；
-[套用與隔離驗證](reports/local-ingest-integrity-main-2026-10-22.md)。
-DEV-013～015未混入；下方先前套用紀錄保留其當時來源與範圍。
+目前交付：DEV-013整批出庫安全復原後端隔離通過，基準main 2f22791；不部署、不執行migration、不連線目前資料庫。
+新增批次表模型與未執行migration原始碼；不混入DEV-014／015、完整Auth或原dirty後端。
+DEV-012本機套用紀錄已合併main並push；[套用與隔離驗證](reports/local-ingest-integrity-main-2026-10-22.md)
+保留固定成品與當時資料指紋證據，本輪不重新操作該環境。
 
 本機套用結果：先前工具拒絕經正式require_escalated／auto_review續作，桌面／平板／手機與錯誤恢復驗證通過；5000／5174已使用main e40f3e4固定成品，目前DB／Vault及原WIP指紋不變。[本輪紀錄](reports/local-checkout-reused-main-2026-10-22.md)保留切換異常、恢復與後驗證。未執行migration；真實CAD寫入測試不在本輪。
 
@@ -17,14 +15,16 @@ DEV-013～015未混入；下方先前套用紀錄保留其當時來源與範圍�
 - ✓ DEV-012 [交付點] [核心切片通過] [P0] [本機已套用／資料未變] 入庫版本、共用件與解析器整合
   - 摘要：WIP 同 Rev 建立新 Ver、相同身分與內容沿用、直接參照與設計依賴分流。
   - 來源 ID：2026-10-22 使用者同意先完成 WIP、共用件與解析器整合。
-  - 下一步：可續接DEV-013獨立切片；本輪套用紀錄已合併main並push，不延伸至其他後端或資料寫入。
+  - 下一步：DEV-013後端隔離已通過，可依其結果獨立續接DEV-014；本輪不延伸至其他後端或資料寫入。
   - 阻塞 / 恢復條件：仍禁止migration、目前資料／歷史BOM修復；原隔離階段的不部署限制已由本次套用授權取代。
   - 證據：reports/local-ingest-integrity-main-2026-10-22.md；同成品SQLite／PG各41項與11份原生CAD。
   - 計入交付：是
 
-- ○ DEV-013 [交付點] [待前置驗證] [P1] [後續獨立切片] 整批出庫安全復原
-  - 摘要：只復原該批仍有效的自有鎖；既有單文件取消出庫已完成。
-  - 下一步：DEV-012 驗證後另切批次契約；不帶入本輪 schema 或批次後端。
+- ✓ DEV-013 [交付點] [後端隔離通過] [P1] [未正式套用] 整批出庫安全復原
+  - 摘要：持久記錄當次新取得的鎖，依批次預覽並安全復原；既有鎖與新作業鎖不解除。
+  - 來源 ID：2026-10-22 使用者指定接續 DEV-013，禁止正式套用、migration 與目前資料寫入。
+  - 下一步：可續接DEV-014獨立切片；批次畫面仍由DEV-015整合，schema與部署未授權執行。
+  - 證據：qc/batch-checkout-recovery-qc-2026-10-22.md；SQLite／PG各67項、前端邏輯13項。
   - 計入交付：是
 
 - ○ DEV-014 [交付點] [待前置驗證] [P0] [後續獨立切片] 完整套件與副本參照重寫
@@ -177,6 +177,49 @@ SQLite HTTP 41/41、PostgreSQL 16.14 HTTP 41/41（0 略過）、既有前端邏�
 無 interop 假成功防護通過；Release API 0 警告／0 錯誤；原 dirty 指紋不變，未執行 migration。
 完整命令、過程中失敗與排除範圍見 [QC](qc/ingest-integrity-qc-2026-10-22.md)。
 不以本輪結果冒充跨工作站幾何／套件或 DEV-013～015 UI 整合通過。
+
+## DEV-013：2026-10-22 整批出庫安全復原
+
+狀態：後端契約隔離通過，未正式套用／未執行migration。基準 main 2f22791；
+分支 codex/batch-checkout-recovery-20261022，重用乾淨 checkout-reused-contract worktree。
+
+- 使用者決策與範圍：新增批次取得鎖的永久紀錄、查詢、唯讀預覽與復原；只含必要模型／服務／端點／測試。
+- 決策權威：[ADR-003](decisions/ADR-003-checkout-batch-recovery.md)。原單檔「拒絕批次」改為相容例外：
+  只有明確 includeBatch=true 與有效 batchId 才可走批次；預設仍單檔且保持時間／版本保護。
+- 取得：同一 Serializable 交易中取得鎖並寫入批次；只記錄新取得者，不納入先前本人鎖；他人衝突或不完整狀態整批回滾。
+- 復原：只讀批次固定清單，不重算目前 BOM；每筆核對原 actor／微秒鎖定時間／version。
+  已復原、已入庫、他人／新鎖、版本改變或文件消失者列出排除原因。符合者條件 UPDATE，競爭失敗則整筆交易回滾並409，不自動重試。
+- API：既有checkout成功欄位保留，新增batchId與取得／沿用數；
+  GET checkout-batches?actor=；GET undo-checkout-preview?actor=&includeBatch=true&batchId=；
+  POST undo-checkout及舊checkin別名共用保護。缺欄位400、非本人403、找不到批次404、競爭409，重送只回0筆及排除原因。
+- 資料：只新增兩張批次表的模型與未執行migration原始碼，不改既有文件／版本／BOM欄位。
+  SQLite記憶體庫與127.0.0.1:55433全新contract cluster逐例EnsureCreated，不執行migration。
+- 不在本輪：DEV-014套件、DEV-015清單與批次前端、parser／入庫規則、Auth、舊鎖推導／回填、部署、commit／push。
+  未記錄的歷史出庫仍只支援原單檔取消；actor是自填操作防護，不是登入授權。
+- 停止條件：需要目前5432/swpdm、Vault、服務5000／5174或歷史BOM寫入、執行migration、放寬鎖保護或帶入其他dirty後端時停止。
+- 驗收：新批次永久紀錄、排除既有鎖、本人／他人／新鎖／版本改變／已入庫／刪除／重送／併發與中途失敗回滾皆有HTTP證據；
+  原41項契約及前端13項回歸、Release建置；SQLite與PG分列，不把API通過視為前端驗收。
+
+### QA 計畫
+
+| 失效模式 | 可能原因 | 使用者影響 | 偵測方式 | 優先級 | 對策／測試 |
+|---|---|---|---|---|---|
+| 解到先前本人鎖 | 依目前關聯重算 | 其他作業被中止 | 本人既有鎖、BOM後改 | P0 | 批次只存新取得ID |
+| 解到新鎖／新版 | 只驗actor | 後續工作遺失 | time／version／owner變更 | P0 | 預覽與條件UPDATE雙重核對 |
+| 中途失敗留下半批 | 多次更新無交易 | 不可預測鎖狀態 | 第二次UPDATE注入失敗 | P0 | 文件與稽核同交易回滾 |
+| 競爭或重送重複復原 | 讀寫競爭 | 新鎖誤解 | 並行checkout／undo及重送 | P0 | Serializable＋CAS，409或0筆 |
+| 舊單檔契約退化 | 共用端點分流 | 誤放寬解鎖 | 原HTTP負向與別名 | P0 | 預設單檔保護不變 |
+| 測試碰目前資料庫 | 使用正式設定 | 測試污染 | fixture連線guard／環境設定 | P0 | 不讀正式設定；新GUID庫與Vault |
+
+失敗時收集HTTP狀態／code、逐文件與批次快照、TRX及SHA；不得以重新跑成功隱藏首次失敗。
+QC完成後再更新狀態；任何必測未通過不標完成。下一步為DEV-014獨立切片；DEV-015保留批次畫面整合驗收。
+
+### QC 結果
+
+SQLite與全新PostgreSQL16.14各67/67（原41＋新增26），前端純邏輯13/13，Release及UiFixture接線建置0警告／0錯誤。
+保留首次58/61失敗及修復紀錄；離線EF模型一致、migration僅兩張新表原始碼，未執行。
+臨時55433叢集已停止，測試庫後檢0個；未連線目前庫或操作正式服務，未commit／push。
+詳見[QC與TRX雜湊](qc/batch-checkout-recovery-qc-2026-10-22.md)；本結果不是批次UI或正式schema套用驗收。
 
 ## DEV-001：2026-10-22 契約修正切片
 

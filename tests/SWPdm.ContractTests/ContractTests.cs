@@ -190,7 +190,7 @@ internal sealed class ContractHost : IAsyncDisposable
     private string? postgresAdmin;
     private string? database;
 
-    public static async Task<ContractHost> Start()
+    public static async Task<ContractHost> Start(Microsoft.EntityFrameworkCore.Diagnostics.DbCommandInterceptor? interceptor = null)
     {
         var host = new ContractHost();
         Directory.CreateDirectory(host.Folder); Directory.CreateDirectory(host.Vault);
@@ -211,16 +211,17 @@ internal sealed class ContractHost : IAsyncDisposable
                 await admin.OpenAsync(); await using var command = new NpgsqlCommand($"CREATE DATABASE {host.database}", admin); await command.ExecuteNonQueryAsync();
             }
             cs.Database = host.database;
-            builder.Services.AddDbContext<PdmDbContext>(o => o.UseNpgsql(cs.ConnectionString));
+            builder.Services.AddDbContext<PdmDbContext>(o => { o.UseNpgsql(cs.ConnectionString); if (interceptor != null) o.AddInterceptors(interceptor); });
         }
         else
         {
             host.sqlite = new SqliteConnection($"Data Source=contract_{Guid.NewGuid():N};Mode=Memory;Cache=Shared");
             await host.sqlite.OpenAsync();
-            builder.Services.AddDbContext<PdmDbContext>(o => o.UseSqlite(host.sqlite.ConnectionString).ReplaceService<IModelCustomizer, ContractModelCustomizer>());
+            builder.Services.AddDbContext<PdmDbContext>(o => { o.UseSqlite(host.sqlite.ConnectionString).ReplaceService<IModelCustomizer, ContractModelCustomizer>(); if (interceptor != null) o.AddInterceptors(interceptor); });
         }
         builder.Services.AddScoped<IPdmRepository, PdmRepository>();
         builder.Services.AddScoped<CancelCheckoutService>(); builder.Services.AddScoped<PdmIngestionService>();
+        builder.Services.AddScoped<CheckoutBatchService>();
         builder.Services.Configure<LocalStorageOptions>(_ => { });
         builder.Services.Configure<SolidWorksDocumentManagerOptions>(_ => { });
         builder.Services.AddSingleton<SolidWorksDocumentManagerServiceFactory>();

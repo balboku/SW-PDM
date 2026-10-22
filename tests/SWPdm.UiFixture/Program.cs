@@ -19,6 +19,7 @@ connection.Open();
 builder.Services.AddDbContext<PdmDbContext>(o => o.UseSqlite(connection.ConnectionString).ReplaceService<IModelCustomizer, FixtureModelCustomizer>());
 builder.Services.AddScoped<IPdmRepository, PdmRepository>();
 builder.Services.AddScoped<CancelCheckoutService>();
+builder.Services.AddScoped<CheckoutBatchService>();
 builder.Services.AddScoped<PdmIngestionService>();
 builder.Services.Configure<LocalStorageOptions>(_ => { });
 builder.Services.AddSingleton<ICadIngestionSessionFactory, UiCadParser>();

@@ -68,6 +68,7 @@ builder.Services.AddDbContext<PdmDbContext>((serviceProvider, options) =>
 builder.Services.AddScoped<IPdmRepository, PdmRepository>();
 builder.Services.AddScoped<PdmIngestionService>();
 builder.Services.AddScoped<CancelCheckoutService>();
+builder.Services.AddScoped<CheckoutBatchService>();
 builder.Services.AddSingleton<ICadIngestionSessionFactory>(sp => sp.GetRequiredService<SolidWorksDocumentManagerServiceFactory>());
 
 string solutionRoot = FindSolutionRoot(AppContext.BaseDirectory);

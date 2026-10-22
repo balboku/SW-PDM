@@ -1,5 +1,19 @@
 # 隔離驗證
 
+## 2026-10-22：DEV-013 整批出庫安全復原
+
+契約與QA在[DEV-013](../ai-doc/dev_task.md#dev-0132026-10-22-整批出庫安全復原)，
+決策見[ADR-003](../ai-doc/decisions/ADR-003-checkout-batch-recovery.md)。
+CheckoutBatchTests使用真實HTTP／EF／repository，合成BOM與全新資料庫，不需要SolidWorks或目前資料。
+
+- dotnet test tests/SWPdm.ContractTests/SWPdm.ContractTests.csproj -c Release --logger "trx;LogFileName=sqlite.trx"。
+  先清除SWPDM_CONTRACT_PG，使用SQLite記憶體庫；PG須依下節新建127.0.0.1:55433 contract叢集，絕不使用5432或舊clone。
+- 新增AddCheckoutBatches migration原始碼，但本輪所有測試只EnsureCreated，不執行任何migration。
+  測試含migration操作清單的記憶體檢查；ef has-pending-model-changes與script僅離線核對，不執行SQL。
+- 複用原41項HTTP及13項前端純邏輯回歸；UiFixture僅補DI註冊，並未新增批次畫面或冒充UI驗收。
+- 不使用IntegrationVerifier／PostgresIntegrationTests或正式啟動腳本，避免執行migration。
+- 本分支尚不可正式套用：目前資料庫沒有批次表，schema套用及DEV-015批次畫面驗收需後續明確指令。
+
 ## 2026-10-22：DEV-012 入庫核心
 
 契約與結果見 [DEV-012](../ai-doc/dev_task.md)、

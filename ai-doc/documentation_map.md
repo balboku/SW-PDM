@@ -2,7 +2,18 @@
 
 更新日期：2026-10-22
 
-## 目前入口：DEV-012 固定 main 成品已本機套用
+## 目前交付：DEV-013 整批出庫安全復原後端隔離通過
+
+基準main 2f22791，分支codex/batch-checkout-recovery-20261022，重用checkout-reused-contract乾淨worktree。
+只做批次鎖快照、預覽與安全復原，見[DEV-013](dev_task.md#dev-0132026-10-22-整批出庫安全復原)
+及[ADR-003](decisions/ADR-003-checkout-batch-recovery.md)。資料模型／migration原始碼只離線準備，測試庫僅EnsureCreated。
+不部署、不執行migration、不讀寫目前5432/swpdm或Vault；原dirty工作區與執行中固定成品不動。
+DEV-014與DEV-015（含批次畫面）不混入本輪，尚未commit／push。
+SQLite／PostgreSQL16.14各67/67、前端純邏輯13/13、Release建置通過；臨時55433叢集已停止。
+詳見[QC／首次失敗修復／TRX與雜湊](qc/batch-checkout-recovery-qc-2026-10-22.md)。
+下一步可獨立接DEV-014；本次不代表新表已套用或批次UI已完成。
+
+## 已完成：DEV-012 固定 main 成品已本機套用
 
 使用者後續核准套用main DEV-012並隔離驗證，已以固定49f98a6成品啟動API5000，
 前端5174沿用未變固定成品；SQLite41/41、PG41/41、真實CAD11份與邏輯13/13通過。

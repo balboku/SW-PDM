@@ -3,16 +3,22 @@ namespace SWPdm.Api.Services;
 using Microsoft.EntityFrameworkCore;
 using SWPdm.Sample.Data;
 
-// Single-document contract only. Batch restoration needs a separate, schema-backed workflow.
+// Single-document remains the default; batch restore requires an explicit persisted batch ID.
 public sealed record UndoCheckoutRequest(string Actor, DateTimeOffset? ExpectedLockTime = null,
     long? ExpectedVersionId = null, bool IncludeBatch = false, Guid? BatchId = null);
 
 public sealed class CancelCheckoutConflictException(string message) : Exception(message);
 
-public sealed class CancelCheckoutService(PdmDbContext db)
+public sealed class CancelCheckoutService(PdmDbContext db, CheckoutBatchService batches)
 {
-    public async Task<object> PreviewAsync(long documentId, string actor, CancellationToken ct)
+    public async Task<object> PreviewAsync(long documentId, string actor, CancellationToken ct, bool includeBatch = false, Guid? batchId = null)
     {
+        if (includeBatch)
+        {
+            if (batchId is null || batchId == Guid.Empty) throw new ArgumentException("請指定要預覽的出庫批次。");
+            return await batches.PreviewAsync(documentId, actor, batchId.Value, ct);
+        }
+        if (batchId.HasValue) throw new ArgumentException("請明確選擇批次復原範圍。");
         actor = NormalizeActor(actor);
         var document = await db.Documents.AsNoTracking().SingleOrDefaultAsync(d => d.DocumentId == documentId, ct)
             ?? throw new KeyNotFoundException("找不到圖檔，請重新整理圖檔中心。");
@@ -30,8 +36,8 @@ public sealed class CancelCheckoutService(PdmDbContext db)
     public async Task<object> UndoAsync(long documentId, UndoCheckoutRequest request, CancellationToken ct)
     {
         string actor = NormalizeActor(request.Actor);
-        if (request.IncludeBatch || request.BatchId.HasValue)
-            throw new ArgumentException("本版只支援單一圖檔，未解除任何批次鎖定。");
+        if (request.IncludeBatch) return await batches.UndoAsync(documentId, request, ct);
+        if (request.BatchId.HasValue) throw new ArgumentException("請明確選擇批次復原範圍，未解除任何鎖。");
         if (!request.ExpectedLockTime.HasValue || request.ExpectedVersionId is null or <= 0)
             throw new ArgumentException("請先重新檢查出庫狀態，再確認鎖定時間與目前版本。");
 
@@ -47,6 +53,6 @@ public sealed class CancelCheckoutService(PdmDbContext db)
         return new { RestoredCount = 1, RestoredDocumentIds = new[] { documentId }, Scope = "SingleDocument" };
     }
 
-    private static string NormalizeActor(string? actor) => string.IsNullOrWhiteSpace(actor) || actor.Trim().Length > 100
+    internal static string NormalizeActor(string? actor) => string.IsNullOrWhiteSpace(actor) || actor.Trim().Length > 100
         ? throw new ArgumentException("請填寫操作人（最多 100 字），不要代填他人的出庫名稱。") : actor.Trim();
 }
