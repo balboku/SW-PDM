@@ -33,6 +33,12 @@ public static class EndpointHelpers
     {
         return ex switch
         {
+            CancelCheckoutConflictException conflict => Results.Problem(
+                title: "Checkout lock changed", detail: conflict.Message,
+                statusCode: StatusCodes.Status409Conflict,
+                extensions: new Dictionary<string, object?> { ["code"] = "LOCK_CHANGED" }),
+            KeyNotFoundException missing => Results.Problem(title: "Not found", detail: missing.Message,
+                statusCode: StatusCodes.Status404NotFound),
             PdmIngestIdentityMismatchException identityMismatchException => Results.Problem(
                 title: "CAD identity mismatch",
                 detail: BuildErrorDetail(identityMismatchException),

@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
+const require = createRequire(new URL('../src/SWPdm.Web/package.json', import.meta.url));
+const ts = require('typescript');
+const compiled = ts.transpileModule(readFileSync(new URL('../src/SWPdm.Web/src/lib/ingest-outcome.ts', import.meta.url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } });
+const exports = {};
+new Function('exports', compiled.outputText)(exports);
+const { getRootIngestOutcome: outcome } = exports;
+test('explicit root Reused retains the no-op state', () => assert.equal(outcome({ rootOutcome: 'Reused' }), 'Reused'));
+test('root file outcome supports pending legacy response shape', () => assert.equal(outcome({ rootDocumentId: 1, rootVersionId: 10, files: [{ documentId: 1, versionId: 10, outcome: 'Reused' }] }), 'Reused'));
+test('a reused child does not turn a created root into Reused', () => assert.equal(outcome({ rootDocumentId: 1, rootVersionId: 10, files: [{ documentId: 2, versionId: 20, outcome: 'Reused' }] }), 'CreatedVersion'));
+test('legacy successful API without outcome keeps existing behavior', () => assert.equal(outcome({ rootDocumentId: 1, files: [] }), 'CreatedVersion'));
+test('unknown explicit outcome must not report success', () => assert.equal(outcome({ rootOutcome: 'FutureOutcome' }), 'Unknown'));
+test('explicit root outcome takes precedence over file entries', () => assert.equal(outcome({ rootOutcome: 'CreatedVersion', rootDocumentId: 1, rootVersionId: 10, files: [{ documentId: 1, versionId: 10, outcome: 'Reused' }] }), 'CreatedVersion'));

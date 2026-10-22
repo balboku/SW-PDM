@@ -22,7 +22,7 @@ public sealed class PdmIngestionService
     private readonly IOptions<LocalStorageOptions> _localStorageOptions;
     private readonly IOptions<SolidWorksDocumentManagerOptions> _solidWorksOptions;
     private readonly LocalStorageService _localStorageService;
-    private readonly SolidWorksDocumentManagerServiceFactory _solidWorksDocumentManagerServiceFactory;
+    private readonly ICadIngestionSessionFactory _solidWorksDocumentManagerServiceFactory;
     private readonly ILogger<PdmIngestionService> _logger;
 
     public PdmIngestionService(
@@ -30,7 +30,7 @@ public sealed class PdmIngestionService
         IOptions<LocalStorageOptions> localStorageOptions,
         IOptions<SolidWorksDocumentManagerOptions> solidWorksOptions,
         LocalStorageService localStorageService,
-        SolidWorksDocumentManagerServiceFactory solidWorksDocumentManagerServiceFactory,
+        ICadIngestionSessionFactory solidWorksDocumentManagerServiceFactory,
         ILogger<PdmIngestionService> logger)
     {
         _dbContext = dbContext;
@@ -64,7 +64,7 @@ public sealed class PdmIngestionService
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-        using SolidWorksDocumentManagerService documentManager = _solidWorksDocumentManagerServiceFactory.Create();
+        using ICadIngestionSession documentManager = _solidWorksDocumentManagerServiceFactory.Open();
 
         List<string> issues = new();
         Dictionary<string, IngestedCadNode> cache = new(StringComparer.OrdinalIgnoreCase);
@@ -115,11 +115,12 @@ public sealed class PdmIngestionService
                 PartNumber: x.PartNumber,
                 StorageFileId: x.StorageFileId,
                 CreatedDocument: x.CreatedDocument,
-                VersionNo: x.VersionNo))
+                VersionNo: x.VersionNo,
+                Outcome: x.Outcome))
             .ToArray();
 
         // 品號分支不得回寫既有歷史 BOM；一般入庫才沿用既有 missing-link 修復行為。
-        if (!request.CreateNewDocumentForPartNumberChange)
+        if (!request.CreateNewDocumentForPartNumberChange && root.Outcome != "Reused")
         {
             await HealMissingLinksAsync(cancellationToken);
         }
@@ -132,7 +133,8 @@ public sealed class PdmIngestionService
             ProcessedFileCount: files.Count,
             Files: files,
             Issues: issues,
-            PartNumberChange: partNumberChange);
+            PartNumberChange: partNumberChange,
+            RootOutcome: root.Outcome);
     }
 
     private async Task HealMissingLinksAsync(CancellationToken cancellationToken)
@@ -170,7 +172,7 @@ public sealed class PdmIngestionService
         string filePath,
         bool ingestReferencedFiles,
         IReadOnlyCollection<string> inheritedSearchPaths,
-        SolidWorksDocumentManagerService documentManager,
+        ICadIngestionSession documentManager,
         IDictionary<string, IngestedCadNode> cache,
         ICollection<string> issues,
         bool isRoot,
@@ -355,6 +357,34 @@ public sealed class PdmIngestionService
         
         string? revision = ExtractProperty(parseResult, "Revision", "Rev", "版次");
 
+        string rawFileName = Path.GetFileName(normalizedPath);
+        string originalFileName = rawFileName;
+        if (rawFileName.Length > 37 && rawFileName[36] == '_' && Guid.TryParse(rawFileName.Substring(0, 36), out _))
+            originalFileName = rawFileName.Substring(37);
+
+        string checksumSha256;
+        using (var stream = File.OpenRead(normalizedPath))
+        {
+            checksumSha256 = Convert.ToHexString(await SHA256.HashDataAsync(stream, cancellationToken)).ToLowerInvariant();
+        }
+
+        // Deliberately limited to explicit target check-in: do not pull in pending batch/reference policies.
+        if (isRoot && targetDocumentId.HasValue && existingDocument is not null && existingDocument.CurrentVersionId.HasValue)
+        {
+            EnsureCheckoutLockAllowsIngest(existingDocument, originalFileName, uploadedBy);
+            var previous = await _dbContext.DocumentVersions.AsNoTracking().SingleOrDefaultAsync(
+                v => v.VersionId == existingDocument.CurrentVersionId && v.DocumentId == existingDocument.DocumentId, cancellationToken);
+            if (previous is not null && string.Equals(previous.ChecksumSha256, checksumSha256, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(previous.OriginalFileName, originalFileName, StringComparison.OrdinalIgnoreCase))
+            {
+                var reused = new IngestedCadNode(normalizedPath, existingDocument.DocumentId, previous.VersionId,
+                    documentType, partNumber, previous.StorageFileId, false, previous.VersionNo, "Reused");
+                cache[normalizedPath] = reused;
+                issues.Add($"內容未變更，沿用 Ver. {previous.VersionNo}；出庫鎖保持不變。若要放棄修改，請先預覽取消出庫。");
+                return reused;
+            }
+        }
+
         // 業務邏輯：同料號且同版次則拒絕存檔 (優先於出庫鎖定檢查)
         if (existingDocument != null && !string.IsNullOrWhiteSpace(revision))
         {
@@ -440,14 +470,6 @@ public sealed class PdmIngestionService
             }
         }
 
-        string rawFileName = Path.GetFileName(normalizedPath);
-        string originalFileName = rawFileName;
-        // 如果是 Web 上傳的檔案，檔名會帶有 GUID 前綴 (36位 GUID + 底線)，在此將其還原
-        if (rawFileName.Length > 37 && rawFileName[36] == '_' && Guid.TryParse(rawFileName.Substring(0, 36), out _))
-        {
-            originalFileName = rawFileName.Substring(37);
-        }
-
         bool createdDocument = existingDocument is null;
         string normalizedExtension = NormalizeExtension(normalizedPath);
 
@@ -484,14 +506,6 @@ public sealed class PdmIngestionService
             .Where(x => x.DocumentId == document.DocumentId)
             .Select(x => (int?)x.VersionNo)
             .MaxAsync(cancellationToken) + 1 ?? 1;
-
-        string checksumSha256;
-        using (var stream = File.OpenRead(normalizedPath))
-        using (var sha256 = SHA256.Create())
-        {
-            byte[] hash = await sha256.ComputeHashAsync(stream, cancellationToken);
-            checksumSha256 = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-        }
 
         string storageFileId;
         var existingVersionStorageId = await _dbContext.DocumentVersions
@@ -934,5 +948,6 @@ public sealed class PdmIngestionService
         string? PartNumber,
         string StorageFileId,
         bool CreatedDocument,
-        int VersionNo);
+        int VersionNo,
+        string Outcome = "CreatedVersion");
 }

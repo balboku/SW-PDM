@@ -8,4 +8,5 @@ public sealed record IngestedFileResponse(
     string? PartNumber,
     string StorageFileId,
     bool CreatedDocument,
-    int VersionNo);
+    int VersionNo,
+    string Outcome = "CreatedVersion");

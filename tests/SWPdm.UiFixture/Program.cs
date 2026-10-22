@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SWPdm.Api.Configuration;
 using SWPdm.Api.Endpoints;
+using SWPdm.Api.Services;
 using SWPdm.Sample.Data;
 using SWPdm.Sample.Data.Entities;
 using SWPdm.Sample.Data.Repositories;
@@ -17,9 +18,16 @@ var connection = new SqliteConnection($"Data Source=swpdm_ui_{Guid.NewGuid():N};
 connection.Open();
 builder.Services.AddDbContext<PdmDbContext>(o => o.UseSqlite(connection.ConnectionString).ReplaceService<IModelCustomizer, FixtureModelCustomizer>());
 builder.Services.AddScoped<IPdmRepository, PdmRepository>();
+builder.Services.AddScoped<CancelCheckoutService>();
+builder.Services.AddScoped<PdmIngestionService>();
+builder.Services.Configure<LocalStorageOptions>(_ => { });
+builder.Services.AddSingleton<ICadIngestionSessionFactory, UiCadParser>();
 builder.Services.AddSingleton<SolidWorksDocumentManagerServiceFactory>();
 builder.Services.Configure<SolidWorksDocumentManagerOptions>(_ => { });
 string fixtureFolder = Path.Combine(Path.GetTempPath(), "swpdm_ui_fixture_" + Guid.NewGuid().ToString("N"));
+Directory.CreateDirectory(fixtureFolder);
+string noopUploadPath = Path.Combine(fixtureFolder, "TEST-058_試用回饋驗證圖面.sldprt");
+File.WriteAllText(noopUploadPath, "contract-ui-noop");
 builder.Services.AddSingleton(new LocalStorageService(fixtureFolder));
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.WithOrigins("http://127.0.0.1:5175", "http://localhost:5175").AllowAnyHeader().AllowAnyMethod().WithExposedHeaders("Content-Disposition")));
 var app = builder.Build();
@@ -34,11 +42,19 @@ app.Use(async (context, next) =>
         || (scenario == "fail-detail" && path == "/api/documents/57")
         || (scenario == "fail-relations" && path.EndsWith("/checkout-references"))
         || (scenario == "fail-checkout" && path.EndsWith("/checkout"))
-        || (scenario == "fail-bom" && path.EndsWith("/children"));
+        || (scenario == "fail-bom" && path.EndsWith("/children"))
+        || (scenario == "fail-cancel-preview" && path.EndsWith("/undo-checkout-preview"));
     if (fail)
     {
         await Results.Problem(statusCode: 503, title: "合成驗證失敗", detail: "這是隔離 UI fixture 的預期錯誤；未更動正式資料。").ExecuteAsync(context);
         return;
+    }
+    if (scenario == "stale-cancel" && path.EndsWith("/undo-checkout") && context.Request.Method == "POST")
+    {
+        var db = context.RequestServices.GetRequiredService<PdmDbContext>();
+        var document = await db.Documents.FindAsync(58L);
+        document!.CheckedOutAt = document.CheckedOutAt!.Value.AddSeconds(1);
+        await db.SaveChangesAsync();
     }
     if (scenario == "empty" && path == "/api/documents/search")
     {
@@ -83,7 +99,7 @@ app.Use(async (context, next) =>
 });
 app.MapPost("/fixture/scenario/{name}", (string name) =>
 {
-    if (!new[] { "normal", "empty", "fail-config", "fail-search", "fail-detail", "fail-relations", "fail-checkout", "fail-bom", "conflict" }.Contains(name))
+    if (!new[] { "normal", "empty", "fail-config", "fail-search", "fail-detail", "fail-relations", "fail-checkout", "fail-bom", "conflict", "fail-cancel-preview", "stale-cancel" }.Contains(name))
         return Results.BadRequest();
     scenario = name;
     return Results.Ok(new { fixture = true, scenario });
@@ -92,7 +108,8 @@ app.MapGet("/api/config/status", () => Results.Ok(new { isDatabaseConfigured = t
     isLocalStorageConfigured = true, localStorageVaultPath = fixtureFolder, isSolidWorksDocumentManagerConfigured = false }));
 app.MapGet("/api/database/status", () => Results.Ok(new { isConfigured = true, canConnect = true }));
 app.MapDocumentEndpoints();
-app.MapGet("/health", () => Results.Ok(new { fixture = true, scenario }));
+app.MapIngestEndpoints();
+app.MapGet("/health", () => Results.Ok(new { fixture = true, scenario, noopUploadPath }));
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<PdmDbContext>();
@@ -108,7 +125,8 @@ using (var scope = app.Services.CreateScope())
         db.Documents.Add(d); db.SaveChanges();
         var v = new PdmDocumentVersion { DocumentId = d.DocumentId, VersionNo = 1, RevisionLabel = "A", LifecycleState = "WIP",
             OriginalFileName = d.FileName + extension, StorageFileId = "fixture-not-a-real-cad", SourceFilePath = d.FileName + extension,
-            VaultRelativePath = "fixture", CreatedAt = DateTimeOffset.UtcNow };
+            VaultRelativePath = "fixture", CreatedAt = DateTimeOffset.UtcNow,
+            ChecksumSha256 = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("contract-ui-noop"))).ToLowerInvariant() };
         db.DocumentVersions.Add(v); db.SaveChanges();
         d.CurrentVersionId = v.VersionId;
         db.CustomProperties.AddRange(
@@ -141,6 +159,18 @@ public sealed class FixtureModelCustomizer(ModelCustomizerDependencies dependenc
         base.Customize(modelBuilder, context);
         foreach (var property in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetProperties()))
             if ((Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType) == typeof(DateTimeOffset))
-                property.SetValueConverter(new DateTimeOffsetToBinaryConverter());
+                property.SetValueConverter(new ValueConverter<DateTimeOffset, long>(d => d.UtcTicks, ticks => new DateTimeOffset(ticks, TimeSpan.Zero)));
     }
+}
+
+// Synthetic parse result only for exercising the real ingestion HTTP/DB contract, not CAD validation.
+public sealed class UiCadParser : ICadIngestionSessionFactory, ICadIngestionSession
+{
+    public ICadIngestionSession Open() => this;
+    public SolidWorksParseResult Parse(string filePath, IEnumerable<string>? additionalSearchPaths = null) => new(
+        filePath, SolidWorksDocumentKind.Part,
+        new Dictionary<string, SolidWorksCustomProperty> {
+            ["PartNumber"] = new("PartNumber", "P-058", "Text"), ["Revision"] = new("Revision", "A", "Text") },
+        new Dictionary<string, IReadOnlyDictionary<string, SolidWorksCustomProperty>>(), Array.Empty<string>(), null);
+    public void Dispose() { }
 }

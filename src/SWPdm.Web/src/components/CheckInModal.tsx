@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Button } from './ui';
 import { getDocumentRelations, ingestCad, uploadTempFile } from '../lib/api';
+import { getRootIngestOutcome } from '../lib/ingest-outcome';
 import {
   AlertCircle,
   ArrowRight,
@@ -19,6 +20,7 @@ interface CheckInModalProps {
   documentId: number;
   fileName: string;
   onSuccess: () => void;
+  onRestore: (actor: string) => void;
 }
 
 interface IdentityMismatch {
@@ -52,7 +54,8 @@ export const CheckInModal: React.FC<CheckInModalProps> = ({
   onClose,
   documentId,
   fileName,
-  onSuccess
+  onSuccess,
+  onRestore
 }) => {
   const [file, setFile] = useState<File | null>(null);
   const [stagedPath, setStagedPath] = useState('');
@@ -134,10 +137,12 @@ export const CheckInModal: React.FC<CheckInModalProps> = ({
         createNewDocumentForPartNumberChange
       );
 
+      const outcome = getRootIngestOutcome(ingestResult);
+      if (outcome === 'Unknown') throw new Error('伺服器回傳無法辨識的入庫結果。請返回圖檔中心重新整理版本與鎖定狀態，不要重複送出。');
       setResult(ingestResult);
       setStatus('success');
 
-      if (!createNewDocumentForPartNumberChange) {
+      if (!createNewDocumentForPartNumberChange && outcome === 'CreatedVersion') {
         window.setTimeout(() => {
           onSuccess();
           handleClose();
@@ -239,9 +244,17 @@ export const CheckInModal: React.FC<CheckInModalProps> = ({
           <div className="py-5 text-center animate-in zoom-in-95 duration-300">
             <CheckCircle className="mx-auto mb-3 h-12 w-12 text-green-500" />
             <h3 className="text-lg font-semibold text-white">
-              {partNumberChange ? '新品號文件已建立' : '入庫成功'}
+              {getRootIngestOutcome(result) === 'Reused' ? '內容未變更，沿用原版本' : partNumberChange ? '新品號文件已建立' : '入庫成功'}
             </h3>
-            {partNumberChange ? (
+            {getRootIngestOutcome(result) === 'Reused' ? (
+              <div role="status" className="mt-3 space-y-3 text-left">
+                <p>未建立新版本，出庫鎖仍保留。若要放棄修改，請先預覽取消出庫；繼續修改則返回圖檔中心。</p>
+                <div className="flex flex-wrap gap-3">
+                  <Button onClick={() => { const actor = userName.trim(); handleClose(); onRestore(actor); }}>預覽取消出庫</Button>
+                  <Button variant="secondary" onClick={handleClose}>保留出庫，返回圖檔中心</Button>
+                </div>
+              </div>
+            ) : partNumberChange ? (
               <div className="mt-3 space-y-3 text-left">
                 <div className="flex items-center justify-center gap-2 rounded-lg border border-green-900/30 bg-green-950/20 p-3 text-sm">
                   <span className="font-mono text-gray-400">{partNumberChange.oldPartNumber}</span>

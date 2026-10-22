@@ -1037,36 +1037,26 @@ public static class DocumentEndpoints
             }
         });
 
-        app.MapPost("/api/documents/{documentId:long}/undo-checkout", async (
-            long documentId,
-            PdmDbContext dbContext,
-            CancellationToken cancellationToken) =>
+        app.MapGet("/api/documents/{documentId:long}/undo-checkout-preview", async (
+            long documentId, string actor, CancelCheckoutService service, CancellationToken cancellationToken) =>
         {
-            var document = await dbContext.Documents.FindAsync(new object[] { documentId }, cancellationToken);
-            if (document is null) return Results.NotFound();
-
-            document.CheckedOutBy = null;
-            document.CheckedOutAt = null;
-            
-            await dbContext.SaveChangesAsync(cancellationToken);
-            return Results.Ok(new { message = "Undo check-out successfully" });
+            try { return Results.Ok(await service.PreviewAsync(documentId, actor, cancellationToken)); }
+            catch (Exception ex) { return EndpointHelpers.ToProblem(ex); }
         });
 
-        app.MapPost("/api/documents/{documentId:long}/checkin", async (
-            long documentId,
-            PdmDbContext dbContext,
-            CancellationToken cancellationToken) =>
+        app.MapPost("/api/documents/{documentId:long}/undo-checkout", async (
+            long documentId, UndoCheckoutRequest request, CancelCheckoutService service, CancellationToken cancellationToken) =>
         {
-            var document = await dbContext.Documents.FindAsync(new object[] { documentId }, cancellationToken);
-            if (document is null) return Results.NotFound();
+            try { return Results.Ok(await service.UndoAsync(documentId, request, cancellationToken)); }
+            catch (Exception ex) { return EndpointHelpers.ToProblem(ex); }
+        });
 
-            // Check-in normally accompanies a new version upload, 
-            // but as an explicit action it just unlocks it.
-            document.CheckedOutBy = null;
-            document.CheckedOutAt = null;
-            
-            await dbContext.SaveChangesAsync(cancellationToken);
-            return Results.Ok(new { message = "Checked in successfully" });
+        // The legacy unlock alias must not bypass the same owner/time/version guards.
+        app.MapPost("/api/documents/{documentId:long}/checkin", async (
+            long documentId, UndoCheckoutRequest request, CancelCheckoutService service, CancellationToken cancellationToken) =>
+        {
+            try { return Results.Ok(await service.UndoAsync(documentId, request, cancellationToken)); }
+            catch (Exception ex) { return EndpointHelpers.ToProblem(ex); }
         });
 
         // ==========================================

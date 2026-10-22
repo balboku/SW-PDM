@@ -368,6 +368,7 @@ export default function Documents() {
   const [isCheckOutModalOpen, setIsCheckOutModalOpen] = useState(false);
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
   const [isUndoModalOpen, setIsUndoModalOpen] = useState(false);
+  const [cancelActor, setCancelActor] = useState<string | undefined>();
   const [page, setPage] = useState(1);
   const [pageInfo, setPageInfo] = useState<any>({ totalCount: 0, totalPages: 1, newerReferenceDocumentCount: 0, missingReferenceDocumentCount: 0, checkedOutCount: 0 });
   const searchRequestId = useRef(0);
@@ -1153,6 +1154,7 @@ export default function Documents() {
       <CheckInModal 
         isOpen={isCheckInModalOpen}
         onClose={() => setIsCheckInModalOpen(false)}
+        onRestore={(actor) => { setCancelActor(actor); setIsUndoModalOpen(true); }}
         documentId={selectedDoc?.documentId}
         fileName={selectedDoc?.fileName}
         onSuccess={() => {
@@ -1164,7 +1166,7 @@ export default function Documents() {
         }}
       />
       <CancelCheckoutModal isOpen={isUndoModalOpen} documentId={selectedDoc?.documentId} fileName={selectedDoc?.fileName}
-        onClose={() => setIsUndoModalOpen(false)} onSuccess={() => {
+        initialActor={cancelActor} onClose={() => { setIsUndoModalOpen(false); setCancelActor(undefined); }} onSuccess={() => {
           void fetchDocuments();
           if (selectedDoc) void handleSelectDocument({ ...selectedDoc, checkedOutBy: null, checkedOutAt: null });
         }} />

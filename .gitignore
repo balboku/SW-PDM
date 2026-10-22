@@ -1,6 +1,7 @@
 # Visual Studio / .NET Core
 bin/
 obj/
+tests/SWPdm.ContractTests/TestResults/
 *.user
 *.suo
 *.userosscache

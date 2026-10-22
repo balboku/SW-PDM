@@ -8,4 +8,5 @@ public sealed record IngestCadFileResponse(
     int ProcessedFileCount,
     IReadOnlyList<IngestedFileResponse> Files,
     IReadOnlyList<string> Issues,
-    PartNumberChangeResponse? PartNumberChange = null);
+    PartNumberChangeResponse? PartNumberChange = null,
+    string RootOutcome = "CreatedVersion");

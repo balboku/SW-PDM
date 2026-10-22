@@ -168,12 +168,24 @@ export const checkOutDocument = async (
   return response.data;
 };
 
-export const checkInDocument = async (documentId: number) => {
-  const response = await api.post(`/api/documents/${documentId}/checkin`);
+export interface CancelCheckoutRequest {
+  actor: string;
+  expectedLockTime: string;
+  expectedVersionId: number;
+  includeBatch: false;
+}
+
+export const getCancelCheckoutPreview = async (documentId: number, actor: string) => {
+  const response = await api.get(`/api/documents/${documentId}/undo-checkout-preview`, { params: { actor } });
   return response.data;
 };
 
-export const undoCheckOutDocument = async (documentId: number) => {
-  const response = await api.post(`/api/documents/${documentId}/undo-checkout`);
+export const checkInDocument = async (documentId: number, request: CancelCheckoutRequest) => {
+  const response = await api.post(`/api/documents/${documentId}/checkin`, request);
+  return response.data;
+};
+
+export const undoCheckOutDocument = async (documentId: number, request: CancelCheckoutRequest) => {
+  const response = await api.post(`/api/documents/${documentId}/undo-checkout`, request);
   return response.data;
 };
