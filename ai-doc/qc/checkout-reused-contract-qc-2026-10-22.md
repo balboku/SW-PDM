@@ -2,6 +2,20 @@
 
 日期：2026-10-22，Asia/Taipei。結論：本切片實作與隔離驗證通過；未正式套用。
 
+## main 合併紀錄（2026-10-22）
+
+- 最新使用者指示：將已發布契約修正分支合併 main 並 push，不混入其他未完成後端，不正式套用或更動目前資料庫。
+- 來源：`codex/checkout-reused-contract-20261022`／`0eb41e4bab2c4def85a3f648f225a5cc3718ca1c`；合併前 main／origin/main 為 `acbeee3d1ecc42e481835b9a5c719b8f0c23e2b0`。
+- 在乾淨的 main 專屬工作目錄 `C:/Users/user/.codex/worktrees/frontend-clarity-20261021/SW-PDM` 操作，沒有切換或變更原 dirty 工作目錄。
+- 更新並核對遠端 ref 後使用 `git merge --ff-only`，main 直接包含已驗證的原提交；只有既定35檔，沒有衝突或額外產品變更。
+- 合併後新增提交只修改本 QC、dev_task、documentation_map 三份文件，記錄使用者擴充的 Git 操作邊界；不含其他後端、schema、migration 或執行設定。
+- 驗證重用：合併取得的完整 tree 與 `0eb41e4` 相同，文件紀錄提交的 `src/`、`tests/` 及 `.gitignore` 仍與該提交相同。重用 SQLite HTTP13/13、PostgreSQL HTTP13/13、前端邏輯13/13、build及三種尺寸 UI 證據；本輪未重跑會建立測試庫的流程，也未宣稱重新執行 CAD 或瀏覽器驗證。
+- 本輪只 push `HEAD:refs/heads/main`，不 force push、不刪分支、不建 PR。遠端完成狀態以 push 後 main SHA 與本地 HEAD 核對及本輪回報為準。
+- 現行 API5000 PID20184 從原工作目錄啟動，Web5174 PID2756 使用原工作目錄的固定 `local-main-e270736-20261021/site` 成品；main 工作目錄的 Git 合併不是正式套用，不會替換這兩個程序。
+- 原 dirty 工作目錄 tracked diff 指紋仍為 `eb8bdd8fb2032a4a299f44bcc7696e57d216192f`，index 仍為空；沒有碰現有資料庫、Vault、歷史 BOM，也未執行 migration／啟停服務。
+
+以下保留合併前的驗證與獨立提交歷程，不將當時的「未合併」描述當作最新狀態。
+
 ## 範圍與 Git 邊界
 
 - 基準 main `acbeee3d1ecc42e481835b9a5c719b8f0c23e2b0`。
@@ -96,7 +110,7 @@ CAD 解析使用合成替身，資料庫操作與 HTTP 路由則為產品實作�
 
 Visible error sweep：正常 Reused、取消預覽及完成狀態無 `[role=alert]`／`.inline-error`，無可見 HTTP4xx／5xx、Not Found、Internal Server Error 或 `/api/...` 錯誤文字。503／409是明確注入的負向案例，沒有用後續成功抹除：在同一視窗重新檢查恢復、確認完成，再 hard reload 同一 URL，錯誤歸零；已載入50、已出庫2、有新版0符合預期，缺失仍顯示未檢測。console 只有兩個既有 React Router future-flag warning，未觀察到產品 JS exception。
 
-## 尚未執行與後續邊界
+## 合併前邊界（歷史）與仍未套用事項
 
 - 本輪只授權提交與 push 本切片；未合併 main 或正式部署，不更動現有資料庫或歷史 BOM。
 - 本輪不新增 schema 或 migration；批次復原、WIP 同 Rev、解析器、套件真實參照預檢與跨工作站驗證仍不在這個分支。
