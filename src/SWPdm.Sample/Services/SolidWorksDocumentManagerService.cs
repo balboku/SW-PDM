@@ -79,10 +79,7 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
                     ? new Dictionary<string, IReadOnlyDictionary<string, SolidWorksCustomProperty>>(StringComparer.OrdinalIgnoreCase)
                     : ReadConfigurationCustomProperties(document);
 
-            IReadOnlyList<string> referencedFiles =
-                documentType == SwDmDocumentType.swDmDocumentAssembly || documentType == SwDmDocumentType.swDmDocumentDrawing
-                    ? ReadExternalReferences(document, filePath, additionalSearchPaths, documentType)
-                    : Array.Empty<string>();
+            var references = ReadExternalReferences(document, filePath, additionalSearchPaths, documentType);
 
             byte[]? thumbnailData = ReadThumbnailData(document);
 
@@ -91,8 +88,8 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
                 MapDocumentKind(documentType),
                 documentProperties,
                 configurationProperties,
-                referencedFiles,
-                thumbnailData);
+                references.Select(r => r.Path).Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
+                thumbnailData) { References = references };
         }
         finally
         {
@@ -264,7 +261,7 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
         }
     }
 
-    private IReadOnlyList<string> ReadExternalReferences(
+    private IReadOnlyList<CadReference> ReadExternalReferences(
         SwDMDocument18 document,
         string filePath,
         IEnumerable<string>? additionalSearchPaths,
@@ -273,6 +270,7 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
         SwDMConfigurationMgr? configurationManager = null;
         SwDMSearchOption? searchOption = null;
         SwDMExternalReferenceOption2? externalReferenceOption = null;
+        SwDMConfiguration? configuration = null;
 
         try
         {
@@ -305,6 +303,15 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
                 }
             }
 
+            if (documentType == SwDmDocumentType.swDmDocumentDrawing)
+            {
+                var paths = ReadReferencePaths(document.GetAllExternalReferences4(searchOption,
+                    out object statuses, out object virtualFlags, out object timestamps));
+                return paths.Select((path, i) => new CadReference(path, CadReferencePurpose.DrawingModel,
+                    NativeBool(virtualFlags, i), null, NativeStatus: NativeStatus(statuses, i),
+                    EvidenceSource: "GetAllExternalReferences4")).ToArray();
+            }
+
             externalReferenceOption = _documentManager.GetExternalReferenceOptionObject2();
             externalReferenceOption.Configuration = activeConfigurationName;
             externalReferenceOption.NeedSuppress = true;
@@ -312,16 +319,83 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
 
             _ = document.GetExternalFeatureReferences2(externalReferenceOption);
 
-            return ConvertToStringArray(externalReferenceOption.ExternalReferences)
-                .Where(path => !string.IsNullOrWhiteSpace(path))
-                .ToArray();
+            var externalPaths = ReadReferencePaths(externalReferenceOption.ExternalReferences);
+            var result = new List<CadReference>();
+            if (documentType == SwDmDocumentType.swDmDocumentAssembly)
+            {
+                configuration = configurationManager?.GetConfigurationByName(activeConfigurationName);
+                if (configuration is not ISwDMConfiguration2 config2)
+                    throw new InvalidOperationException("無法取得組合件目前組態，不能判定直接元件。");
+                var components = config2.GetComponents() as Array;
+                if (components != null)
+                {
+                    try
+                    {
+                        foreach (object item in components)
+                        {
+                            if (item is not ISwDMComponent6 component)
+                                throw new InvalidOperationException("Document Manager 不支援直接元件參照資訊。");
+                            string path = component.PathName;
+                            if (string.IsNullOrWhiteSpace(path))
+                                throw new InvalidOperationException("元件未提供參照路徑，解析已停止。");
+                            int index = Array.FindIndex(externalPaths, p => p.Equals(path, StringComparison.OrdinalIgnoreCase));
+                            result.Add(new(path, CadReferencePurpose.AssemblyComponent, component.IsVirtual,
+                                component.IsSuppressed(), activeConfigurationName, component.ConfigurationName,
+                                component.Name, NativeStatus(externalReferenceOption.BrokenStatus, index), "GetComponents"));
+                        }
+                    }
+                    finally { foreach (object item in components) ReleaseComObject(item); }
+                }
+            }
+            for (int i = 0; i < externalPaths.Length; i++)
+            {
+                string path = externalPaths[i];
+                if (result.Any(r => r.Path.Equals(path, StringComparison.OrdinalIgnoreCase))) continue;
+                result.Add(new(path, documentType == SwDmDocumentType.swDmDocumentPart
+                    ? CadReferencePurpose.DesignDependency : CadReferencePurpose.UnclassifiedDependency,
+                    ParentConfiguration: activeConfigurationName,
+                    NativeStatus: NativeStatus(externalReferenceOption.BrokenStatus, i),
+                    EvidenceSource: "GetExternalFeatureReferences2"));
+            }
+            // Feature refs and document-wide saved refs can differ (e.g. derived part aliases).
+            // Preserve additional evidence without guessing a direct component or active configuration.
+            var savedPaths = ReadReferencePaths(document.GetAllExternalReferences4(searchOption,
+                out object savedStatuses, out object savedVirtual, out object savedTimestamps));
+            for (int i = 0; i < savedPaths.Length; i++)
+            {
+                if (result.Any(r => r.Path.Equals(savedPaths[i], StringComparison.OrdinalIgnoreCase))) continue;
+                result.Add(new(savedPaths[i], documentType == SwDmDocumentType.swDmDocumentPart
+                    ? CadReferencePurpose.DesignDependency : CadReferencePurpose.UnclassifiedDependency,
+                    NativeBool(savedVirtual, i), NativeStatus: NativeStatus(savedStatuses, i),
+                    EvidenceSource: "GetAllExternalReferences4:supplemental"));
+            }
+            return result;
         }
         finally
         {
+            ReleaseComObject(configuration);
             ReleaseComObject(configurationManager);
             ReleaseComObject(searchOption);
             ReleaseComObject(externalReferenceOption);
         }
+    }
+
+    private static object? NativeValue(object? source, int index) =>
+        source is Array values && index >= 0 && index < values.Length
+            ? values.GetValue(index + values.GetLowerBound(0)) : null;
+    private static bool? NativeBool(object? source, int index) =>
+        NativeValue(source, index) is { } value ? Convert.ToBoolean(value) : null;
+    private static string NativeStatus(object? source, int index) =>
+        NativeValue(source, index) is { } value ? ((SwDmReferenceStatus)Convert.ToInt32(value)).ToString() : "Unknown";
+
+    private static string[] ReadReferencePaths(object? source)
+    {
+        if (source == null) return [];
+        if (source is not Array values) throw new InvalidOperationException("原生參照不是陣列，解析已停止。");
+        // Do not filter holes: the virtual/status arrays use the original indices.
+        var paths = values.Cast<object?>().Select(v => v?.ToString() ?? "").ToArray();
+        if (paths.Any(string.IsNullOrWhiteSpace)) throw new InvalidOperationException("原生參照包含空路徑，不能安全對應旗標。");
+        return paths;
     }
 
     private static byte[]? ReadThumbnailData(SwDMDocument18 document)
@@ -535,30 +609,7 @@ public sealed class SolidWorksDocumentManagerService : IDisposable
         string filePath,
         IEnumerable<string>? additionalSearchPaths = null)
     {
-        // 模擬解析結果，為了讓使用者在缺少 SolidWorks DLL 的情況下也能成功測試入庫流程
-        var ext = Path.GetExtension(filePath).ToLowerInvariant();
-        var docType = ext == ".sldasm" ? SolidWorksDocumentKind.Assembly :
-                      ext == ".slddrw" ? SolidWorksDocumentKind.Drawing :
-                      SolidWorksDocumentKind.Part;
-
-        string fakePartNumber = "TEST-" + Guid.NewGuid().ToString("N")[..6].ToUpper();
-
-        var mockProperties = new Dictionary<string, SolidWorksCustomProperty>(StringComparer.OrdinalIgnoreCase)
-        {
-            { "PartNumber", new SolidWorksCustomProperty("PartNumber", fakePartNumber, "Text") },
-            { "Material", new SolidWorksCustomProperty("Material", "Mock Material (No DLL)", "Text") },
-            { "Revision", new SolidWorksCustomProperty("Revision", "1.0", "Text") },
-            { "Designer", new SolidWorksCustomProperty("Designer", "System Mock", "Text") }
-        };
-
-        return new SolidWorksParseResult(
-            filePath,
-            docType,
-            mockProperties,
-            new Dictionary<string, IReadOnlyDictionary<string, SolidWorksCustomProperty>>(),
-            Array.Empty<string>(),
-            null
-        );
+        throw new NotSupportedException("未安裝 SolidWorks Document Manager，無法解析真實 CAD；本次入庫未執行。");
     }
 
     public void Dispose()
@@ -590,7 +641,16 @@ public sealed record SolidWorksParseResult(
     IReadOnlyDictionary<string, SolidWorksCustomProperty> DocumentProperties,
     IReadOnlyDictionary<string, IReadOnlyDictionary<string, SolidWorksCustomProperty>> ConfigurationProperties,
     IReadOnlyList<string> ReferencedFilePaths,
-    byte[]? ThumbnailData);
+    byte[]? ThumbnailData)
+{
+    public IReadOnlyList<CadReference>? References { get; init; }
+    // Compatibility for adapters predating typed references; Part references are never BOM children.
+    public IReadOnlyList<CadReference> ReferenceDetails => References ?? ReferencedFilePaths.Select(path =>
+        new CadReference(path, DocumentType switch {
+            SolidWorksDocumentKind.Assembly => CadReferencePurpose.AssemblyComponent,
+            SolidWorksDocumentKind.Drawing => CadReferencePurpose.DrawingModel,
+            _ => CadReferencePurpose.DesignDependency })).ToArray();
+}
 
 public sealed record SolidWorksCustomProperty(
     string Name,

@@ -137,84 +137,13 @@ public sealed class PdmRepository : IPdmRepository
             })
             .ToListAsync(cancellationToken);
 
-        // Batch resolve missing children
-        var unresolvedFilenames = rawLinks
-            .Where(x => x.ChildVersionId == null && !string.IsNullOrEmpty(x.SourceReferencePath))
-            .Select(x => Path.GetFileName(x.SourceReferencePath).ToLower())
-            .Distinct()
-            .ToList();
-
-        var resolutionMap = new Dictionary<string, (long VersionId, string DocumentType, string OriginalFileName, string? StorageFileId)>();
-
-        if (unresolvedFilenames.Any())
-        {
-            var resolvedVersions = await _dbContext.DocumentVersions
-                .AsNoTracking()
-                .Where(v => unresolvedFilenames.Contains(v.OriginalFileName.ToLower()))
-                .Select(v => new
-                {
-                    v.VersionId,
-                    v.Document.DocumentType,
-                    v.OriginalFileName,
-                    v.StorageFileId,
-                    v.VersionNo
-                })
-                .ToListAsync(cancellationToken);
-
-            resolutionMap = resolvedVersions
-                .GroupBy(v => v.OriginalFileName.ToLower())
-                .ToDictionary(
-                    g => g.Key,
-                    g =>
-                    {
-                        var latest = g.OrderByDescending(v => v.VersionNo).First();
-                        return (latest.VersionId, latest.DocumentType, latest.OriginalFileName, (string?)latest.StorageFileId);
-                    });
-        }
-
-        var result = new List<PdmBomLinkData>();
-
-        foreach (var link in rawLinks)
-        {
-            var childVersionId = link.ChildVersionId;
-            var docType = link.ChildDocumentType;
-            var fileName = link.ChildOriginalFileName;
-            var storageId = link.ChildStorageFileId;
-            var status = link.ReferenceStatus;
-
-            if (childVersionId == null && !string.IsNullOrEmpty(link.SourceReferencePath))
-            {
-                // Try to resolve dynamically from the batch map
-                string lookupName = Path.GetFileName(link.SourceReferencePath).ToLower();
-                if (resolutionMap.TryGetValue(lookupName, out var resolved))
-                {
-                    childVersionId = resolved.VersionId;
-                    docType = resolved.DocumentType;
-                    fileName = resolved.OriginalFileName;
-                    storageId = resolved.StorageFileId;
-                    status = "Resolved";
-                }
-            }
-
-            result.Add(new PdmBomLinkData(
-                link.BomOccurrenceId,
-                link.ParentVersionId,
-                childVersionId,
-                link.OccurrencePath,
-                link.ParentConfigurationName,
-                link.ChildConfigurationName,
-                link.Quantity,
-                link.FindNumber,
-                link.SourceReferencePath,
-                link.PackageRelativePath,
-                status,
-                link.IsSuppressed,
-                link.IsVirtual,
-                docType,
-                fileName,
-                storageId));
-        }
-
+        // Expose persisted BOM only. A filename candidate is not a confirmed historical version.
+        var result = rawLinks.Select(link => new PdmBomLinkData(
+            link.BomOccurrenceId, link.ParentVersionId, link.ChildVersionId,
+            link.OccurrencePath, link.ParentConfigurationName, link.ChildConfigurationName,
+            link.Quantity, link.FindNumber, link.SourceReferencePath, link.PackageRelativePath,
+            link.ReferenceStatus, link.IsSuppressed, link.IsVirtual, link.ChildDocumentType,
+            link.ChildOriginalFileName, link.ChildStorageFileId)).ToList();
         return result;
     }
 

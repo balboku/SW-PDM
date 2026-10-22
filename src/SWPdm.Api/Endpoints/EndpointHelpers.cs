@@ -31,8 +31,16 @@ public static class EndpointHelpers
 
     public static IResult ToProblem(Exception ex)
     {
+        if (IsConcurrencyConflict(ex))
+            return Results.Problem(title: "另一個操作已更新資料",
+                detail: "本次未完成，請重新整理後重試。", statusCode: 409);
         return ex switch
         {
+            PdmWorkflowException workflow => Results.Problem(
+                title: "請確認入庫條件", detail: workflow.Message, statusCode: 409,
+                extensions: new Dictionary<string, object?> { ["code"] = workflow.Code }),
+            Microsoft.EntityFrameworkCore.DbUpdateException => Results.Problem(
+                title: "資料已變更", detail: "本次未完成，請重新整理後重試。", statusCode: 409),
             CancelCheckoutConflictException conflict => Results.Problem(
                 title: "Checkout lock changed", detail: conflict.Message,
                 statusCode: StatusCodes.Status409Conflict,
@@ -95,5 +103,14 @@ public static class EndpointHelpers
                 detail: BuildErrorDetail(ex),
                 statusCode: StatusCodes.Status500InternalServerError)
         };
+    }
+
+    private static bool IsConcurrencyConflict(Exception? exception)
+    {
+        for (var current = exception; current != null; current = current.InnerException)
+            if (current is Npgsql.PostgresException postgres &&
+                postgres.SqlState is "40001" or "40P01")
+                return true;
+        return false;
     }
 }

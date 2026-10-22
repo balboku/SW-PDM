@@ -136,6 +136,15 @@ public sealed class ContractTests
         if (invalid == "identity") host.Parser.PartNumber = "WRONG";
         if (invalid == "filename") File.Move(host.FilePath, host.FilePath = Path.Combine(host.Folder, "renamed.sldprt"));
         var response = await host.Ingest(invalid == "actor" ? "Other" : "User");
+        if (invalid == "filename")
+        {
+            // DEV-012 intentionally permits an explicit WIP rename with owner + reason.
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("CreatedVersion", (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("rootOutcome").GetString());
+            Assert.Equal(before.Versions + 1, (await host.Snapshot()).Versions);
+            Assert.Equal(before.OtherOwner, (await host.Snapshot()).OtherOwner);
+            return;
+        }
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(before, await host.Snapshot());
         Assert.Empty(Directory.EnumerateFiles(host.Vault, "*", SearchOption.AllDirectories));
@@ -252,12 +261,18 @@ internal sealed class ContractHost : IAsyncDisposable
 
 internal sealed class FakeParser : ICadIngestionSessionFactory, ICadIngestionSession
 {
+    public Dictionary<string, SolidWorksParseResult> Files { get; } = new(StringComparer.OrdinalIgnoreCase);
+    public HashSet<string> Failures { get; } = new(StringComparer.OrdinalIgnoreCase);
     public string PartNumber { get; set; } = "CONTRACT";
     public string Revision { get; set; } = "A";
     public int ParseCount { get; private set; }
     public ICadIngestionSession Open() => this;
     public SolidWorksParseResult Parse(string filePath, IEnumerable<string>? additionalSearchPaths = null) {
         ParseCount++;
+        if (Failures.Contains(Path.GetFileName(filePath))) throw new InvalidOperationException("合成測試：CAD 無法解析");
+        if (Files.TryGetValue(filePath, out var parsed)) return parsed;
+        var named = Files.Values.Where(f => Path.GetFileName(f.FilePath) == Path.GetFileName(filePath)).ToArray();
+        if (named.Length == 1) return named[0] with { FilePath = filePath };
         return new(filePath, SolidWorksDocumentKind.Part,
             new Dictionary<string, SolidWorksCustomProperty> { ["PartNumber"] = new("PartNumber", PartNumber, "Text"), ["Revision"] = new("Revision", Revision, "Text") },
             new Dictionary<string, IReadOnlyDictionary<string, SolidWorksCustomProperty>>(), Array.Empty<string>(), null);

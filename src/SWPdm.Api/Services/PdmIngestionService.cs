@@ -24,6 +24,9 @@ public sealed class PdmIngestionService
     private readonly LocalStorageService _localStorageService;
     private readonly ICadIngestionSessionFactory _solidWorksDocumentManagerServiceFactory;
     private readonly ILogger<PdmIngestionService> _logger;
+    private readonly HashSet<string> _activePaths = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<string> _newStorageIds = new();
+    private IReadOnlySet<string>? _allowedReferencePaths;
 
     public PdmIngestionService(
         PdmDbContext dbContext,
@@ -43,8 +46,12 @@ public sealed class PdmIngestionService
 
     public async Task<IngestCadFileResponse> IngestAsync(
         IngestCadFileRequest request,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        IReadOnlySet<string>? allowedReferencePaths = null)
     {
+        _activePaths.Clear();
+        _newStorageIds.Clear();
+        _allowedReferencePaths = allowedReferencePaths;
         if (string.IsNullOrWhiteSpace(request.LocalFilePath))
         {
             throw new ArgumentException("LocalFilePath is required.", nameof(request));
@@ -69,102 +76,93 @@ public sealed class PdmIngestionService
         List<string> issues = new();
         Dictionary<string, IngestedCadNode> cache = new(StringComparer.OrdinalIgnoreCase);
 
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(
+            System.Data.IsolationLevel.Serializable, cancellationToken);
 
-        IngestedCadNode root = await IngestFileInternalAsync(
-            rootFilePath,
-            request.IngestReferencedFiles,
-            baseSearchPaths,
-            documentManager,
-            cache,
-            issues,
-            true, // isRoot
-            request.TargetDocumentId,
-            request.CreateNewDocumentForPartNumberChange,
-            request.UploadedBy,
-            request.ChangeReason,
-            cancellationToken);
-
-        PartNumberChangeResponse? partNumberChange = null;
-        if (request.CreateNewDocumentForPartNumberChange)
+        bool commitAttempted = false;
+        try
         {
-            PdmDocumentIdentityChange identityChange = await _dbContext.DocumentIdentityChanges
-                .AsNoTracking()
-                .SingleAsync(x => x.TargetDocumentId == root.DocumentId, cancellationToken);
-            partNumberChange = new PartNumberChangeResponse(
-                identityChange.IdentityChangeId,
-                identityChange.SourceDocumentId,
-                identityChange.SourceVersionId,
-                identityChange.TargetDocumentId,
-                identityChange.OldPartNumber,
-                identityChange.NewPartNumber,
-                identityChange.ChangeReason,
-                identityChange.ChangedBy,
-                identityChange.CreatedAt);
-        }
+            IngestedCadNode root = await IngestFileInternalAsync(
+                rootFilePath,
+                request.IngestReferencedFiles,
+                baseSearchPaths,
+                documentManager,
+                cache,
+                issues,
+                true, // isRoot
+                request.TargetDocumentId,
+                request.CreateNewDocumentForPartNumberChange,
+                request.UploadedBy,
+                request.ChangeReason,
+                cancellationToken);
 
-        await transaction.CommitAsync(cancellationToken);
-
-        IReadOnlyList<IngestedFileResponse> files = cache.Values
-            .OrderBy(x => x.SourceFilePath, StringComparer.OrdinalIgnoreCase)
-            .Select(x => new IngestedFileResponse(
-                SourceFilePath: x.SourceFilePath,
-                DocumentId: x.DocumentId,
-                VersionId: x.VersionId,
-                DocumentType: x.DocumentType,
-                PartNumber: x.PartNumber,
-                StorageFileId: x.StorageFileId,
-                CreatedDocument: x.CreatedDocument,
-                VersionNo: x.VersionNo,
-                Outcome: x.Outcome))
-            .ToArray();
-
-        // 品號分支不得回寫既有歷史 BOM；一般入庫才沿用既有 missing-link 修復行為。
-        if (!request.CreateNewDocumentForPartNumberChange && root.Outcome != "Reused")
-        {
-            await HealMissingLinksAsync(cancellationToken);
-        }
-
-        return new IngestCadFileResponse(
-            RootDocumentId: root.DocumentId,
-            RootVersionId: root.VersionId,
-            RootDocumentType: root.DocumentType,
-            RootStorageFileId: root.StorageFileId,
-            ProcessedFileCount: files.Count,
-            Files: files,
-            Issues: issues,
-            PartNumberChange: partNumberChange,
-            RootOutcome: root.Outcome);
-    }
-
-    private async Task HealMissingLinksAsync(CancellationToken cancellationToken)
-    {
-        var missingLinks = await _dbContext.BomOccurrences
-            .Where(x => x.ChildVersionId == null)
-            .ToListAsync(cancellationToken);
-
-        if (missingLinks.Count == 0) return;
-
-        bool changed = false;
-        foreach (var link in missingLinks)
-        {
-            string fileName = Path.GetFileName(link.SourceReferencePath).ToLower();
-            var resolved = await _dbContext.DocumentVersions
-                .Where(v => v.OriginalFileName.ToLower() == fileName)
-                .OrderByDescending(v => v.VersionNo)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (resolved != null)
+            PartNumberChangeResponse? partNumberChange = null;
+            if (request.CreateNewDocumentForPartNumberChange)
             {
-                link.ChildVersionId = resolved.VersionId;
-                link.ReferenceStatus = "Resolved";
-                changed = true;
+                PdmDocumentIdentityChange identityChange = await _dbContext.DocumentIdentityChanges
+                    .AsNoTracking()
+                    .SingleAsync(x => x.TargetDocumentId == root.DocumentId, cancellationToken);
+                partNumberChange = new PartNumberChangeResponse(
+                    identityChange.IdentityChangeId,
+                    identityChange.SourceDocumentId,
+                    identityChange.SourceVersionId,
+                    identityChange.TargetDocumentId,
+                    identityChange.OldPartNumber,
+                    identityChange.NewPartNumber,
+                    identityChange.ChangeReason,
+                    identityChange.ChangedBy,
+                    identityChange.CreatedAt);
             }
-        }
 
-        if (changed)
+            commitAttempted = true;
+            await transaction.CommitAsync(cancellationToken);
+
+            IReadOnlyList<IngestedFileResponse> files = cache.Values
+                .OrderBy(x => x.SourceFilePath, StringComparer.OrdinalIgnoreCase)
+                .Select(x => new IngestedFileResponse(
+                    SourceFilePath: x.SourceFilePath,
+                    DocumentId: x.DocumentId,
+                    VersionId: x.VersionId,
+                    DocumentType: x.DocumentType,
+                    PartNumber: x.PartNumber,
+                    StorageFileId: x.StorageFileId,
+                    CreatedDocument: x.CreatedDocument,
+                    VersionNo: x.VersionNo,
+                    Outcome: x.Outcome))
+                .ToArray();
+
+            // Existing BOMs are immutable: new uploads must never heal historical links by filename.
+
+            return new IngestCadFileResponse(
+                RootDocumentId: root.DocumentId,
+                RootVersionId: root.VersionId,
+                RootDocumentType: root.DocumentType,
+                RootStorageFileId: root.StorageFileId,
+                ProcessedFileCount: files.Count,
+                Files: files,
+                Issues: issues,
+                PartNumberChange: partNumberChange,
+                RootOutcome: root.Outcome);
+        }
+        catch
         {
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            try { await transaction.RollbackAsync(CancellationToken.None); }
+            catch (Exception rollbackError) { _logger.LogWarning(rollbackError, "Ingest rollback could not be confirmed."); }
+            _dbContext.ChangeTracker.Clear();
+            // A failed COMMIT can have an unknown outcome. Never delete possibly committed files.
+            if (!commitAttempted)
+                foreach (string storageId in _newStorageIds)
+                    try
+                    {
+                        // Only IDs returned by this request's uploads, never a deduplicated existing file.
+                        string file = _localStorageService.GetFilePath(storageId);
+                        File.Delete(file);
+                        string directory = Path.GetDirectoryName(file)!;
+                        if (!Directory.EnumerateFileSystemEntries(directory).Any())
+                            Directory.Delete(directory, false);
+                    }
+                    catch (Exception cleanupError) { _logger.LogWarning(cleanupError, "Uncommitted upload cleanup failed."); }
+            throw;
         }
     }
 
@@ -188,6 +186,8 @@ public sealed class PdmIngestionService
         {
             return cached;
         }
+        if (!_activePaths.Add(normalizedPath))
+            throw new PdmWorkflowException("REFERENCE_CYCLE", "參照出現循環，請檢查組合件結構。");
 
         List<string> effectiveSearchPaths = inheritedSearchPaths.ToList();
         string? folder = Path.GetDirectoryName(normalizedPath);
@@ -198,7 +198,7 @@ public sealed class PdmIngestionService
 
         SolidWorksParseResult parseResult = documentManager.Parse(normalizedPath, effectiveSearchPaths);
         string documentType = MapDocumentType(parseResult.DocumentType);
-        string? partNumber = ExtractProperty(parseResult, "PartNumber", "Number", "Part No", "PartNo", "品號");
+        string? partNumber = RequiredUnambiguousProperty(parseResult, CadPropertyResolver.PartNumberNames);
 
         // 強制驗證：PartNumber / 品號 必須存在於 CAD 檔案的自訂屬性中
         if (string.IsNullOrWhiteSpace(partNumber))
@@ -355,55 +355,41 @@ public sealed class PdmIngestionService
                 cancellationToken);
         }
         
-        string? revision = ExtractProperty(parseResult, "Revision", "Rev", "版次");
-
+        string? revision = RequiredUnambiguousProperty(parseResult, CadPropertyResolver.RevisionNames);
         string rawFileName = Path.GetFileName(normalizedPath);
-        string originalFileName = rawFileName;
-        if (rawFileName.Length > 37 && rawFileName[36] == '_' && Guid.TryParse(rawFileName.Substring(0, 36), out _))
-            originalFileName = rawFileName.Substring(37);
-
+        string originalFileName = rawFileName.Length > 37 && rawFileName[36] == '_' &&
+            Guid.TryParse(rawFileName[..36], out _) ? rawFileName[37..] : rawFileName;
         string checksumSha256;
-        using (var stream = File.OpenRead(normalizedPath))
-        {
+        await using (var stream = File.OpenRead(normalizedPath))
             checksumSha256 = Convert.ToHexString(await SHA256.HashDataAsync(stream, cancellationToken)).ToLowerInvariant();
-        }
 
-        // Deliberately limited to explicit target check-in: do not pull in pending batch/reference policies.
-        if (isRoot && targetDocumentId.HasValue && existingDocument is not null && existingDocument.CurrentVersionId.HasValue)
-        {
+        // Explicit check-in must validate ownership even when the content is unchanged.
+        if (isRoot && targetDocumentId.HasValue && existingDocument != null)
             EnsureCheckoutLockAllowsIngest(existingDocument, originalFileName, uploadedBy);
-            var previous = await _dbContext.DocumentVersions.AsNoTracking().SingleOrDefaultAsync(
-                v => v.VersionId == existingDocument.CurrentVersionId && v.DocumentId == existingDocument.DocumentId, cancellationToken);
-            if (previous is not null && string.Equals(previous.ChecksumSha256, checksumSha256, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(previous.OriginalFileName, originalFileName, StringComparison.OrdinalIgnoreCase))
-            {
-                var reused = new IngestedCadNode(normalizedPath, existingDocument.DocumentId, previous.VersionId,
-                    documentType, partNumber, previous.StorageFileId, false, previous.VersionNo, "Reused");
-                cache[normalizedPath] = reused;
-                issues.Add($"內容未變更，沿用 Ver. {previous.VersionNo}；出庫鎖保持不變。若要放棄修改，請先預覽取消出庫。");
-                return reused;
-            }
-        }
 
-        // 業務邏輯：同料號且同版次則拒絕存檔 (優先於出庫鎖定檢查)
-        if (existingDocument != null && !string.IsNullOrWhiteSpace(revision))
+        PdmDocumentVersion? previous = existingDocument?.CurrentVersionId is long currentId
+            ? await _dbContext.DocumentVersions.SingleOrDefaultAsync(v => v.VersionId == currentId && v.DocumentId == existingDocument!.DocumentId, cancellationToken) : null;
+        if (previous != null && string.Equals(previous.ChecksumSha256, checksumSha256, StringComparison.OrdinalIgnoreCase) &&
+            ((!isRoot || !targetDocumentId.HasValue) ||
+             string.Equals(previous.OriginalFileName, originalFileName, StringComparison.OrdinalIgnoreCase)))
         {
-            bool isSameRevision = string.Equals(
-                revision.Trim(), 
-                existingDocument.RevisionLabel?.Trim(), 
-                StringComparison.OrdinalIgnoreCase);
-
-            if (isSameRevision)
-            {
-                throw new InvalidOperationException(
-                    $"入庫失敗：上傳的檔案版次 ({revision}) 與系統現有版次相同。若要更新圖檔內容，請先於 SolidWorks 中變更版次屬性後再上傳。");
-            }
+            // A no-op is a read of the existing version, never a check-in/unlock of somebody else's work.
+            var reused = new IngestedCadNode(normalizedPath, existingDocument!.DocumentId, previous.VersionId,
+                documentType, partNumber, previous.StorageFileId, false, previous.VersionNo, "Reused");
+            cache[normalizedPath] = reused;
+            _activePaths.Remove(normalizedPath);
+            issues.Add($"{originalFileName}：內容未變更，沿用 Ver. {previous.VersionNo}；出庫鎖保持不變，需要取消修改請使用復原出庫。");
+            return reused;
         }
 
         if (existingDocument != null)
         {
+            if (!isRoot || !targetDocumentId.HasValue)
+                throw new PdmWorkflowException("EXISTING_FILE_CHANGED",
+                    $"{originalFileName} 已有品號 {partNumber}，內容不同。請從 Vault 選取該文件出庫並 Check-in；批次匯入不會覆寫共用料。");
             _logger.LogWarning("Found existing document ID {DocumentId} for partNumber {PartNumber}. Checking checkout lock...", existingDocument.DocumentId, partNumber);
             EnsureCheckoutLockAllowsIngest(existingDocument, Path.GetFileName(normalizedPath), uploadedBy);
+            ValidateVersionChange(previous, revision, changeReason);
         }
         else
         {
@@ -433,12 +419,19 @@ public sealed class PdmIngestionService
             !createNewDocumentForPartNumberChange &&
             (parseResult.DocumentType == SolidWorksDocumentKind.Assembly || parseResult.DocumentType == SolidWorksDocumentKind.Drawing))
         {
-            foreach (string referencedPath in parseResult.ReferencedFilePaths)
+            foreach (string referencedPath in parseResult.ReferenceDetails.Where(r => r.CanIngest)
+                .Select(r => r.Path).Distinct(StringComparer.OrdinalIgnoreCase))
             {
                 string childPath = Path.GetFullPath(referencedPath);
 
                 try
                 {
+                    if (_allowedReferencePaths != null && !_allowedReferencePaths.Contains(childPath))
+                    {
+                        issues.Add($"{Path.GetFileName(childPath)} 不在本次上傳範圍，只比對庫內版本，不自動匯入伺服器其他檔案。");
+                        childNodesByPath[childPath] = null;
+                        continue;
+                    }
                     if (!File.Exists(childPath))
                     {
                         issues.Add($"Referenced file was not found during ingest: {childPath}");
@@ -464,8 +457,10 @@ public sealed class PdmIngestionService
                 }
                 catch (Exception ex) when (IsRecoverableReferenceIngestException(ex))
                 {
-                    issues.Add($"Referenced file ingest failed for '{childPath}': {ex.Message}");
-                    childNodesByPath[childPath] = null;
+                    // Never commit partially-tracked descendants after a child ingest failed.
+                    // A missing file above remains a visible missing link; a present but invalid file aborts this root.
+                    throw new PdmWorkflowException("REFERENCE_INGEST_FAILED",
+                        $"參照檔案 {Path.GetFileName(childPath)} 入庫失敗，本次根文件未寫入：{ex.Message}");
                 }
             }
         }
@@ -521,6 +516,7 @@ public sealed class PdmIngestionService
         else
         {
             storageFileId = await _localStorageService.UploadFileAsync(normalizedPath, documentType, cancellationToken);
+            _newStorageIds.Add(storageFileId);
         }
 
         string? thumbnailStorageId = null;
@@ -532,6 +528,7 @@ public sealed class PdmIngestionService
                 thumbnailFileName,
                 "Thumbnails",
                 cancellationToken);
+            _newStorageIds.Add(thumbnailStorageId);
         }
 
         PdmDocumentVersion version = new()
@@ -560,7 +557,8 @@ public sealed class PdmIngestionService
         _dbContext.Documents.Update(document);
 
         await ReplaceCustomPropertiesAsync(version.VersionId, parseResult, cancellationToken);
-        await ReplaceBomRowsAsync(version.VersionId, parseResult, childNodesByPath, issues, cancellationToken);
+        await ReplaceBomRowsAsync(version.VersionId, parseResult, childNodesByPath, documentManager,
+            effectiveSearchPaths, issues, cancellationToken);
 
         if (identityChangeSource is not null && identityChangeSourceVersionId.HasValue)
         {
@@ -596,6 +594,7 @@ public sealed class PdmIngestionService
             VersionNo: nextVersionNo);
 
         cache[normalizedPath] = result;
+        _activePaths.Remove(normalizedPath);
 
         _logger.LogInformation(
             "Ingested CAD file {SourceFilePath} as DocumentId={DocumentId}, VersionId={VersionId}",
@@ -614,10 +613,14 @@ public sealed class PdmIngestionService
     {
         if (!string.IsNullOrWhiteSpace(partNumber))
         {
-            PdmDocument? byPartNumber = await _dbContext.Documents
-                .SingleOrDefaultAsync(
-                    x => x.DocumentType == documentType && x.PartNumber == partNumber,
-                    cancellationToken);
+            string normalizedNumber = partNumber.Trim().ToUpperInvariant();
+            var candidates = await _dbContext.Documents.Where(
+                    x => x.DocumentType == documentType && x.PartNumber != null &&
+                         x.PartNumber.Trim().ToUpper() == normalizedNumber)
+                .Take(2).ToListAsync(cancellationToken);
+            if (candidates.Count > 1)
+                throw new PdmWorkflowException("DUPLICATE_IDENTITY", "同品號與類型存在多個文件，請先確認重複身分，不能自動選取。");
+            PdmDocument? byPartNumber = candidates.SingleOrDefault();
 
             if (byPartNumber is not null)
             {
@@ -625,11 +628,7 @@ public sealed class PdmIngestionService
             }
         }
 
-        return await _dbContext.DocumentVersions
-            .Where(x => x.SourceFilePath == sourceFilePath && x.Document.DocumentType == documentType)
-            .OrderByDescending(x => x.VersionNo)
-            .Select(x => x.Document)
-            .FirstOrDefaultAsync(cancellationToken);
+        return null; // A reused upload path is not document identity.
     }
 
     private Task<bool> PartNumberExistsAsync(
@@ -696,136 +695,50 @@ public sealed class PdmIngestionService
         long parentVersionId,
         SolidWorksParseResult parseResult,
         IReadOnlyDictionary<string, IngestedCadNode?> childNodesByPath,
+        ICadIngestionSession cad,
+        IReadOnlyCollection<string> searchPaths,
         ICollection<string> issues,
         CancellationToken cancellationToken)
     {
-        List<PdmBomOccurrence> bomRows = new();
-
-        if (parseResult.DocumentType == SolidWorksDocumentKind.Assembly || parseResult.DocumentType == SolidWorksDocumentKind.Drawing)
+        var resolver = new CadReferenceResolver(_dbContext);
+        var rows = new List<PdmBomOccurrence>();
+        foreach (var dependency in parseResult.ReferenceDetails.Where(r => !r.IsBom))
+            issues.Add($"{Path.GetFileName(dependency.Path)} 為設計／未分類參照（{dependency.NativeStatus}），已保留解析證據但不建立 BOM；完整套件仍需確認此依賴。");
+        var bomReferences = parseResult.ReferenceDetails.Where(r => r.IsBom).ToArray();
+        for (int index = 0; index < bomReferences.Length; index++)
         {
-            if (parseResult.DocumentType == SolidWorksDocumentKind.Drawing && parseResult.ReferencedFilePaths.Count == 0)
+            var reference = bomReferences[index];
+            string path = Path.GetFullPath(reference.Path);
+            childNodesByPath.TryGetValue(path, out var child);
+            var match = reference.IsVirtual == true
+                ? new CadReferenceMatch(null, "Virtual", "NativeComponent", null)
+                : reference.IsSuppressed == true
+                ? new CadReferenceMatch(null, "Missing", "NativeSuppressedNotResolved", null)
+                : child != null
+                ? new CadReferenceMatch(child.VersionId, "Resolved", "IngestedIdentity", null)
+                : await resolver.ResolveAsync(path, cad, searchPaths, cancellationToken);
+            if (match.Issue != null) issues.Add(match.Issue);
+            rows.Add(new PdmBomOccurrence
             {
-                string? drawingPartNumber = ExtractProperty(parseResult, "PartNumber", "Number", "Part No", "PartNo", "品號");
-                if (!string.IsNullOrWhiteSpace(drawingPartNumber))
-                {
-                    PdmDocumentVersion? matchedModelVersion = await _dbContext.DocumentVersions
-                        .Where(x =>
-                            x.Document.PartNumber == drawingPartNumber &&
-                            x.Document.DocumentType != "Drawing" &&
-                            x.Document.CurrentVersionId == x.VersionId)
-                        .OrderByDescending(x => x.VersionNo)
-                        .FirstOrDefaultAsync(cancellationToken);
-
-                    if (matchedModelVersion is not null)
-                    {
-                        bomRows.Add(new PdmBomOccurrence
-                        {
-                            ParentVersionId = parentVersionId,
-                            ChildVersionId = matchedModelVersion.VersionId,
-                            OccurrencePath = $"1:part-number:{drawingPartNumber}",
-                            ParentConfigurationName = string.Empty,
-                            ChildConfigurationName = string.Empty,
-                            Quantity = 1m,
-                            FindNumber = null,
-                            SourceReferencePath = matchedModelVersion.SourceFilePath,
-                            PackageRelativePath = matchedModelVersion.OriginalFileName,
-                            ReferenceStatus = "Resolved",
-                            IsSuppressed = false,
-                            IsVirtual = false,
-                            CreatedAt = DateTimeOffset.UtcNow
-                        });
-                    }
-                    else
-                    {
-                        issues.Add($"Drawing reference fallback could not find a current model with PartNumber '{drawingPartNumber}'.");
-                    }
-                }
-            }
-
-            for (int index = 0; index < parseResult.ReferencedFilePaths.Count; index++)
-            {
-                string referencePath = Path.GetFullPath(parseResult.ReferencedFilePaths[index]);
-                childNodesByPath.TryGetValue(referencePath, out IngestedCadNode? childNode);
-
-                if (childNode is null)
-                {
-                    // 1. 先嘗試用絕對路徑匹配 (如果檔案存在於伺服器上)
-                    if (File.Exists(referencePath))
-                    {
-                        PdmDocumentVersion? existingChildVersion = await _dbContext.DocumentVersions
-                            .Where(x => x.SourceFilePath == referencePath)
-                            .OrderByDescending(x => x.VersionNo)
-                            .FirstOrDefaultAsync(cancellationToken);
-
-                        if (existingChildVersion is not null)
-                        {
-                            childNode = new IngestedCadNode(
-                                SourceFilePath: referencePath,
-                                DocumentId: existingChildVersion.DocumentId,
-                                VersionId: existingChildVersion.VersionId,
-                                DocumentType: string.Empty,
-                                PartNumber: null,
-                                StorageFileId: existingChildVersion.StorageFileId,
-                                CreatedDocument: false,
-                                VersionNo: existingChildVersion.VersionNo);
-                        }
-                    }
-
-                    // 2. 備案：如果絕對路徑不匹配（常見於 Web 上傳或路徑變更），則嘗試用檔名匹配
-                    if (childNode is null)
-                    {
-                        string fileNameLookup = Path.GetFileName(referencePath).ToLower();
-                        PdmDocumentVersion? existingChildVersion = await _dbContext.DocumentVersions
-                            .Where(x => x.OriginalFileName.ToLower() == fileNameLookup)
-                            .OrderByDescending(x => x.VersionNo)
-                            .FirstOrDefaultAsync(cancellationToken);
-
-                        if (existingChildVersion is not null)
-                        {
-                            childNode = new IngestedCadNode(
-                                SourceFilePath: existingChildVersion.SourceFilePath,
-                                DocumentId: existingChildVersion.DocumentId,
-                                VersionId: existingChildVersion.VersionId,
-                                DocumentType: string.Empty,
-                                PartNumber: null,
-                                StorageFileId: existingChildVersion.StorageFileId,
-                                CreatedDocument: false,
-                                VersionNo: existingChildVersion.VersionNo);
-                        }
-                    }
-                }
-
-                string referenceStatus = childNode is not null ? "Resolved" : "Missing";
-
-                if (childNode is null)
-                {
-                    issues.Add($"BOM reference was recorded as missing: {referencePath}");
-                }
-
-                bomRows.Add(new PdmBomOccurrence
-                {
-                    ParentVersionId = parentVersionId,
-                    ChildVersionId = childNode?.VersionId,
-                    OccurrencePath = $"{index + 1}:{referencePath}",
-                    ParentConfigurationName = string.Empty,
-                    ChildConfigurationName = string.Empty,
-                    Quantity = 1m,
-                    FindNumber = null,
-                    SourceReferencePath = referencePath,
-                    PackageRelativePath = Path.GetFileName(referencePath),
-                    ReferenceStatus = referenceStatus,
-                    IsSuppressed = false,
-                    IsVirtual = false,
-                    CreatedAt = DateTimeOffset.UtcNow
-                });
-            }
+                ParentVersionId = parentVersionId,
+                ChildVersionId = match.VersionId,
+                OccurrencePath = $"{index + 1}:{reference.OccurrenceName}:{path}",
+                ParentConfigurationName = reference.ParentConfiguration,
+                ChildConfigurationName = reference.ChildConfiguration,
+                IsVirtual = reference.IsVirtual == true,
+                IsSuppressed = reference.IsSuppressed == true,
+                SourceReferencePath = path,
+                PackageRelativePath = Path.GetFileName(path),
+                ReferenceStatus = match.Status,
+                CreatedAt = DateTimeOffset.UtcNow
+            });
         }
-
-        if (bomRows.Count > 0)
-        {
-            _dbContext.BomOccurrences.AddRange(bomRows);
-            await _dbContext.SaveChangesAsync(cancellationToken);
-        }
+        // No fabricated same-part-number BOM when the CAD reports no internal reference.
+        // The UI may suggest candidates, but a real relationship needs CAD evidence.
+        if (parseResult.DocumentType == SolidWorksDocumentKind.Drawing && rows.Count == 0)
+            issues.Add("此工程圖未解析到模型參照；請在 SolidWorks 檢查視圖參照後重新儲存。");
+        _dbContext.BomOccurrences.AddRange(rows);
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private static string MapDocumentType(SolidWorksDocumentKind documentKind)
@@ -884,6 +797,28 @@ public sealed class PdmIngestionService
         return null;
     }
 
+    private static string? RequiredUnambiguousProperty(SolidWorksParseResult parsed, string[] names)
+    {
+        var property = CadPropertyResolver.Resolve(parsed, names);
+        if (property.Conflicts.Count > 0)
+            throw new PdmWorkflowException("PROPERTY_CONFLICT", $"{names[0]} 屬性有衝突：{string.Join(" / ", property.Conflicts)}。請先統一 CAD 屬性後重試。");
+        return property.Value;
+    }
+
+    public static void ValidateVersionChange(PdmDocumentVersion? previous, string? revision, string? reason)
+    {
+        if (previous == null) throw new PdmWorkflowException("MISSING_CURRENT_VERSION", "文件缺少目前版本，請由管理者檢查。");
+        if (previous.LifecycleState is not ("WIP" or "Released"))
+            throw new PdmWorkflowException("LIFECYCLE_BLOCKED", "審核中或已作廢文件不能直接入庫；請先走受控狀態流程。");
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new PdmWorkflowException("CHANGE_REASON_REQUIRED", "請填寫變更原因；工程版次與系統版本會分別記錄。");
+        if (!string.IsNullOrWhiteSpace(previous.RevisionLabel) && string.IsNullOrWhiteSpace(revision))
+            throw new PdmWorkflowException("REVISION_REQUIRED", "原文件已有工程版次，更新時不可清空；請確認 CAD 版次屬性。");
+        if (previous.LifecycleState == "Released" && (string.IsNullOrWhiteSpace(revision) ||
+            string.Equals(previous.RevisionLabel?.Trim(), revision.Trim(), StringComparison.OrdinalIgnoreCase)))
+            throw new PdmWorkflowException("RELEASED_REVISION_REQUIRED", "已發布文件須使用新的工程版次建立 WIP 版本，不能沿用原版次更新。");
+    }
+
     private static void EnsureCheckoutLockAllowsIngest(
         PdmDocument document,
         string fileName,
@@ -891,7 +826,7 @@ public sealed class PdmIngestionService
     {
         if (string.IsNullOrWhiteSpace(document.CheckedOutBy))
         {
-            throw new InvalidOperationException(
+            throw new PdmWorkflowException("CHECKOUT_REQUIRED",
                 $"圖檔已存在系統中 (料號: {document.PartNumber})。為避免版本覆蓋與管理錯亂，請先執行『出庫 (Check-out)』後，再進行上傳更新。");
         }
 

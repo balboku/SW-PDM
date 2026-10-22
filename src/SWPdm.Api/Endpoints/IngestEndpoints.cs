@@ -187,6 +187,8 @@ public static class IngestEndpoints
                     .ThenBy(x => x.RelativePath, StringComparer.OrdinalIgnoreCase)
                     .ToArray();
                 List<BatchIngestFileResult> results = new(processingOrder.Length);
+                var allowedReferencePaths = stagedFiles.Select(x => Path.GetFullPath(x.LocalFilePath))
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
                 foreach (StagedCadFile stagedFile in processingOrder)
                 {
@@ -201,12 +203,12 @@ public static class IngestEndpoints
                             new IngestCadFileRequest(
                                 LocalFilePath: stagedFile.LocalFilePath,
                                 DriveFolderId: null,
-                                IngestReferencedFiles: false,
+                                IngestReferencedFiles: true,
                                 AdditionalSearchPaths: searchPaths,
                                 UploadedBy: uploadedBy,
                                 ChangeReason: changeReason,
                                 TargetDocumentId: null),
-                            cancellationToken);
+                            cancellationToken, allowedReferencePaths);
 
                         IngestedFileResponse root = response.Files
                             .Single(x => x.VersionId == response.RootVersionId);
@@ -219,7 +221,8 @@ public static class IngestEndpoints
                             PartNumber: root.PartNumber,
                             VersionNo: root.VersionNo,
                             Issues: response.Issues,
-                            ErrorMessage: null));
+                            ErrorMessage: null,
+                            Outcome: root.Outcome));
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     {

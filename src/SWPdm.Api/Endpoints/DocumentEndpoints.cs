@@ -643,7 +643,8 @@ public static class DocumentEndpoints
                     DocumentType: result.DocumentType.ToString(),
                     DocumentProperties: result.DocumentProperties,
                     ConfigurationProperties: result.ConfigurationProperties,
-                    ReferencedFilePaths: result.ReferencedFilePaths));
+                    ReferencedFilePaths: result.ReferencedFilePaths,
+                    References: result.ReferenceDetails));
             }
             catch (Exception ex)
             {

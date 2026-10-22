@@ -7,4 +7,5 @@ public sealed record SolidWorksParseResponse(
     string DocumentType,
     IReadOnlyDictionary<string, SolidWorksCustomProperty> DocumentProperties,
     IReadOnlyDictionary<string, IReadOnlyDictionary<string, SolidWorksCustomProperty>> ConfigurationProperties,
-    IReadOnlyList<string> ReferencedFilePaths);
+    IReadOnlyList<string> ReferencedFilePaths,
+    IReadOnlyList<CadReference>? References = null);

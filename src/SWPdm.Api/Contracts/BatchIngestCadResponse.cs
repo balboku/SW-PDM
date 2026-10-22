@@ -15,4 +15,5 @@ public sealed record BatchIngestFileResult(
     string? PartNumber,
     int? VersionNo,
     IReadOnlyList<string> Issues,
-    string? ErrorMessage);
+    string? ErrorMessage,
+    string? Outcome = null);

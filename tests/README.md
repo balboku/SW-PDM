@@ -1,5 +1,25 @@
 # 隔離驗證
 
+## 2026-10-22：DEV-012 入庫核心
+
+契約與結果見 [DEV-012](../ai-doc/dev_task.md)、
+[入庫完整性 QC](../ai-doc/qc/ingest-integrity-qc-2026-10-22.md)。
+下方既有取消出庫／Reused 測試保留；明確目標的 WIP 改名現在需產生 CreatedVersion，不能當成 Reused。
+
+- 清除 SWPDM_CONTRACT_PG 後執行同一 ContractTests 專案，使用 SQLite 記憶體庫。
+- PostgreSQL 使用下節嚴格限定的 55433 contract 臨時叢集，逐例 EnsureCreated 新庫；不執行 migration。
+- 原生驗證：tests/SWPdm.NativeIngestionVerifier 使用明示 SWPDM_DEV012_DM_KEY，
+  唯一參數為系統 TEMP 下新建 swpdm_dev012_native_<GUID> 目錄，真實 CAD 副本放在 cad/。
+  必須同時包含 Part／Assembly／Drawing；有原生 interop、COM 註冊及有效 Document Manager 授權才可執行。
+  指令：dotnet run --project tests/SWPdm.NativeIngestionVerifier -- <測試目錄>。
+  解析唯讀，參照與旗標由獨立原生 API 比對。內容更新只修改另外建立的私有測試副本；
+  入庫資料在 SQLite 記憶體庫，Vault 在該唯一測試目錄內，不讀取正式連線設定。
+- 無 interop 防偽成功驗證：dotnet run --project tests/SWPdm.NativeIngestionVerifier -c NoNative
+  -p:SolidWorksDocumentManagerDll=C:/SWPDM-TEST-NO-INTEROP.dll -- --verify-no-native。
+  此結果是拒絕假解析的測試，不是原生 CAD 驗證通過。
+- 不使用舊 IntegrationVerifier／PostgresIntegrationTests：它們包含 migration，不屬本輪。
+- 本輪不改前端介面，13 項前端邏輯測試只作既有契約回歸，不宣稱 UI／跨工作站 CAD 驗收。
+
 ## 2026-10-22：取消出庫／Reused 契約切片
 
 只包含單文件取消出庫及明確目標 Check-in 的 Reused；不包含其他 pending 後端、migration 或批次復原。

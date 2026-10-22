@@ -3,7 +3,7 @@ namespace SWPdm.Api.Configuration;
 using Microsoft.Extensions.Options;
 using SWPdm.Sample.Services;
 
-// Narrow ingestion seam for isolated contract tests; the production CAD parser is unchanged.
+// Read-only CAD ingestion boundary; isolated tests can substitute a deterministic parser.
 public interface ICadIngestionSession : IDisposable
 {
     SolidWorksParseResult Parse(string filePath, IEnumerable<string>? additionalSearchPaths = null);
