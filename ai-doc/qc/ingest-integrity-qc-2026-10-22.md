@@ -3,6 +3,9 @@
 日期：2026-10-22（Asia/Taipei）。本輪未正式套用、未執行 migration、未連接目前 5432 業務庫。
 基準 main 40f7d70；分支 codex/ingest-integrity-20261022。
 
+最新 Git 狀態：DEV-012 來源 4e9bdc3 已快轉合併 main 並 push；僅補充合併紀錄，未正式套用。
+以下隔離實作及分支推送段落保留各階段當時狀態，main 合併結果見文末。
+
 ## 範圍與判定
 
 本輪先完成使用者列出的 WIP 同 Rev 更新、共用件沿用及解析器整合，支援 DEV-013～015 的相依後續切片。
@@ -104,3 +107,21 @@ PostgreSQL 後檢確認版本 16.14、剩餘 swpdm_contract_* 測試庫為 0；
   沒有 CAD、授權、設定或測試庫檔案納入提交；沒有有效 Git hooks 或 .github 自動工作流程。
 - 本節與入口狀態將以獨立 docs 提交同步至同一分支；docs 不改產品或測試內容。
 - 原工作區 tracked diff 指紋及空 index 與前述相同，未提交其餘 52 個 status 項目。
+
+## 2026-10-22：main 合併與推送紀錄
+
+- 使用者核准將 codex/ingest-integrity-20261022 合併 main 並 push；
+  仍禁止混入其他未完成後端、正式套用、migration 或目前資料庫寫入。
+- 合併前：本機／遠端 main 為 40f7d70af6a5d9c6148e42e8ce849d543bae54b0，
+  來源分支／遠端為 4e9bdc3369081fdfe6a29462c0308e53a5101a4d，兩個工作區乾淨。
+- 已核對唯一新增提交為 4bbed8d（產品＋隔離驗證）及 4e9bdc3（分支推送紀錄），21 檔白名單相符；
+  DbContext／Entities／Models／Migrations／Program／solution／前端均無差異。
+- main 使用 git merge --ff-only 4e9bdc3369081fdfe6a29462c0308e53a5101a4d 成功快轉，無衝突。
+  合併後完整 tree 與指定來源相同；沒有重建、改寫或混合原工作區的變更。
+- git push origin HEAD:refs/heads/main 成功；git ls-remote 確認遠端 main 為 4e9bdc3369081fdfe6a29462c0308e53a5101a4d，
+  來源分支亦維持該 SHA。合併後只新增本段及入口狀態的 docs 紀錄，不變更產品／測試。
+- 本次沿用已通過的 SQLite 41/41、PG 41/41、前端邏輯 13/13、原生 CAD 11 份及建置證據；
+  因產品／測試 tree 完全相同，沒有重跑或把歷史驗證冒充本次新執行。
+- 合併前已確認沒有 .github 自動工作流程、有效 Git hooks，亦未發現 main 來源的 dotnet watch／Vite dev 監看。
+  Git 合併不等於正式套用；沒有啟動、停止或重新啟動 API／Web／PostgreSQL，也沒有執行 migration 或連接目前業務庫。
+- 原工作區仍保留原 52 項 status 與 tracked diff／index 指紋；未 stage、提交或合併那些尚未完成變更。
