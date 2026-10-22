@@ -2,7 +2,8 @@
 
 日期：2026-10-22（Asia/Taipei）。判定：本機套用及隔離驗證完成，既有業務資料與歷史BOM未變。
 固定來源main：74cecca15d800bb92b731757651f26046e7d7d83（功能d5c910b）；同一代理依序執行PM／QA／QC，非獨立人員審查。
-紀錄分支：codex/local-batch-preflight-20261022，保留前次預檢紀錄；本輪未stage／commit／push，main ref未改。
+紀錄分支：codex/local-batch-preflight-20261022，保留前次預檢紀錄；證據提交6dde08d47b06fcb52b6bb27812c43821f4c02947已push，遠端SHA已核對。
+尚未合併main；本段發布狀態以後續純文件提交保存，最終分支SHA以遠端ref辨識。
 
 ## 明確授權、驗收與停止條件
 
@@ -103,4 +104,19 @@ Rollback-Api.ps1只允許停止本固定exe的5000，再啟動舊49f98a6固定�
 本輪受開發PM／QA/QC規則影響，先通過精確migration與資料保護關卡再切換服務；沒有把Git合併視為已部署。
 本機DEV-013後端已可用；批次操作畫面仍屬DEV-015，現有前端只保留原單檔取消，不能宣稱整批畫面已完成。
 actor仍為自填操作人，不是完整登入授權；DEV-014／015、其他migration、原dirty後端與業務／歷史BOM修復均未混入。
-本輪未commit／push；下一步由使用者決定是否提交這次套用與驗證紀錄。
+原套用交付時未commit／push；使用者後續已核准發布，現已完成下節紀錄分支push。合併main需後續指示，不自動執行。
+
+## 紀錄提交與 GitHub 發布（2026-10-22）
+
+- 使用者明確要求提交並push DEV-013 migration、本機套用與隔離驗證紀錄；不混入其他後端、不執行其他migration或更動業務資料／歷史BOM。
+- [證據提交6dde08d](https://github.com/balboku/SW-PDM/commit/6dde08d47b06fcb52b6bb27812c43821f4c02947)已正常push至
+  [codex/local-batch-preflight-20261022](https://github.com/balboku/SW-PDM/tree/codex/local-batch-preflight-20261022)，git ls-remote核對一致。
+- 僅選擇性stage 15個ai-doc文件／證據：ADR執行狀態、任務／文件入口、QC／本報告、3份TRX、3份JSON指紋／隔離彙整、實際護欄SQL、SHA與證據目錄規則。
+  SQL只是保存先前已執行內容，本次沒有再次執行；沒有src／tests／lib／solution、設定或其他migration原始碼差異。
+- 既有10份證據SHA全部吻合；本機套用的SQLite／PG與前次預檢TRX皆67/67、0失敗／0跳過。
+  保存的舊資料／BOM／結構／序號／設定／Vault指紋相符，隔離HTTP彙整通過；本輪不重新連線目前庫，不把歷史證據當成新的現況快照。
+- stage檢查發現Windows JSON的CRLF被Git當成尾端空白；僅調整該目錄.gitattributes識別cr-at-eol，未正規化原始證據。
+  diff檢查及暫存blob與工作檔位元組核對通過，原SHA不變；無啟用的Git hook或push workflow。
+- 原dirty工作區52項status及tracked／index指紋不變；main仍74cecca15d800bb92b731757651f26046e7d7d83。
+  未合併main、未force push或建立PR；只操作Git／文件，未執行測試／建置／SQL／migration、未重啟服務或改Vault。
+- 本節與入口的發布狀態僅以後續純文件提交保存，不新增產品或驗證結果；分支最終SHA以遠端ref與完成回報為準。

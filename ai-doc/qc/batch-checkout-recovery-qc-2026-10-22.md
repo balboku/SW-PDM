@@ -1,7 +1,7 @@
 # DEV-013 整批出庫安全復原：後端隔離驗證
 
 日期：2026-10-22，Asia/Taipei。原隔離／Git階段判定：後端契約通過；未正式套用、未執行任何migration，當時未連線目前5432/swpdm。
-後續本機套用預檢只READ ONLY確認schema，因缺兩張批次表暫停切換；詳見本文末節。
+後續預檢曾因缺兩表暫停；使用者再明確核准限定migration，現已完成本機套用與隔離驗證，紀錄6dde08d已push，未合併main；詳見本文末節及套用報告。
 基準main 2f22791b4a739c8e4543dc4b42ae8dbcad784d45；分支codex/batch-checkout-recovery-20261022。
 工作目錄：C:/Users/user/.codex/worktrees/checkout-reused-contract-20261022/SW-PDM。
 原實作階段未commit／push；使用者後續另行核准，產品與隔離證據已以d5c910be1f1142098b07d2d74fded946291313af提交並push至此分支。
@@ -175,4 +175,6 @@ ROLLBACK
   Web5174的PID27392及前端JS SHA未變；不改前端或批次畫面，不宣稱DEV-015或真實CAD幾何驗收。
 - 5001／5002及新55433已停止；本輪合成驗證庫已移除，contract GUID庫後檢0個。保留原固定成品供API回復，不執行schema Down。
 - 初次schema工具參數／隔離空public schema衝突及驗證器UTC序列化400均保留在套用紀錄；只修正隔離工具流程，產品碼未改。
-- 本輪紀錄沿用codex/local-batch-preflight-20261022，未stage／commit／push。完整命令、來源、限制及[證據連結見本機套用報告](../reports/local-checkout-batch-main-2026-10-22.md)。
+- 原套用交付時未stage／commit／push；使用者後續核准發布，紀錄6dde08d已push至codex/local-batch-preflight-20261022，遠端SHA已核對，main仍74cecca。
+  僅15個文件／證據檔案，產品／測試樹不變；複核TRX與SHA，不重跑測試、不連線資料庫或操作服務。
+  完整命令、來源、限制及[證據連結見本機套用報告](../reports/local-checkout-batch-main-2026-10-22.md)。

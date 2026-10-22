@@ -8,7 +8,7 @@
 同成品SQLite／PG各67/67、前端邏輯13/13、實際遷移後隔離HTTP驗證通過；[本次套用紀錄](reports/local-checkout-batch-main-2026-10-22.md)。
 目前交付：DEV-013整批出庫安全復原後端隔離通過，原開發基準main 2f22791；原隔離開發階段未連線目前資料庫，migration未執行。
 原隔離階段只新增模型與migration原始碼，本次後續已限定套用；不混入DEV-014／015、完整Auth或原dirty後端。
-功能提交d5c910b及狀態提交ef40c1b已由codex/batch-checkout-recovery-20261022快轉合併main並push；本次後續套用已完成，紀錄尚未commit／push。
+功能提交d5c910b及狀態提交ef40c1b已合併main；後續限定套用與驗證紀錄6dde08d已push至codex/local-batch-preflight-20261022，尚未合併main。
 DEV-012本機套用紀錄已合併main並push；[套用與隔離驗證](reports/local-ingest-integrity-main-2026-10-22.md)
 保留舊固定成品及歷史資料指紋；DEV-013只替換API，Web5174沿用與main相同的既有前端，沒有重啟。
 
@@ -27,7 +27,7 @@ DEV-012本機套用紀錄已合併main並push；[套用與隔離驗證](reports/
 - ✓ DEV-013 [交付點] [後端及本機套用通過] [P1] [限定遷移已套用] 整批出庫安全復原
   - 摘要：持久記錄當次新取得的鎖，依批次預覽並安全復原；既有鎖與新作業鎖不解除。
   - 來源 ID：2026-10-22 使用者指定接續 DEV-013，禁止正式套用、migration 與目前資料寫入。
-  - 下一步：本次套用紀錄待使用者決定是否提交／push；批次畫面仍由DEV-015另行整合。
+  - 下一步：套用紀錄分支已push，合併main需後續指示；批次畫面仍由DEV-015另行整合。
   - 阻塞 / 恢復條件：本次只核准DEV-013新增結構；其他migration、業務／歷史BOM修復仍未授權。
   - 證據：reports/local-checkout-batch-main-2026-10-22.md；同成品SQLite／PG各67項、前端邏輯13項及隔離HTTP。
   - 計入交付：是
@@ -235,7 +235,7 @@ SQLite與全新PostgreSQL16.14各67/67（原41＋新增26），前端純邏輯13
 既有七張業務表（含歷史BOM）內容、舊8筆遷移、72欄／20約束／23索引、7序號、Vault及設定指紋不變；兩張新表0筆。
 API5000已使用main 74cecca固定成品，Web5174未變；本輪未執行其他migration或對目前庫呼叫寫入API。
 驗收與停止條件：SQL只允許本migration；舊資料／來源／設定不同、隔離測試不過或未知服務owner即停止；失敗只回復API，不自動Down或修資料。
-實際結果／回復方式／首次驗證腳本問題見[本機套用紀錄](reports/local-checkout-batch-main-2026-10-22.md)。本次紀錄未commit／push，DEV-015批次畫面仍未完成。
+實際結果／回復方式／首次驗證腳本問題見[本機套用紀錄](reports/local-checkout-batch-main-2026-10-22.md)。紀錄6dde08d已依後續授權push，未合併main；DEV-015批次畫面仍未完成。
 
 ## DEV-001：2026-10-22 契約修正切片
 
