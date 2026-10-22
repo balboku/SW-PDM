@@ -2,7 +2,16 @@
 
 更新日期：2026-10-22
 
-## 目前開發入口：DEV-012 入庫核心已合併 main（未套用）
+## 目前入口：DEV-012 固定 main 成品已本機套用
+
+使用者後續核准套用main DEV-012並隔離驗證，已以固定49f98a6成品啟動API5000，
+前端5174沿用未變固定成品；SQLite41/41、PG41/41、真實CAD11份與邏輯13/13通過。
+目前5432/swpdm、migration、Vault、設定及原dirty工作區指紋前後一致；不執行migration。
+詳見[本機套用與隔離驗證](reports/local-ingest-integrity-main-2026-10-22.md)。
+紀錄位於本機codex/local-ingest-integrity-20261022，尚未commit／push。
+此worktree內固定成品正供服務使用，不可封存／清除；不使用會migration的start.ps1。
+
+## 前階段：DEV-012 入庫核心合併 main（當時未套用）
 
 使用者指定 DEV-012～015，並明確要求先完成 WIP 同工程版次更新、共用件沿用與解析器整合。
 本輪依序先切出 DEV-012，基準 main 40f7d70，分支 codex/ingest-integrity-20261022；

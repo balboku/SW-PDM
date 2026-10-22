@@ -1,5 +1,9 @@
 # DEV-012 入庫核心隔離驗證
 
+後續本機套用已依新授權完成：固定main49f98a6、同成品SQLite／PG各41項及原生CAD11份，
+目前資料庫／Vault／設定指紋前後一致、未migration；見[本機套用紀錄](../reports/local-ingest-integrity-main-2026-10-22.md)。
+下列「未正式套用／未連接目前庫」是原開發與Git合併階段的歷史邊界，非目前執行狀態。
+
 日期：2026-10-22（Asia/Taipei）。本輪未正式套用、未執行 migration、未連接目前 5432 業務庫。
 基準 main 40f7d70；分支 codex/ingest-integrity-20261022。
 
