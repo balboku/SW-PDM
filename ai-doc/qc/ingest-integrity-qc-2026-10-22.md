@@ -79,7 +79,8 @@ PostgreSQL 後檢確認版本 16.14、剩餘 swpdm_contract_* 測試庫為 0；
 
 - 原工作區仍有 52 個 status 項目；tracked diff 指紋 eb8bdd8fb2032a4a299f44bcc7696e57d216192f，
   index 指紋 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391，與本輪前一致。
-- main 工作區保持乾淨；沒有 commit、push、合併、部署或操作既有服務。
+- 隔離實作階段 main 工作區保持乾淨，當時沒有 commit／push；後續提交與 push 見下節。
+  兩階段均沒有合併、部署或操作既有服務。
 - 沒有修改 DbContext、Entities、Models、Migrations、Program、solution 或任何前端檔案。
   Data/Repositories 僅修正本輪已重現的 BOM 讀取誤配，不包含其他 repository 草稿。
 - 未接觸目前資料庫，不把「未連接」冒充本輪全表雜湊核對；Vault 唯讀檔案計數仍為 0。
@@ -87,3 +88,19 @@ PostgreSQL 後檢確認版本 16.14、剩餘 swpdm_contract_* 測試庫為 0；
   仍由 DEV-014／015 處理，不因本輪傳遞 typed references 而標通過。
 - 不會把原有 3 筆旗標差異或清空前資料 ID 當作現存資料修復目標。
 - 任何正式 schema／資料修復／套用須另進共用正式套用關卡。
+
+## 2026-10-22：提交與 GitHub 推送紀錄
+
+- 使用者明確核准只提交並 push 本次 DEV-012 入庫核心及隔離驗證，不混入其他未完成後端；
+  不合併 main、不正式套用、不執行 migration、不更動目前資料庫。
+- 產品及驗證提交：4bbed8d7a9e0db4960d70cf4fd72bb8307e39680，
+  fix: complete DEV-012 ingestion integrity slice，21 個白名單檔案。
+- git push --set-upstream origin HEAD:refs/heads/codex/ingest-integrity-20261022 成功；
+  git ls-remote 確認遠端分支 SHA 與本機上述提交一致，遠端 main 仍為 40f7d70af6a5d9c6148e42e8ce849d543bae54b0。
+- 提交前另外重跑 SQLite HTTP 41/41 與前端邏輯 13/13，均無略過。
+  PostgreSQL／原生 CAD／NoNative／Release 證據沿用上一節，這次沒有重新啟動 PostgreSQL 或重跑真實 CAD。
+- git diff --check、21 檔 stage 白名單、排除路徑及新增內容憑證模式檢查通過；
+  無 DbContext／Entities／Models／Migrations／Program／前端／solution 差異。
+  沒有 CAD、授權、設定或測試庫檔案納入提交；沒有有效 Git hooks 或 .github 自動工作流程。
+- 本節與入口狀態將以獨立 docs 提交同步至同一分支；docs 不改產品或測試內容。
+- 原工作區 tracked diff 指紋及空 index 與前述相同，未提交其餘 52 個 status 項目。
