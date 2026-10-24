@@ -197,4 +197,19 @@ public sealed class LocalStorageService
 
         return sourcePath;
     }
+
+    /// <summary>Strict read-only source resolution for complete packages; does not change legacy storage routes.</summary>
+    public string GetPackageSourcePath(string storageFileId)
+    {
+        if (string.IsNullOrWhiteSpace(storageFileId) || Path.IsPathRooted(storageFileId) ||
+            storageFileId.Replace('\\', '/').Split('/').Any(p => p is "" or "." or ".." || p.Contains(':')))
+            throw new ArgumentException("Unsafe package storage identifier.");
+        string full = Path.GetFullPath(Path.Combine(_vaultPath, storageFileId));
+        if (!full.StartsWith(_vaultPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Package source is outside the vault.");
+        for (string? item = full; item != null && item.Length >= _vaultPath.Length; item = Path.GetDirectoryName(item))
+            if ((File.GetAttributes(item) & FileAttributes.ReparsePoint) != 0)
+                throw new ArgumentException("Package source uses a reparse point.");
+        return full;
+    }
 }

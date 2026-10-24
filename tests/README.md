@@ -1,5 +1,25 @@
 # 隔離驗證
 
+## 2026-10-22：DEV-014 完整套件與副本參照重寫
+
+權威契約見 [ADR-004](../ai-doc/decisions/ADR-004-package-copy-integrity.md)，結果與限制見
+[DEV-014 QC](../ai-doc/qc/package-integrity-qc-2026-10-22.md)。本輪不部署、不執行 migration、不接目前 5432/swpdm。
+
+- 清除 `SWPDM_CONTRACT_PG` 後，執行 `dotnet test tests/SWPdm.ContractTests/SWPdm.ContractTests.csproj -c Release`，
+  使用 SQLite 記憶體庫。PG 僅接受下節的全新 `127.0.0.1:55433` contract 叢集，逐例建立／移除 GUID 庫。
+  PackageTests 透過真實 HTTP／EF／套件服務搭配合成 CAD adapter；涵蓋選版後重走依賴、同名、設計／抑制／虛擬／組態、錯誤與併發。
+  每例比較文件／版本／BOM／批次及私有 Vault SHA；不是原生 CAD 幾何驗收。
+- `tests/SWPdm.NativePackageVerifier` 為獨立原生驗證器，必須有 Document Manager interop、COM 與有效授權。
+  明示 `SWPDM_DEV014_DM_KEY`，唯一參數為 TEMP 下私有 `swpdm_dev014_native_<GUID>` 目錄，將受控 CAD 副本放在 `cad/<組別>/`。
+  不讀正式 DB 設定；只在新 SQLite 記憶體庫種合成 BOM，建立私有 Vault 與新的 `swpdm_package_<GUID>` CAD 工作副本。
+  指令：`dotnet run --project tests/SWPdm.NativePackageVerifier -c Release -- <私有測試目錄>`。
+- 原生案例包括組立、含工程圖、工程圖根文件，以及零件同名碰撞；ZIP 解壓後，以另一個原生 COM session 重開所有 CAD，
+  核對每個外部參照位於解壓目錄、目標與 manifest 相同，並核對來源／輸出／Vault SHA 及測試 BOM。
+  產生去路徑的 `native-package-result.json`；失敗不得視為完成，不得放寬完整性檢查。
+- 不使用舊 IntegrationVerifier／PostgresIntegrationTests／正式啟動腳本，不執行其他 migration。
+  建置與測試須序列化：測試程序使用中的輸出 DLL 不可再次建置覆蓋。純邏輯前端回歸不等同畫面驗收。
+- 完整 SolidWorks 幾何重建、跨實體工作站與 DEV-015 前端整合不在這輪；不要把 DM 重開成功當成已完成這些驗收。
+
 ## 2026-10-22：DEV-013 整批出庫安全復原
 
 契約與QA在[DEV-013](../ai-doc/dev_task.md#dev-0132026-10-22-整批出庫安全復原)，

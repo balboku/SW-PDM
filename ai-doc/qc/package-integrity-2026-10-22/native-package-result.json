@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "sourceFileCount": 11,
+  "packageCount": 4,
+  "independentlyOpened": 22,
+  "referenceCount": 18,
+  "sameNameCollisionVerified": true,
+  "sourceHashesUnchanged": true,
+  "vaultHashesUnchanged": true,
+  "databaseBomUnchanged": true,
+  "sourceSha256": [
+    "0676df06b6f0f75b97334659aa66059883ebca1ebb75b74d8691b229290c0076",
+    "0676df06b6f0f75b97334659aa66059883ebca1ebb75b74d8691b229290c0076",
+    "4f8d51b8907c00c06081873f78976b78305528401cc7889d25a22f1a97ba623d",
+    "4f8d51b8907c00c06081873f78976b78305528401cc7889d25a22f1a97ba623d",
+    "574580d7fc397fbbf151c7d794275c6bbfd5c43c123f6811070017f2a08ebf50",
+    "5ca1452faca52464d5f3e234a8560fd4a96be437f45994956b19a467543e11cf",
+    "5ca1452faca52464d5f3e234a8560fd4a96be437f45994956b19a467543e11cf",
+    "b16fc6c45d8d9d20b5cd734e7b0369b2e60f2fb9d53fe0192037eb9d749c173f",
+    "e4db34a580d1c2da1992d6a934426392b23e870543efe7500868d926d5744f9a",
+    "e94e24e3b42e16b8c9c4c9dcdec725b2e096a1f9d4989589cc84fd96bbb07639",
+    "e94e24e3b42e16b8c9c4c9dcdec725b2e096a1f9d4989589cc84fd96bbb07639"
+  ],
+  "adapter": "DocumentManager",
+  "fullSolidWorksGeometryRebuild": false,
+  "separatePhysicalWorkstation": false
+}

@@ -1,6 +1,18 @@
 # SW-PDM 開發文件入口
 
-更新日期：2026-10-22
+更新日期：2026-10-24
+
+## 最新隔離完成：DEV-014 完整套件與副本參照重寫
+
+使用者已核准DEV-014隔離實作／驗證，基準main 2e1e2b8，獨立分支codex/package-integrity-20261022。
+契約與QA入口見[DEV-014](dev_task.md#dev-0142026-10-22-完整套件與副本參照重寫)與[ADR-004](decisions/ADR-004-package-copy-integrity.md)。
+只修改必要套件、原生副本adapter與測試；不部署、不執行migration、不連線目前5432/swpdm、不改歷史BOM／Vault原檔或其他dirty後端。
+下方DEV-013是先前完成紀錄；承載API5000／Web5174的frontend-clarity工作樹不動，不重新build或切換服務。
+最終SQLite／PostgreSQL16.14各112/112、前端邏輯13/13；11份CAD、4套件、22次獨立原生重開與18筆參照通過，含同名碰撞。
+成品SHA一致，55433測試叢集已停止，原dirty 52項／main乾淨狀態／現行服務PID未變。
+2026-10-24使用者僅核准本分支提交／push；提交前SQLite112/112、純邏輯13/13通過，重建成品SHA與原PG／原生證據相同。
+見[QC、原生失敗修復、原始證據與Git紀錄](qc/package-integrity-qc-2026-10-22.md)；本次不合併main／部署／執行migration或更動目前資料。
+本輪僅DM參照與可攜性，不冒充完整SolidWorks幾何重建、跨實機或DEV-015前端驗收。
 
 ## 最新完成：DEV-013 限定 migration 與 main 本機套用
 

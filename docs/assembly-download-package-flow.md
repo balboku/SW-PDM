@@ -1,5 +1,13 @@
 # Assembly Download and ZIP Packaging Flow
 
+> DEV-014 (2026-10-22): the historical Google Drive proposal below is superseded by
+> [ADR-004](../ai-doc/decisions/ADR-004-package-copy-integrity.md) for the current local-Vault implementation.
+> The active implementation is `CadPackageService` plus the guarded `SolidWorksPackageSession` copy adapter.
+> It re-traverses the selected versions, validates SHA/source containment and native references, rewrites only private copies,
+> relocates/reopens them, and returns an all-or-nothing ZIP with `manifest.json`.
+> It does not update any database row, historical BOM or Vault original; deployment is not authorized by implementation work.
+> The material below is retained only as design history, not executable/current guidance.
+
 This document describes the safest backend-only packaging strategy when:
 
 - the physical files are stored in Google Drive

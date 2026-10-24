@@ -1,4 +1,3 @@
-using System.IO.Compression;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -490,130 +489,20 @@ public static class DocumentEndpoints
 
         app.MapGet("/api/assemblies/{rootVersionId:long}/download-zip", async (
             long rootVersionId,
-            IPdmRepository repository,
-            PdmDbContext dbContext,
-            LocalStorageService storageService,
+            CadPackageService packages,
             CancellationToken cancellationToken,
             [FromQuery] bool useLatest = false,
             [FromQuery] string[]? versionOverrides = null,
             [FromQuery] bool includeDrawings = false) =>
         {
-            IReadOnlyList<PdmPackageFile> files =
-                await repository.GetPackageClosureAsync(rootVersionId, cancellationToken);
-
-            if (files.Count == 0)
-            {
-                return Results.NotFound(new
-                {
-                    title = "Assembly not found",
-                    detail = $"No package files found for rootVersionId={rootVersionId}. " +
-                             "Verify the version exists and has resolved BOM references."
-                });
-            }
-
-            if (useLatest)
-            {
-                files = await ResolveLatestPackageFilesAsync(files, dbContext, cancellationToken);
-            }
-            else if (versionOverrides is { Length: > 0 })
-            {
-                files = await ResolveOverriddenPackageFilesAsync(files, versionOverrides, dbContext, cancellationToken);
-            }
-
-            if (includeDrawings)
-            {
-                IReadOnlyList<RelatedDrawingPackageFile> relatedDrawings =
-                    await GetRelatedDrawingsAsync(files, dbContext, cancellationToken);
-
-                files = files
-                    .Concat(relatedDrawings.Select(x => x.File))
-                    .GroupBy(x => x.DocumentId)
-                    .Select(x => x.First())
-                    .ToArray();
-            }
-
-            string sessionId = Guid.NewGuid().ToString("N")[..8];
-            string tempDir = Path.Combine(
-                Path.GetTempPath(),
-                $"swpdm_zip_{rootVersionId}_{sessionId}");
-            Directory.CreateDirectory(tempDir);
-
-            string zipPath = Path.Combine(
-                Path.GetTempPath(),
-                $"assembly_{rootVersionId}_{sessionId}.zip");
-
             try
             {
-                List<string> downloadIssues = new();
-
-                foreach (PdmPackageFile file in files)
-                {
-                    string safeFileName = SanitizeFileName(file.OriginalFileName);
-                    string destPath = Path.Combine(tempDir, safeFileName);
-
-                    if (File.Exists(destPath))
-                    {
-                        continue;
-                    }
-
-                    try
-                    {
-                        if (string.IsNullOrEmpty(file.StorageFileId))
-                        {
-                            downloadIssues.Add($"File '{file.OriginalFileName}' has no storage ID.");
-                            continue;
-                        }
-
-                        await storageService.DownloadFileAsync(
-                            file.StorageFileId,
-                            destPath,
-                            cancellationToken);
-                    }
-                    catch (Exception ex)
-                    {
-                        downloadIssues.Add(
-                            $"Failed to copy '{file.OriginalFileName}' " +
-                            $"(storageId={file.StorageFileId}): {ex.Message}");
-                    }
-                }
-
-                using (ZipArchive archive = ZipFile.Open(zipPath, ZipArchiveMode.Create))
-                {
-                    foreach (string filePath in Directory.EnumerateFiles(tempDir))
-                    {
-                        archive.CreateEntryFromFile(
-                            filePath,
-                            Path.GetFileName(filePath),
-                            CompressionLevel.Fastest);
-                    }
-                }
-
-                byte[] zipBytes = await File.ReadAllBytesAsync(zipPath, cancellationToken);
-                string downloadFileName = $"assembly_{rootVersionId}.zip";
-
-                return Results.File(
-                    zipBytes,
-                    contentType: "application/zip",
-                    fileDownloadName: downloadFileName);
+                byte[] bytes = await packages.BuildAsync(rootVersionId, useLatest, versionOverrides, includeDrawings, cancellationToken);
+                return Results.File(bytes, "application/zip", $"assembly_{rootVersionId}.zip");
             }
             catch (Exception ex)
             {
                 return EndpointHelpers.ToProblem(ex);
-            }
-            finally
-            {
-                try
-                {
-                    if (Directory.Exists(tempDir))
-                        Directory.Delete(tempDir, recursive: true);
-
-                    if (File.Exists(zipPath))
-                        File.Delete(zipPath);
-                }
-                catch
-                {
-                    // Ignore cleanup errors
-                }
             }
         });
 

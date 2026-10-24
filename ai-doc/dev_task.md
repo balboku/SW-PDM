@@ -1,6 +1,8 @@
 # SW-PDM DEV 任務
 
-更新日期：2026-10-22
+更新日期：2026-10-24
+目前交付：DEV-014完整套件與副本參照重寫隔離通過，基準main 2e1e2b8、分支codex/package-integrity-20261022；本次僅核准分支提交／push，不合併main、部署或操作目前5432/swpdm。
+權威契約：[ADR-004](decisions/ADR-004-package-copy-integrity.md)。DEV-013以下套用紀錄是先前已完成狀態，不是本輪再次執行指令。
 文件狀態：DEV-013限定migration與main本機套用已完成，未混入其他未完成後端或修改既有業務資料／歷史BOM；其餘階段限制與交付狀態保留為歷史紀錄。
 
 最新本機套用：使用者已明確核准僅DEV-013 migration；5432/swpdm已套用20261022073552_AddCheckoutBatches，API5000已切至固定main 74cecca。
@@ -32,9 +34,13 @@ DEV-012本機套用紀錄已合併main並push；[套用與隔離驗證](reports/
   - 證據：reports/local-checkout-batch-main-2026-10-22.md；同成品SQLite／PG各67項、前端邏輯13項及隔離HTTP。
   - 計入交付：是
 
-- ○ DEV-014 [交付點] [待前置驗證] [P0] [後續獨立切片] 完整套件與副本參照重寫
+- ✓ DEV-014 [交付點] [後端隔離通過] [P0] [未正式套用] 完整套件與副本參照重寫
   - 摘要：完整 CAD 預檢、選版依賴與跨工作站可攜性，不修改庫內原檔。
-  - 下一步：入庫解析證據穩定後，獨立完成套件關卡；不因解析器通過標為完成。
+  - 來源 ID：2026-10-22使用者指定接續DEV-014並隔離驗證，禁止部署、migration與目前資料／Vault原檔變更。
+  - 下一步：本次執行分支提交／push；合併、套用與其他工作不在本輪。
+    完整SolidWorks幾何重建、跨實機及DEV-015另列驗收，不以DM重開冒充。
+  - 阻塞 / 恢復條件：需改目前資料、BOM、原檔、其他未完成後端或放寬完整性檢查時停止。
+  - 證據：qc/package-integrity-qc-2026-10-22.md；SQLite／PG各112/112，11份CAD、4套件、22次獨立重開、18筆參照。
   - 計入交付：是
 
 - ○ DEV-015 [交付點] [待前置驗證] [P1] [後續獨立切片] Vault 完整清單與真實異常整合
@@ -182,6 +188,45 @@ SQLite HTTP 41/41、PostgreSQL 16.14 HTTP 41/41（0 略過）、既有前端邏�
 無 interop 假成功防護通過；Release API 0 警告／0 錯誤；原 dirty 指紋不變，未執行 migration。
 完整命令、過程中失敗與排除範圍見 [QC](qc/ingest-integrity-qc-2026-10-22.md)。
 不以本輪結果冒充跨工作站幾何／套件或 DEV-013～015 UI 整合通過。
+
+## DEV-014：2026-10-22 完整套件與副本參照重寫
+
+狀態：後端實作與隔離QC通過；2026-10-24僅核准分支提交／push，未合併或正式套用。節點：交付點，P0，計入交付。
+基準main 2e1e2b89cfcaf90aba47214fb4435eef041b69e3；重用不承載目前服務的乾淨checkout-reused-contract工作樹，分支codex/package-integrity-20261022。
+
+### 本輪工程契約與驗收
+
+- 目的：完整選版依賴、碰撞安全命名與可搬移副本；不更動DB／歷史BOM／Vault原檔。
+- 契約權威：ADR-004，刻意替換舊download-zip的缺檔仍出包／同名略過／無效選版忽略；保留成功路由、參數與ZIP下載名稱。
+- 版本選擇後重新讀所選父版本的BOM；原生檢查所有組態、設計依賴、抑制與虛擬狀態；無證據／歧義／循環／錯SHA一律阻擋。
+- 只在GUID workspace開CAD副本寫入；先初始化參照，ReplaceReference／必要時依精確原生occurrence替換元件，檢查Save回傳，搬移後重開核對所有目標在套件內。
+- 回傳ZIP及無敏感路徑的manifest，Problem提供繁中說明及穩定code；不產生部分成功ZIP。
+- 驗收：同名、缺檔、選版新／舊依賴、非法覆寫、抑制／虛擬／設計依賴、所有組態、錯誤重寫／Save／搬移、錯目標與回歸皆有隔離證據；另有真實CAD原生重開／SHA證據。
+- 停止：需要目前資料寫入、migration、原檔重建、跨入DEV-015／其他dirty後端或原生關卡不過時不得標完成。
+- 範圍外：部署、commit／push、完整SolidWorks幾何重建與跨實機工作站；後兩者若未執行必須明列，不以DM重開冒充。
+
+### QA 風險與證據計畫
+
+| 失效模式 | 本輪驗證／防護 |
+|---|---|
+| 選新版卻保留舊依賴／漏新件 | 每個所選版本重走BOM；新／舊子組立選版正向與不包含舊件斷言 |
+| 同名檔錯覆／缺檔仍出包 | vVersionId唯一名、所有來源SHA／大小／安全路徑預檢、失敗不回ZIP |
+| 快取舊路徑被當新參照 | 原生GetChangedReferences／GetReplacedComponents與精確occurrence證據，禁止全Vault同名猜配 |
+| Save／Replace無效但回成功 | fake故障／no-op負向；真實CAD關檔、搬移／解壓重開與manifest核對 |
+| 外部／設計／抑制／組態依賴漏包 | all-config原生預檢、必要依賴遞迴及錯組態／未解析負向 |
+| 原庫／原檔污染 | 只隔離SQLite／新55433 GUID庫與私有Vault，前後資料／BOM／檔案SHA；目前庫不連線 |
+
+證據：TRX分列SQLite／PG，保存首次失敗；原生樣本／成品／原檔SHA、搬移重開結果、Git boundary；QC後更新狀態與文件入口。
+
+### QC 結果
+
+最終同成品SQLite／PostgreSQL16.14各112/112、0失敗／略過（包含原67項回歸），前端純邏輯13/13；原生驗證器／UI fixture Release 0警告／0錯誤。
+11份受控CAD副本產出4套件，22次獨立原生解壓重開、18筆參照、同名碰撞、manifest、來源／私有Vault SHA及測試DB／BOM前後一致性通過。
+最終產品DLL在API／ContractTests／NativePackageVerifier三處相等；55433私有叢集已零殘留GUID庫並精確關閉。
+原dirty 52項與tracked diff／index指紋不變；承載服務的main仍2e1e2b8且乾淨，API5000／Web5174／PG5432 PID未變。
+未連線目前5432/swpdm、未執行migration、未改歷史BOM／Vault原檔或混入其他後端；本輪程式仍在獨立分支未提交。
+命令、開發中原生失敗／修正、MSBuild鎖定事件、原始TRX及SHA見[QC](qc/package-integrity-qc-2026-10-22.md)。
+未執行完整SolidWorks幾何重建／第二台實機工作站；真實抑制／虛擬／多組態型態不宣稱全面覆蓋，DEV-015前端整合亦未完成。
 
 ## DEV-013：2026-10-22 整批出庫安全復原
 

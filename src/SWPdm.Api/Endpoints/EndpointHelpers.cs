@@ -36,6 +36,9 @@ public static class EndpointHelpers
                 detail: "本次未完成，請重新整理後重試。", statusCode: 409);
         return ex switch
         {
+            PackageBuildException package => Results.Problem(title: "套件尚未通過完整性檢查", detail: package.Message,
+                statusCode: package.Code == "PACKAGE_NATIVE_UNAVAILABLE" ? 503 : 409,
+                extensions: new Dictionary<string, object?> { ["code"] = package.Code, ["issues"] = package.Issues }),
             PdmWorkflowException workflow => Results.Problem(
                 title: "請確認入庫條件", detail: workflow.Message, statusCode: 409,
                 extensions: new Dictionary<string, object?> { ["code"] = workflow.Code }),

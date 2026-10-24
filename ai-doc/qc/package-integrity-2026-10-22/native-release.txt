@@ -1,0 +1,1 @@
+NATIVE_PACKAGE_PASS sourceFiles=11; packages=4; independentlyOpened=22; references=18; collision/relocation/manifest/sourceHashes/vaultHashes/databaseBom=PASS

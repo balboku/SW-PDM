@@ -20,6 +20,8 @@ builder.Services.AddDbContext<PdmDbContext>(o => o.UseSqlite(connection.Connecti
 builder.Services.AddScoped<IPdmRepository, PdmRepository>();
 builder.Services.AddScoped<CancelCheckoutService>();
 builder.Services.AddScoped<CheckoutBatchService>();
+builder.Services.AddScoped<CadPackageService>();
+builder.Services.AddSingleton<ICadPackageSessionFactory, CadPackageSessionFactory>();
 builder.Services.AddScoped<PdmIngestionService>();
 builder.Services.Configure<LocalStorageOptions>(_ => { });
 builder.Services.AddSingleton<ICadIngestionSessionFactory, UiCadParser>();

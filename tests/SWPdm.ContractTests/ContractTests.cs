@@ -184,6 +184,7 @@ internal sealed class ContractHost : IAsyncDisposable
     public DateTimeOffset LockTime { get; } = new DateTimeOffset(2026, 10, 22, 1, 2, 3, TimeSpan.Zero).AddTicks(1234560);
     public DateTimeOffset UpdatedAt { get; } = new(2026, 10, 21, 0, 0, 0, TimeSpan.Zero);
     public FakeParser Parser { get; } = new();
+    public FakePackageCad PackageCad { get; } = new();
     public HttpClient Client { get; private set; } = null!;
     private WebApplication app = null!;
     private SqliteConnection? sqlite;
@@ -222,6 +223,8 @@ internal sealed class ContractHost : IAsyncDisposable
         builder.Services.AddScoped<IPdmRepository, PdmRepository>();
         builder.Services.AddScoped<CancelCheckoutService>(); builder.Services.AddScoped<PdmIngestionService>();
         builder.Services.AddScoped<CheckoutBatchService>();
+        builder.Services.AddScoped<CadPackageService>();
+        builder.Services.AddSingleton<ICadPackageSessionFactory>(host.PackageCad);
         builder.Services.Configure<LocalStorageOptions>(_ => { });
         builder.Services.Configure<SolidWorksDocumentManagerOptions>(_ => { });
         builder.Services.AddSingleton<SolidWorksDocumentManagerServiceFactory>();
