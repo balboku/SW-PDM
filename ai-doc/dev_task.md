@@ -1,7 +1,7 @@
 # SW-PDM DEV 任務
 
 更新日期：2026-10-24
-目前交付：DEV-014完整套件與副本參照重寫隔離通過，基準main 2e1e2b8、分支codex/package-integrity-20261022；本次僅核准分支提交／push，不合併main、部署或操作目前5432/swpdm。
+目前交付：DEV-014完整套件與副本參照重寫隔離通過，功能78492f8已提交／push至codex/package-integrity-20261022，遠端SHA已核對；未合併main、部署或操作目前5432/swpdm。
 權威契約：[ADR-004](decisions/ADR-004-package-copy-integrity.md)。DEV-013以下套用紀錄是先前已完成狀態，不是本輪再次執行指令。
 文件狀態：DEV-013限定migration與main本機套用已完成，未混入其他未完成後端或修改既有業務資料／歷史BOM；其餘階段限制與交付狀態保留為歷史紀錄。
 
@@ -37,7 +37,7 @@ DEV-012本機套用紀錄已合併main並push；[套用與隔離驗證](reports/
 - ✓ DEV-014 [交付點] [後端隔離通過] [P0] [未正式套用] 完整套件與副本參照重寫
   - 摘要：完整 CAD 預檢、選版依賴與跨工作站可攜性，不修改庫內原檔。
   - 來源 ID：2026-10-22使用者指定接續DEV-014並隔離驗證，禁止部署、migration與目前資料／Vault原檔變更。
-  - 下一步：本次執行分支提交／push；合併、套用與其他工作不在本輪。
+  - 下一步：本次分支提交／push已完成；合併、套用與其他工作不在本輪。
     完整SolidWorks幾何重建、跨實機及DEV-015另列驗收，不以DM重開冒充。
   - 阻塞 / 恢復條件：需改目前資料、BOM、原檔、其他未完成後端或放寬完整性檢查時停止。
   - 證據：qc/package-integrity-qc-2026-10-22.md；SQLite／PG各112/112，11份CAD、4套件、22次獨立重開、18筆參照。
@@ -191,7 +191,7 @@ SQLite HTTP 41/41、PostgreSQL 16.14 HTTP 41/41（0 略過）、既有前端邏�
 
 ## DEV-014：2026-10-22 完整套件與副本參照重寫
 
-狀態：後端實作與隔離QC通過；2026-10-24僅核准分支提交／push，未合併或正式套用。節點：交付點，P0，計入交付。
+狀態：後端實作與隔離QC通過，2026-10-24功能78492f8已提交／push；未合併或正式套用。節點：交付點，P0，計入交付。
 基準main 2e1e2b89cfcaf90aba47214fb4435eef041b69e3；重用不承載目前服務的乾淨checkout-reused-contract工作樹，分支codex/package-integrity-20261022。
 
 ### 本輪工程契約與驗收
@@ -203,7 +203,8 @@ SQLite HTTP 41/41、PostgreSQL 16.14 HTTP 41/41（0 略過）、既有前端邏�
 - 回傳ZIP及無敏感路徑的manifest，Problem提供繁中說明及穩定code；不產生部分成功ZIP。
 - 驗收：同名、缺檔、選版新／舊依賴、非法覆寫、抑制／虛擬／設計依賴、所有組態、錯誤重寫／Save／搬移、錯目標與回歸皆有隔離證據；另有真實CAD原生重開／SHA證據。
 - 停止：需要目前資料寫入、migration、原檔重建、跨入DEV-015／其他dirty後端或原生關卡不過時不得標完成。
-- 範圍外：部署、commit／push、完整SolidWorks幾何重建與跨實機工作站；後兩者若未執行必須明列，不以DM重開冒充。
+- 原隔離階段範圍外：部署、commit／push、完整SolidWorks幾何重建與跨實機工作站；後兩者若未執行必須明列，不以DM重開冒充。
+  2026-10-24已另核准僅本分支commit／push，未放寬其他限制。
 
 ### QA 風險與證據計畫
 
@@ -224,7 +225,7 @@ SQLite HTTP 41/41、PostgreSQL 16.14 HTTP 41/41（0 略過）、既有前端邏�
 11份受控CAD副本產出4套件，22次獨立原生解壓重開、18筆參照、同名碰撞、manifest、來源／私有Vault SHA及測試DB／BOM前後一致性通過。
 最終產品DLL在API／ContractTests／NativePackageVerifier三處相等；55433私有叢集已零殘留GUID庫並精確關閉。
 原dirty 52項與tracked diff／index指紋不變；承載服務的main仍2e1e2b8且乾淨，API5000／Web5174／PG5432 PID未變。
-未連線目前5432/swpdm、未執行migration、未改歷史BOM／Vault原檔或混入其他後端；本輪程式仍在獨立分支未提交。
+未連線目前5432/swpdm、未執行migration、未改歷史BOM／Vault原檔或混入其他後端；原隔離完成時未提交，2026-10-24後續已僅提交／push本分支。
 命令、開發中原生失敗／修正、MSBuild鎖定事件、原始TRX及SHA見[QC](qc/package-integrity-qc-2026-10-22.md)。
 未執行完整SolidWorks幾何重建／第二台實機工作站；真實抑制／虛擬／多組態型態不宣稱全面覆蓋，DEV-015前端整合亦未完成。
 

@@ -107,4 +107,8 @@ API／Sample／interop 在 API、ContractTests、NativePackageVerifier 三處的
 提交前 `git ls-remote` 確認遠端 main 仍 `2e1e2b89cfcaf90aba47214fb4435eef041b69e3`、DEV-014 遠端分支尚不存在；無啟用的本機 hooks，未加入 CI／部署設定。
 使用明確檔案清單 staging，排除原 dirty checkout、entity／migration／模型／入庫解析器／其他後端與產品前端。
 首次 staged whitespace 檢查將原生 TXT 的 CRLF 判為行尾空白；只補該證據目錄的 `cr-at-eol` 屬性，不轉換原始 TXT／TRX／JSON 位元組或更動其 SHA。
-提交與遠端 SHA 核對完成後，再於此補實際結果；不將本次 push 當成合併或正式套用。
+功能與驗證證據已以 `78492f8f3ca10d38510328375fb938fbaa23d93f` 提交，27 檔，並非強制 push 至 `origin/codex/package-integrity-20261022`；當次遠端 SHA 與本機一致。
+遠端 main 仍 `2e1e2b89cfcaf90aba47214fb4435eef041b69e3`，承載服務的 main 工作樹 0 項變更；未建立 PR、合併、部署或執行 migration。
+原 dirty checkout 仍 52 項，tracked diff `eb8bdd8fb2032a4a299f44bcc7696e57d216192f`、index `e69de29bb2d1d6434b8b29ae775ad8c2e48c5391` 不變。
+6 份已提交 TRX／JSON／TXT 的 Git blob 與原始位元組逐一相同；產品／測試原始碼不再修改，後續只提交本段與兩個文件入口的 Git 狀態。
+本次不連線目前業務資料庫、不讀寫既有業務資料／歷史 BOM／Vault 原檔，也不重啟或切換本機服務。完整 SolidWorks 幾何／跨實機與 DEV-015 限制維持不變。
