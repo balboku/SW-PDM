@@ -14,6 +14,29 @@ namespace SWPdm.ContractTests;
 public sealed class CheckoutBatchTests
 {
     [Fact]
+    public async Task CheckoutPreviewUsesDocumentIdentityAndCurrentLockButExcludesHistoricalDrawings()
+    {
+        await using var h = await Start();
+        await h.WithDb(async db => {
+            var child = (await db.Documents.FindAsync(2L))!;
+            var newer = Version(2, "existing-new.sldprt", 2); db.Add(newer); await db.SaveChangesAsync();
+            child.CurrentVersionId = newer.VersionId; await db.SaveChangesAsync();
+        });
+        string before = await Snapshot(h);
+        var result = await h.Client.GetFromJsonAsync<JsonElement>("/api/documents/1/checkout-references");
+        var references = result.GetProperty("references").EnumerateArray().ToArray();
+        var oldChild = Assert.Single(references.Where(x => x.GetProperty("documentId").GetInt64() == 2));
+        Assert.Equal("User", oldChild.GetProperty("checkedOutBy").GetString());
+        Assert.Equal(h.LockTime, oldChild.GetProperty("checkedOutAt").GetDateTimeOffset());
+        Assert.Equal(new long[] { 4, 7 }, result.GetProperty("drawings").EnumerateArray().Select(x => x.GetProperty("documentId").GetInt64()).Order());
+        Assert.Contains(result.GetProperty("whereUsed").EnumerateArray(), x => x.GetProperty("documentId").GetInt64() == 5);
+        Assert.Equal(before, await Snapshot(h));
+        var checkout = await Checkout(h);
+        Assert.Equal(4, checkout.GetProperty("acquiredCount").GetInt32());
+        Assert.Equal(1, checkout.GetProperty("reusedLockCount").GetInt32());
+    }
+
+    [Fact]
     public async Task AcquiresOnlyNewLocksAndPersistsExactSnapshotWithoutChangingHistory()
     {
         await using var h = await Start();

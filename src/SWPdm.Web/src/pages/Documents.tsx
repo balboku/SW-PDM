@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, Loader2, Download, PackageOpen, Server, FileText, Archive, History, Link2, AlertCircle, AlertTriangle, RefreshCw, GitBranch, ArrowRight } from 'lucide-react';
-import { api, searchDocuments, downloadAssemblyZip, downloadVersion, getVersionThumbnailUrl, checkAssemblyUpdates, getDocumentRelations, getDocumentReferenceUpdates } from '../lib/api';
+import { api, searchDocuments, downloadAssemblyZip, downloadVersion, getVersionThumbnailUrl, checkAssemblyUpdates, getDocumentRelations, getDocumentReferenceUpdates, getDocumentIntegrity } from '../lib/api';
+import { isVaultPage, changedOverrides } from '../lib/vault-model';
+import { DocumentIntegrityPanel } from '../components/DocumentIntegrityPanel';
 import { BomTreeView } from '../components/BomTreeView';
 import { CheckOutModal } from '../components/CheckOutModal';
 import { CheckInModal } from '../components/CheckInModal';
@@ -364,7 +366,10 @@ export default function Documents() {
   const downloadFeedback = useRef<HTMLDivElement>(null);
   const downloadRequestId = useRef(0);
   const [actionMessage, setActionMessage] = useState('');
-  const [appliedFilters, setAppliedFilters] = useState({ query: '', type: 'All', status: 'All' });
+  const [appliedFilters, setAppliedFilters] = useState({ query: '', type: 'All', status: 'All', integrity: 'All' });
+  const [selectedIntegrity, setSelectedIntegrity] = useState('All');
+  const [integrityData, setIntegrityData] = useState<any>(null);
+  const detailRequestId = useRef(0);
   const [isCheckOutModalOpen, setIsCheckOutModalOpen] = useState(false);
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
   const [isUndoModalOpen, setIsUndoModalOpen] = useState(false);
@@ -382,6 +387,7 @@ export default function Documents() {
   const [packAndGoSelections, setPackAndGoSelections] = useState<Record<number, number>>({});
   const [packAndGoRelatedDrawings, setPackAndGoRelatedDrawings] = useState<RelatedDrawing[]>([]);
   const [packAndGoPreviewError, setPackAndGoPreviewError] = useState('');
+  const [packageProblem, setPackageProblem] = useState<any>(null);
   const [includeDrawings, setIncludeDrawings] = useState(true);
   const [relationData, setRelationData] = useState<any>(null);
   const [isRelationLoading, setIsRelationLoading] = useState(false);
@@ -394,21 +400,23 @@ export default function Documents() {
   const [selectedStatus, setSelectedStatus] = useState('All');
   const selectedDocumentIdRef = useRef<number | null>(null);
 
-  const fetchDocuments = async (searchQuery: string = query, type: string = selectedType, status: string = selectedStatus, targetPage = page) => {
+  const fetchDocuments = async (searchQuery = appliedFilters.query, type = appliedFilters.type, status = appliedFilters.status, targetPage = page, integrity = appliedFilters.integrity) => {
     const requestId = ++searchRequestId.current;
+    // Retry the last submitted filters, even if that request failed. Draft text is not applied by paging.
+    setAppliedFilters({ query: searchQuery, type, status, integrity });
+    setPage(targetPage);
     setIsLoading(true);
     setDocumentLoadError('');
     try {
-      const data = await searchDocuments(searchQuery, type, status, targetPage);
+      const data = await searchDocuments(searchQuery, type, status, targetPage, integrity);
       if (requestId !== searchRequestId.current) return;
-      setAppliedFilters({ query: searchQuery, type, status });
       if (Array.isArray(data)) {
         setLegacyApi(true); setDocuments(data); setPage(1);
         setPageInfo({ totalCount: data.length, totalPages: 1, newerReferenceDocumentCount: data.filter(d => d.referenceUpdateCount > 0).length,
           missingReferenceDocumentCount: 0, checkedOutCount: data.filter(d => d.checkedOutBy).length });
         return;
       }
-      if (!Array.isArray(data?.items)) throw new Error('資料格式不正確');
+      if (!isVaultPage(data)) throw new Error('分頁或統計資料格式不正確');
       setLegacyApi(false);
       setDocuments(data.items); setPageInfo(data); setPage(data.page);
     } catch (error) {
@@ -430,15 +438,15 @@ export default function Documents() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchDocuments(query, selectedType, selectedStatus, 1);
+    fetchDocuments(query, selectedType, selectedStatus, 1, selectedIntegrity);
   };
 
   const clearFilters = () => {
-    setQuery(''); setSelectedType('All'); setSelectedStatus('All');
-    void fetchDocuments('', 'All', 'All', 1);
+    setQuery(''); setSelectedType('All'); setSelectedStatus('All'); setSelectedIntegrity('All');
+    void fetchDocuments('', 'All', 'All', 1, 'All');
   };
-  const hasActiveFilters = Boolean(appliedFilters.query.trim() || appliedFilters.type !== 'All' || appliedFilters.status !== 'All');
-  const closeDetails = () => { selectedDocumentIdRef.current = null; downloadRequestId.current++; setSelectedDoc(null); };
+  const hasActiveFilters = Boolean(appliedFilters.query.trim() || appliedFilters.type !== 'All' || appliedFilters.status !== 'All' || appliedFilters.integrity !== 'All');
+  const closeDetails = () => { selectedDocumentIdRef.current = null; detailRequestId.current++; downloadRequestId.current++; setSelectedDoc(null); };
 
   const handleDownload = async (versionId: number, fileName?: string) => {
     if (downloadState?.status === 'loading') return;
@@ -493,6 +501,8 @@ export default function Documents() {
   };
 
   const handleSelectDocument = async (doc: any) => {
+    const request = ++detailRequestId.current;
+    setIntegrityData(null);
     selectedDocumentIdRef.current = doc.documentId;
     setSelectedDoc(doc);
     downloadRequestId.current++;
@@ -509,17 +519,23 @@ export default function Documents() {
     void loadDocumentReferenceUpdates(doc.documentId);
 
     try {
-      const response = await api.get(`/api/documents/${doc.documentId}`);
+      const [response, evidence] = await Promise.all([api.get(`/api/documents/${doc.documentId}`), getDocumentIntegrity(doc.documentId)]);
+      if (request !== detailRequestId.current || selectedDocumentIdRef.current !== doc.documentId) return;
+      if (evidence.documentId !== doc.documentId || evidence.evidenceLevel !== 'StoredSnapshot' || evidence.nativeFileChecked !== false ||
+          !Array.isArray(evidence.references) || !Array.isArray(evidence.properties)) throw new Error('無法確認資料版本');
+      setIntegrityData(evidence);
       setSelectedDoc((current: any) => (
         current?.documentId === doc.documentId
-          ? { ...doc, ...response.data }
+          ? { ...doc, ...response.data, checkedOutBy: evidence.checkedOutBy, checkedOutAt: evidence.checkedOutAt,
+              partName: evidence.propertySources?.partName?.value, propertySources: evidence.propertySources,
+              missingReferenceCount: evidence.unresolvedCount + (evidence.currentVersionMissing ? 1 : 0) }
           : current
       ));
     } catch (error) {
       console.error('Failed to load document details', error);
-      if (selectedDocumentIdRef.current === doc.documentId) setDetailError(true);
+      if (selectedDocumentIdRef.current === doc.documentId && request === detailRequestId.current) setDetailError(true);
     } finally {
-      if (selectedDocumentIdRef.current === doc.documentId) setDetailLoading(false);
+      if (selectedDocumentIdRef.current === doc.documentId && request === detailRequestId.current) setDetailLoading(false);
     }
   };
 
@@ -531,6 +547,7 @@ export default function Documents() {
     setPackAndGoSelections({});
     setPackAndGoRelatedDrawings([]);
     setPackAndGoPreviewError('');
+    setPackageProblem(null);
     setIncludeDrawings(true);
 
     try {
@@ -573,17 +590,18 @@ export default function Documents() {
     setIsPackageBusy(true);
     setPackAndGoPreviewError('');
     const overrides = mode === 'selected'
-      ? Object.entries(packAndGoSelections).map(([source, selected]) => `${source}:${selected}`)
+      ? changedOverrides(packAndGoSelections)
       : [];
     try {
       await downloadAssemblyZip(packAndGoTarget, false, overrides, includeDrawings);
       closePackAndGoModal();
     } catch (error: any) {
-      let detail = error.response?.data?.detail;
+      let problem = error.response?.data;
       if (error.response?.data instanceof Blob) {
-        try { detail = JSON.parse(await error.response.data.text()).detail; } catch { /* retain fallback */ }
+        try { problem = JSON.parse(await error.response.data.text()); } catch { problem = null; }
       }
-      setPackAndGoPreviewError(detail || '套件尚未下載，請確認參照或重新選版後再試。');
+      setPackageProblem(problem);
+      setPackAndGoPreviewError(problem?.detail || '套件尚未下載，請確認參照或重新選版後再試。');
     } finally { setIsPackageBusy(false); }
   };
 
@@ -617,7 +635,7 @@ export default function Documents() {
             <Server className="mr-3 text-[#D4AF37]" size={28} />
             圖檔中心 (Vault)
           </h1>
-          {legacyApi && <details className="mt-2 max-w-xl text-sm text-amber-800"><summary className="cursor-pointer">清單最多顯示 50 筆，請使用搜尋縮小範圍</summary><p className="mt-2">目前 API 回傳有限筆數，並非全部圖面。未檢測不代表沒有缺失；本版取消出庫只解除選取文件，不會自動處理整批。</p></details>}
+          {legacyApi && <details className="mt-2 max-w-xl text-sm text-amber-800"><summary className="cursor-pointer">清單最多顯示 50 筆，請使用搜尋縮小範圍</summary><p className="mt-2">目前 API 回傳有限筆數，並非全部圖面。未檢測不代表沒有缺失；批次復原需有本人批次紀錄與成功預覽，不會自動推算舊出庫。</p></details>}
           <p className="text-gray-600 mt-2 text-sm">選取圖檔查看明細、下載或辦理出入庫。</p>
           <Link to="/ingest" className="mt-3 inline-flex rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white focus-visible:ring-2 focus-visible:ring-blue-500">首次匯入 CAD</Link>
         </div>
@@ -658,6 +676,7 @@ export default function Documents() {
                 </div>
                 <input
                   aria-label="搜尋檔名、品名、圖號或料號"
+                  maxLength={200}
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
@@ -671,7 +690,7 @@ export default function Documents() {
                 value={selectedType}
                 onChange={(e) => {
                   setSelectedType(e.target.value);
-                  fetchDocuments(query, e.target.value, selectedStatus, 1);
+                  fetchDocuments(query, e.target.value, selectedStatus, 1, selectedIntegrity);
                 }}
                 className="w-full bg-gray-800/50 text-gray-200 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#D4AF37] sm:w-auto"
               >
@@ -686,13 +705,19 @@ export default function Documents() {
                 value={selectedStatus}
                 onChange={(e) => {
                   setSelectedStatus(e.target.value);
-                  fetchDocuments(query, selectedType, e.target.value, 1);
+                  fetchDocuments(query, selectedType, e.target.value, 1, selectedIntegrity);
                 }}
                 className="w-full bg-gray-800/50 text-gray-200 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#D4AF37] sm:w-auto"
               >
                 <option value="All">所有狀態</option>
                 <option value="Available">可用 (Available)</option>
                 <option value="CheckedOut">已出庫 (Locked)</option>
+              </select>
+
+              <select aria-label="參照異常篩選" value={selectedIntegrity} disabled={legacyApi || isLoading}
+                onChange={event => { setSelectedIntegrity(event.target.value); void fetchDocuments(query, selectedType, selectedStatus, 1, event.target.value); }}
+                className="w-full rounded-lg border border-gray-700 bg-gray-800/50 px-3 py-2 text-sm text-gray-200 sm:w-auto">
+                <option value="All">所有參照狀態</option><option value="Missing">缺失／待確認</option><option value="Newer">有新版參照</option>
               </select>
 
               <button
@@ -718,7 +743,7 @@ export default function Documents() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => void fetchDocuments(query, selectedType, selectedStatus)}
+                  onClick={() => void fetchDocuments()}
                   className="inline-flex shrink-0 items-center justify-center rounded-lg border border-rose-400/50 bg-rose-500/15 px-3 py-2 text-xs font-semibold text-rose-100 transition-colors hover:bg-rose-500/25 focus:outline-none focus:ring-2 focus:ring-rose-400 disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={isLoading}
                 >
@@ -878,10 +903,10 @@ export default function Documents() {
             </table>
           </div>
             <nav aria-label="圖檔清單分頁" className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-800 p-3 text-xs text-gray-300">
-              <span>{documentLoadError ? '清單尚未載入，筆數未確認' : `共 ${pageInfo.totalCount} 份 · 第 ${page} / ${pageInfo.totalPages} 頁 · 本頁 ${documents.length} 份`}</span>
+                <span>{documentLoadError ? '清單尚未載入，筆數未確認' : legacyApi ? `已載入 ${documents.length} 份（非全部）；請搜尋縮小範圍` : `共 ${pageInfo.totalCount} 份 · 第 ${page} / ${pageInfo.totalPages} 頁 · 本頁 ${documents.length} 份`}</span>
               <div className="flex gap-2">
-                <button disabled={isLoading || Boolean(documentLoadError) || page <= 1} onClick={() => fetchDocuments(query, selectedType, selectedStatus, page - 1)} className="rounded border border-gray-600 px-3 py-2 disabled:opacity-40">上一頁</button>
-                <button disabled={isLoading || Boolean(documentLoadError) || page >= pageInfo.totalPages} onClick={() => fetchDocuments(query, selectedType, selectedStatus, page + 1)} className="rounded border border-gray-600 px-3 py-2 disabled:opacity-40">下一頁</button>
+                <button disabled={isLoading || Boolean(documentLoadError) || page <= 1} onClick={() => fetchDocuments(appliedFilters.query, appliedFilters.type, appliedFilters.status, page - 1)} className="rounded border border-gray-600 px-3 py-2 disabled:opacity-40">上一頁</button>
+                <button disabled={isLoading || Boolean(documentLoadError) || page >= pageInfo.totalPages} onClick={() => fetchDocuments(appliedFilters.query, appliedFilters.type, appliedFilters.status, page + 1)} className="rounded border border-gray-600 px-3 py-2 disabled:opacity-40">下一頁</button>
               </div>
             </nav>
         </div>
@@ -945,6 +970,7 @@ export default function Documents() {
                 isCheckedOut={Boolean(selectedDoc.checkedOutBy)}
                 onRetry={() => loadDocumentReferenceUpdates(selectedDoc.documentId)}
               />
+              <DocumentIntegrityPanel data={integrityData} />
 
               {/* Checkout Controls */}
               <div className="mt-4 flex flex-wrap gap-2">
@@ -1142,8 +1168,9 @@ export default function Documents() {
         onClose={() => setIsCheckOutModalOpen(false)}
         documentId={selectedDoc?.documentId}
         fileName={selectedDoc?.fileName}
-        onSuccess={(checkedOutBy) => {
-          setActionMessage(`出庫完成，由 ${checkedOutBy} 鎖定。下一步：下載圖檔，在 SolidWorks 修改並儲存後，再使用「修改後入庫」。`);
+        onSuccess={(checkedOutBy, result) => {
+          setActionMessage(`出庫完成，由 ${checkedOutBy} 鎖定。${result?.batchId ? `本次新取得 ${result.acquiredCount} 份鎖、沿用 ${result.reusedLockCount} 份；可在「取消出庫」選擇本人批次復原。` : ''}下一步：下載圖檔，在 SolidWorks 修改並儲存後，再使用「修改後入庫」。`);
+          setCancelActor(checkedOutBy);
           setSelectedDoc((current: any) => current
             ? { ...current, checkedOutBy, checkedOutAt: new Date().toISOString() }
             : current);
@@ -1168,7 +1195,7 @@ export default function Documents() {
       <CancelCheckoutModal isOpen={isUndoModalOpen} documentId={selectedDoc?.documentId} fileName={selectedDoc?.fileName}
         initialActor={cancelActor} onClose={() => { setIsUndoModalOpen(false); setCancelActor(undefined); }} onSuccess={() => {
           void fetchDocuments();
-          if (selectedDoc) void handleSelectDocument({ ...selectedDoc, checkedOutBy: null, checkedOutAt: null });
+          if (selectedDoc) void handleSelectDocument(selectedDoc);
         }} />
       <Modal
         isOpen={packAndGoTarget !== null}
@@ -1185,6 +1212,10 @@ export default function Documents() {
             <div ref={packageErrorRef} className="break-all rounded border border-red-900/40 bg-red-950/20 p-3 text-xs text-red-300" role="alert">
               <p className="font-medium">套件尚未建立；請修正參照或調整版本／工程圖範圍後重試。</p>
               <p className="mt-1 text-red-400">{packAndGoPreviewError}</p>
+              {packageProblem?.code && <details className="mt-2"><summary className="cursor-pointer">查看受影響檔案與錯誤碼</summary>
+                <p className="mt-2">{packageProblem.code}</p>
+                {Array.isArray(packageProblem.issues) && packageProblem.issues.map((issue: any, index: number) => <p key={index} className="mt-1 break-words">{issue.fileName}：{issue.message}</p>)}
+              </details>}
             </div>
           )}
 

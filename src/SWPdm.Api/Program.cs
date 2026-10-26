@@ -70,6 +70,7 @@ builder.Services.AddScoped<PdmIngestionService>();
 builder.Services.AddScoped<CancelCheckoutService>();
 builder.Services.AddScoped<CheckoutBatchService>();
 builder.Services.AddScoped<CadPackageService>();
+builder.Services.AddScoped<VaultQueryService>();
 builder.Services.AddSingleton<ICadPackageSessionFactory, CadPackageSessionFactory>();
 builder.Services.AddSingleton<ICadIngestionSessionFactory>(sp => sp.GetRequiredService<SolidWorksDocumentManagerServiceFactory>());
 

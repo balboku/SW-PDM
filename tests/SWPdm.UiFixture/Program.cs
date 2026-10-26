@@ -21,6 +21,7 @@ builder.Services.AddScoped<IPdmRepository, PdmRepository>();
 builder.Services.AddScoped<CancelCheckoutService>();
 builder.Services.AddScoped<CheckoutBatchService>();
 builder.Services.AddScoped<CadPackageService>();
+builder.Services.AddScoped<VaultQueryService>();
 builder.Services.AddSingleton<ICadPackageSessionFactory, CadPackageSessionFactory>();
 builder.Services.AddScoped<PdmIngestionService>();
 builder.Services.Configure<LocalStorageOptions>(_ => { });
@@ -46,7 +47,9 @@ app.Use(async (context, next) =>
         || (scenario == "fail-relations" && path.EndsWith("/checkout-references"))
         || (scenario == "fail-checkout" && path.EndsWith("/checkout"))
         || (scenario == "fail-bom" && path.EndsWith("/children"))
-        || (scenario == "fail-cancel-preview" && path.EndsWith("/undo-checkout-preview"));
+        || (scenario == "fail-cancel-preview" && path.EndsWith("/undo-checkout-preview"))
+        || (scenario == "fail-integrity" && path.EndsWith("/integrity"))
+        || (scenario == "fail-batches" && path.EndsWith("/checkout-batches"));
     if (fail)
     {
         await Results.Problem(statusCode: 503, title: "合成驗證失敗", detail: "這是隔離 UI fixture 的預期錯誤；未更動正式資料。").ExecuteAsync(context);
@@ -58,6 +61,29 @@ app.Use(async (context, next) =>
         var document = await db.Documents.FindAsync(58L);
         document!.CheckedOutAt = document.CheckedOutAt!.Value.AddSeconds(1);
         await db.SaveChangesAsync();
+    }
+    if (scenario == "stale-batch" && path == "/api/documents/60/undo-checkout" && context.Request.Method == "POST")
+    {
+        var db = context.RequestServices.GetRequiredService<PdmDbContext>();
+        var root = await db.Documents.FindAsync(60L);
+        root!.CheckedOutAt = root.CheckedOutAt!.Value.AddSeconds(1);
+        await db.SaveChangesAsync();
+    }
+    if (scenario == "malformed-search" && path == "/api/documents/search")
+    {
+        await Results.Ok(new { items = Array.Empty<object>(), totalCount = 60, page = 1 }).ExecuteAsync(context); return;
+    }
+    if (scenario == "legacy-search" && path == "/api/documents/search")
+    {
+        var vault = context.RequestServices.GetRequiredService<VaultQueryService>();
+        await Results.Ok(await vault.SearchAsync(context.Request.Query["query"], context.Request.Query["documentType"],
+            context.Request.Query["status"], null, false, 1, 50, context.RequestAborted)).ExecuteAsync(context); return;
+    }
+    if (scenario == "slow-search" && path == "/api/documents/search" && context.Request.Query["query"] == "TEST-059")
+        await Task.Delay(8000, context.RequestAborted);
+    if (path.EndsWith("/thumbnail"))
+    {
+        await Results.Text("<svg xmlns='http://www.w3.org/2000/svg' width='80' height='50'><rect width='80' height='50' fill='#334155'/><text x='15' y='30' fill='white'>TEST</text></svg>", "image/svg+xml").ExecuteAsync(context); return;
     }
     if (scenario == "empty" && path == "/api/documents/search")
     {
@@ -76,33 +102,11 @@ app.Use(async (context, next) =>
         await Results.File(System.Text.Encoding.UTF8.GetBytes("Synthetic UI download; this is not CAD."), "text/plain", "UI-QC.txt").ExecuteAsync(context);
         return;
     }
-    if (path == "/api/documents/search")
-    {
-        // The published query uses PostgreSQL ILike and DateTimeOffset ordering,
-        // neither supported by SQLite. Adapt only the fixture, preserving its array contract.
-        var db = context.RequestServices.GetRequiredService<PdmDbContext>();
-        var documents = await db.Documents.Include(d => d.CurrentVersion).ThenInclude(v => v!.CustomProperties).ToListAsync();
-        string query = context.Request.Query["query"].ToString();
-        string type = context.Request.Query["documentType"].ToString();
-        string status = context.Request.Query["status"].ToString();
-        string? DrawingNumber(PdmDocument d) => d.CurrentVersion?.CustomProperties.FirstOrDefault(p => p.PropertyName == "圖號")?.PropertyValue;
-        var result = documents
-            .Where(d => string.IsNullOrWhiteSpace(query) || new[] { d.FileName, d.PartNumber, DrawingNumber(d) }.Any(s => s?.Contains(query, StringComparison.OrdinalIgnoreCase) == true))
-            .Where(d => string.IsNullOrWhiteSpace(type) || type == "All" || d.DocumentType == type)
-            .Where(d => status == "CheckedOut" ? d.CheckedOutBy != null : status != "Available" || d.CheckedOutBy == null)
-            .OrderByDescending(d => d.UpdatedAt).Take(50)
-            .Select(d => new { d.DocumentId, d.FileName, DrawingNumber = DrawingNumber(d), d.PartNumber, d.DocumentType,
-                d.RevisionLabel, d.Material, CurrentVersionNo = d.CurrentVersion?.VersionNo,
-                d.CurrentVersionId, CurrentLifecycleState = d.CurrentVersion?.LifecycleState,
-                ReferenceUpdateCount = 0, AffectedReferenceOccurrenceCount = 0, d.UpdatedAt, d.CheckedOutBy, d.CheckedOutAt });
-        await Results.Ok(result).ExecuteAsync(context);
-        return;
-    }
     await next();
 });
 app.MapPost("/fixture/scenario/{name}", (string name) =>
 {
-    if (!new[] { "normal", "empty", "fail-config", "fail-search", "fail-detail", "fail-relations", "fail-checkout", "fail-bom", "conflict", "fail-cancel-preview", "stale-cancel" }.Contains(name))
+    if (!new[] { "normal", "empty", "fail-config", "fail-search", "fail-detail", "fail-relations", "fail-checkout", "fail-bom", "conflict", "fail-cancel-preview", "stale-cancel", "fail-integrity", "fail-batches", "malformed-search", "legacy-search", "stale-batch", "slow-search" }.Contains(name))
         return Results.BadRequest();
     scenario = name;
     return Results.Ok(new { fixture = true, scenario });
@@ -149,6 +153,32 @@ using (var scope = app.Services.CreateScope())
         document.CheckedOutBy = "User";
         document.CheckedOutAt = DateTimeOffset.UtcNow;
     }
+    db.SaveChanges();
+    // Additional evidence belongs only to this synthetic memory DB, never a live BOM or Vault.
+    var oldPart = db.Documents.Single(d => d.DocumentId == 58);
+    var updated = new PdmDocumentVersion { DocumentId = 58, VersionNo = 2, RevisionLabel = "A", LifecycleState = "WIP",
+        OriginalFileName = "TEST-058.sldprt", StorageFileId = "fixture-not-a-real-cad", CreatedAt = DateTimeOffset.UtcNow };
+    db.Add(updated); db.SaveChanges(); oldPart.CurrentVersionId = updated.VersionId;
+    db.CustomProperties.AddRange(new PdmCustomProperty { VersionId = updated.VersionId, PropertyName = "品名", PropertyValue = "新版驗證零件" },
+        new PdmCustomProperty { VersionId = updated.VersionId, PropertyName = "圖號", PropertyValue = "DWG-058" },
+        new PdmCustomProperty { VersionId = updated.VersionId, ConfigurationName = "Alternate", PropertyName = "Tolerance", PropertyValue = "TOL-0.05" },
+        new PdmCustomProperty { VersionId = 54, PropertyName = "Description", PropertyValue = "有衝突的品名" });
+    db.BomOccurrences.AddRange(new PdmBomOccurrence { ParentVersionId = 60, OccurrencePath = "3", IsSuppressed = true, ReferenceStatus = "Missing", SourceReferencePath = "suppressed.sldprt" },
+        new PdmBomOccurrence { ParentVersionId = 60, OccurrencePath = "4", IsVirtual = true, ReferenceStatus = "Virtual", SourceReferencePath = "virtual^assembly.sldprt" },
+        new PdmBomOccurrence { ParentVersionId = 60, OccurrencePath = "5", ReferenceStatus = "Broken", SourceReferencePath = "manual-confirm.sldprt" });
+    var oldLock = DateTimeOffset.UtcNow.AddMinutes(-10);
+    var newLock = DateTimeOffset.UtcNow;
+    var changed = db.Documents.Single(d => d.DocumentId == 57); changed.CheckedOutBy = "User"; changed.CheckedOutAt = newLock;
+    var other = db.Documents.Single(d => d.DocumentId == 55); other.CheckedOutBy = "OtherTester"; other.CheckedOutAt = oldLock;
+    var batch = new PdmCheckoutBatch { BatchId = Guid.Parse("11111111-1111-4111-8111-111111111111"), RootDocumentId = 60, Actor = "User", CreatedAt = oldLock };
+    foreach (long id in new long[] { 60, 59, 57, 56, 55 })
+    {
+        var d = db.Documents.Single(d => d.DocumentId == id);
+        batch.Items.Add(new() { DocumentId = id, VersionId = d.CurrentVersionId!.Value, LockTime = id is 60 or 59 ? d.CheckedOutAt!.Value : oldLock });
+    }
+    db.Add(batch);
+    var restored = new PdmCheckoutBatch { BatchId = Guid.Parse("22222222-2222-4222-8222-222222222222"), RootDocumentId = 60, Actor = "User", CreatedAt = oldLock.AddDays(-1) };
+    restored.Items.Add(new() { DocumentId = 60, VersionId = 60, LockTime = oldLock.AddDays(-1), RestoredAt = oldLock }); db.Add(restored);
     db.SaveChanges();
 }
 app.Lifetime.ApplicationStopped.Register(() => { connection.Dispose(); Directory.Delete(fixtureFolder, true); });

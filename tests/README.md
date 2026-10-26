@@ -1,5 +1,24 @@
 # 隔離驗證
 
+## 2026-10-26：DEV-015 Vault 完整清單與異常／批次 UI
+
+權威契約見 [ADR-005](../ai-doc/decisions/ADR-005-vault-integrity-ui.md)，[QC](../ai-doc/qc/vault-integrity-qc-2026-10-26.md)含首次失敗與修復證據。
+
+- 清除 `SWPDM_CONTRACT_PG` 後執行 `dotnet test tests/SWPdm.ContractTests/SWPdm.ContractTests.csproj -c Release`：134/134。
+  PostgreSQL 只可使用下節全新127.0.0.1:55433 contract叢集：134/134；逐例EnsureCreated，絕不呼叫migration。
+- `node --test tests/*.test.mjs`：36/36；`npm --prefix src/SWPdm.Web run build -- --outDir dist/dev015-20261026`通過。
+  先設定 `VITE_PDM_API_URL=http://127.0.0.1:5010`；勿在服務5000／5174的工作樹重建。
+- `dotnet run --project tests/SWPdm.UiFixture/SWPdm.UiFixture.csproj -c Release` 啟動記憶體fixture5010；
+  另啟動Web5175，使用同一前端成品或下方開發方式。fixture搜尋已改用真實產品服務，不再以固定50筆替身冒充查詢。
+- 真實瀏覽器1440×900、1024×768、768×1024、390×844，含60筆分頁、異常／屬性、單圖／批次復原、競態及錯誤恢復。
+  `fail-integrity`、`fail-batches`、`malformed-search`、`legacy-search`、`stale-batch`、`slow-search`僅供fixture注入；完成後回`normal`。
+- fixture基準60文件、5個鎖、1份文件有3處未解析參照、2份有新版參照；虛擬件與抑制件各1處。
+  active批次11111111-1111-4111-8111-111111111111可解除2份、保留3份；22222222-2222-4222-8222-222222222222已復原，不可解除後續鎖。
+- 合成文字／縮圖不是真實CAD。UI的0筆快照異常不等於CAD完整性通過；本輪不重跑原生幾何或跨實機驗收。
+  未連目前5432/swpdm、未部署、未執行migration；既有DEV-014原生證據維持原邊界。
+
+下方段落是各階段當時紀錄；DEV-013兩張表已於後續獲准套用，不應將歷史「缺表」當成本輪結論。
+
 ## 2026-10-22：DEV-014 完整套件與副本參照重寫
 
 權威契約見 [ADR-004](../ai-doc/decisions/ADR-004-package-copy-integrity.md)，結果與限制見

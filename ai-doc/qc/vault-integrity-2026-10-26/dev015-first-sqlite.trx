@@ -1,0 +1,968 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="aa29178d-c542-4a3d-be5f-7324077fef5f" name="user@NB-RD 2026-10-26 12:15:04" runUser="NB-RD\user" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-26T12:15:04.8733563+08:00" queuing="2026-10-26T12:15:04.8733570+08:00" start="2026-10-26T12:14:54.3003619+08:00" finish="2026-10-26T12:15:13.2528785+08:00" />
+  <TestSettings name="default" id="a8a2a45c-7432-4a90-975b-a7387636d307">
+    <Deployment runDeploymentRoot="user_NB-RD_2026-10-26_12_15_04" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="439da7ba-fe32-4963-b984-5a00bc879ea4" testId="69240f7b-4d7f-36b7-df03-8e01ee9081b6" testName="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;query=%27%20OR%201%3D1--&quot;, count: 0)" computerName="NB-RD" duration="00:00:00.7080345" startTime="2026-10-26T12:15:06.8297976+08:00" endTime="2026-10-26T12:15:06.8297984+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="439da7ba-fe32-4963-b984-5a00bc879ea4">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 127&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs:line 249&#xD;
+   at SWPdm.ContractTests.VaultTests.Fixture() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 104&#xD;
+   at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 42&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="77498189-fbd6-4316-9c5c-8fdc49bd67fd" testId="b7b120de-5e2e-c91a-6413-0fee31b0b481" testName="SWPdm.ContractTests.VaultTests.InvalidQueryIs400WithoutDataMutation(query: &quot;pageSize=101&quot;)" computerName="NB-RD" duration="00:00:00.7098057" startTime="2026-10-26T12:15:11.2902684+08:00" endTime="2026-10-26T12:15:11.2902694+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="77498189-fbd6-4316-9c5c-8fdc49bd67fd" />
+    <UnitTestResult executionId="4d456c5a-1edb-40f1-9521-b63d8c760f7a" testId="6791a90e-986e-43db-4a99-5de04baf5a29" testName="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;query=CONFIG-ONLY&quot;, count: 1)" computerName="NB-RD" duration="00:00:00.4000619" startTime="2026-10-26T12:15:09.6157032+08:00" endTime="2026-10-26T12:15:09.6157035+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4d456c5a-1edb-40f1-9521-b63d8c760f7a">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 127&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs:line 249&#xD;
+   at SWPdm.ContractTests.VaultTests.Fixture() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 104&#xD;
+   at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 42&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="d634c9f1-b835-4fdc-8c76-813778df8ad1" testId="b597a3d1-119c-65c5-8aa9-45e013d0c7c1" testName="SWPdm.ContractTests.VaultTests.InvalidQueryIs400WithoutDataMutation(query: &quot;pageSize=0&quot;)" computerName="NB-RD" duration="00:00:00.1344942" startTime="2026-10-26T12:15:11.8354069+08:00" endTime="2026-10-26T12:15:11.8354073+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d634c9f1-b835-4fdc-8c76-813778df8ad1" />
+    <UnitTestResult executionId="25e3e077-abdb-4cff-8d36-99aa6a5b172e" testId="07b1ed2e-c4b7-6b51-cb5b-5d8e792707cc" testName="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;query=HISTORICAL-ONLY&quot;, count: 0)" computerName="NB-RD" duration="00:00:00.4598010" startTime="2026-10-26T12:15:10.5803469+08:00" endTime="2026-10-26T12:15:10.5803474+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="25e3e077-abdb-4cff-8d36-99aa6a5b172e">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 127&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs:line 249&#xD;
+   at SWPdm.ContractTests.VaultTests.Fixture() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 104&#xD;
+   at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 42&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="91795445-f5e1-4e66-b35b-c7e212faf908" testId="d4a6c713-cf71-ecb5-9c4d-ad3963817e56" testName="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;query=%E6%B8%AC%E8%A9%A6%E5%85%83%E4%BB%B672&quot;, count: 1)" computerName="NB-RD" duration="00:00:00.9691982" startTime="2026-10-26T12:15:07.8007711+08:00" endTime="2026-10-26T12:15:07.8007714+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="91795445-f5e1-4e66-b35b-c7e212faf908">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 127&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs:line 249&#xD;
+   at SWPdm.ContractTests.VaultTests.Fixture() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 104&#xD;
+   at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 42&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="de798833-ca7a-4399-b155-c7821cb8a4bb" testId="b67c7d1a-37f2-e952-46ee-d0f01680b45a" testName="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;query=DWG-072&quot;, count: 1)" computerName="NB-RD" duration="00:00:00.4444187" startTime="2026-10-26T12:15:10.0941980+08:00" endTime="2026-10-26T12:15:10.0941985+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="de798833-ca7a-4399-b155-c7821cb8a4bb">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 127&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs:line 249&#xD;
+   at SWPdm.ContractTests.VaultTests.Fixture() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 104&#xD;
+   at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 42&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b7baed74-2338-4401-9bbc-e44f38d69206" testId="2e08426e-cddf-4ae3-03e7-e49a5d312f81" testName="SWPdm.ContractTests.VaultTests.LegacyArrayAndBeyondLastPageAreExplicit" computerName="NB-RD" duration="00:00:00.2374193" startTime="2026-10-26T12:15:12.4702195+08:00" endTime="2026-10-26T12:15:12.4702198+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b7baed74-2338-4401-9bbc-e44f38d69206">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 127&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs:line 249&#xD;
+   at SWPdm.ContractTests.VaultTests.Fixture() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 104&#xD;
+   at SWPdm.ContractTests.VaultTests.LegacyArrayAndBeyondLastPageAreExplicit() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 65&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="40e702fd-7ddd-4b3e-967c-85e6c4260003" testId="ca0ffdd8-143a-05db-0b16-c2ce36b8384e" testName="SWPdm.ContractTests.VaultTests.IntegrityUsesStoredEvidenceVirtualIsNotMissingAndNoServerPathEscapes" computerName="NB-RD" duration="00:00:00.2202895" startTime="2026-10-26T12:15:12.2304294+08:00" endTime="2026-10-26T12:15:12.2304302+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="40e702fd-7ddd-4b3e-967c-85e6c4260003">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 127&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs:line 249&#xD;
+   at SWPdm.ContractTests.VaultTests.Fixture() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 104&#xD;
+   at SWPdm.ContractTests.VaultTests.IntegrityUsesStoredEvidenceVirtualIsNotMissingAndNoServerPathEscapes() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 74&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="d513acb2-4c2c-4b8c-aea1-673621d715a7" testId="f52d4cf7-ef13-1157-2821-2fbec14aedde" testName="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;integrity=Missing&quot;, count: 2)" computerName="NB-RD" duration="00:00:00.6328404" startTime="2026-10-26T12:15:05.4561592+08:00" endTime="2026-10-26T12:15:05.4561600+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d513acb2-4c2c-4b8c-aea1-673621d715a7">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 127&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs:line 249&#xD;
+   at SWPdm.ContractTests.VaultTests.Fixture() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 104&#xD;
+   at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 42&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="6ed31a3c-7cc2-4d4e-a58e-f6d686b6f48e" testId="611224a2-5e28-9f37-2258-5bcfb4d73653" testName="SWPdm.ContractTests.VaultTests.MissingVersionAndMissingDocumentCannotBeReportedAsHealthy" computerName="NB-RD" duration="00:00:00.2494203" startTime="2026-10-26T12:15:12.7255199+08:00" endTime="2026-10-26T12:15:12.7255203+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6ed31a3c-7cc2-4d4e-a58e-f6d686b6f48e">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 127&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs:line 249&#xD;
+   at SWPdm.ContractTests.VaultTests.Fixture() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 104&#xD;
+   at SWPdm.ContractTests.VaultTests.MissingVersionAndMissingDocumentCannotBeReportedAsHealthy() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 89&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="1381a63d-cc5c-4427-9e52-d3f3e3853eda" testId="f7e79c86-b3c2-ab08-f9bf-fefd97e91993" testName="SWPdm.ContractTests.VaultTests.InvalidQueryIs400WithoutDataMutation(query: &quot;page=0&quot;)" computerName="NB-RD" duration="00:00:00.1289006" startTime="2026-10-26T12:15:11.5650609+08:00" endTime="2026-10-26T12:15:11.5650612+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1381a63d-cc5c-4427-9e52-d3f3e3853eda" />
+    <UnitTestResult executionId="a824f47c-2abe-4c4e-b032-deb02d5087be" testId="81ba786d-0533-f9e9-1370-4b567198d9fc" testName="SWPdm.ContractTests.VaultTests.InvalidQueryIs400WithoutDataMutation(query: &quot;documentType=Invalid&quot;)" computerName="NB-RD" duration="00:00:00.1344366" startTime="2026-10-26T12:15:11.7001795+08:00" endTime="2026-10-26T12:15:11.7001800+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a824f47c-2abe-4c4e-b032-deb02d5087be" />
+    <UnitTestResult executionId="9afdb1ec-a530-4793-b77c-1ec75468fb1b" testId="0127d21f-c501-7639-a1cf-9775d52affdc" testName="SWPdm.ContractTests.VaultTests.InvalidQueryIs400WithoutDataMutation(query: &quot;integrity=Invalid&quot;)" computerName="NB-RD" duration="00:00:00.1453729" startTime="2026-10-26T12:15:11.4354986+08:00" endTime="2026-10-26T12:15:11.4354990+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9afdb1ec-a530-4793-b77c-1ec75468fb1b" />
+    <UnitTestResult executionId="5a308967-5fbe-4bec-bccf-1832e5a500e8" testId="795487b9-67a2-c345-eb14-e50b107cfed2" testName="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;documentType=Drawing&quot;, count: 1)" computerName="NB-RD" duration="00:00:00.5780764" startTime="2026-10-26T12:15:06.0369677+08:00" endTime="2026-10-26T12:15:06.0369680+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5a308967-5fbe-4bec-bccf-1832e5a500e8">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 127&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs:line 249&#xD;
+   at SWPdm.ContractTests.VaultTests.Fixture() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 104&#xD;
+   at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 42&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="c01c554e-4bb8-408d-bd18-cf98de666789" testId="e471c88d-4de7-3243-749d-97036b5cc7bb" testName="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;query=%25&quot;, count: 1)" computerName="NB-RD" duration="00:00:00.5464140" startTime="2026-10-26T12:15:09.1987257+08:00" endTime="2026-10-26T12:15:09.1987260+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c01c554e-4bb8-408d-bd18-cf98de666789">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 127&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs:line 249&#xD;
+   at SWPdm.ContractTests.VaultTests.Fixture() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 104&#xD;
+   at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 42&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="7127f457-25aa-454a-b93d-57550d39414e" testId="bdaee311-22bd-fc28-31d1-27efd6b7bc7d" testName="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;integrity=Newer&quot;, count: 1)" computerName="NB-RD" duration="00:00:04.5393439" startTime="2026-10-26T12:15:04.8217891+08:00" endTime="2026-10-26T12:15:04.8218367+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7127f457-25aa-454a-b93d-57550d39414e">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 127&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs:line 249&#xD;
+   at SWPdm.ContractTests.VaultTests.Fixture() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 104&#xD;
+   at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 42&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="1db5e3cb-1bbf-4e5b-999c-d66bba6d5e3f" testId="b638e2da-5818-029b-9a46-4ee63327682a" testName="SWPdm.ContractTests.VaultTests.CompletePagingHasGlobalCountsStableOrderAndNoWrites" computerName="NB-RD" duration="00:00:00.2874281" startTime="2026-10-26T12:15:13.0487619+08:00" endTime="2026-10-26T12:15:13.0487624+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1db5e3cb-1bbf-4e5b-999c-d66bba6d5e3f">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 127&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs:line 249&#xD;
+   at SWPdm.ContractTests.VaultTests.Fixture() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 104&#xD;
+   at SWPdm.ContractTests.VaultTests.CompletePagingHasGlobalCountsStableOrderAndNoWrites() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 15&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="4342f4e2-6084-4580-975f-bdca6839df27" testId="659afce3-bee3-4b56-7528-6bf478cb532b" testName="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;status=CheckedOut&quot;, count: 2)" computerName="NB-RD" duration="00:00:00.8471281" startTime="2026-10-26T12:15:08.6504770+08:00" endTime="2026-10-26T12:15:08.6504776+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4342f4e2-6084-4580-975f-bdca6839df27">
+      <Output>
+        <ErrorInfo>
+          <Message>Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.</Message>
+          <StackTrace>   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+   at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 127&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs:line 249&#xD;
+   at SWPdm.ContractTests.VaultTests.Fixture() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 104&#xD;
+   at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count) in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 42&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="90524299-161c-4bfc-95a0-89b9629b0ddb" testId="006ef7f4-8b81-fa81-9a63-7a968d6de2ee" testName="SWPdm.ContractTests.VaultTests.InvalidQueryIs400WithoutDataMutation(query: &quot;status=Invalid&quot;)" computerName="NB-RD" duration="00:00:00.1675464" startTime="2026-10-26T12:15:12.0037698+08:00" endTime="2026-10-26T12:15:12.0037705+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="90524299-161c-4bfc-95a0-89b9629b0ddb" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.InvalidQueryIs400WithoutDataMutation(query: &quot;pageSize=0&quot;)" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="b597a3d1-119c-65c5-8aa9-45e013d0c7c1">
+      <Execution id="d634c9f1-b835-4fdc-8c76-813778df8ad1" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="InvalidQueryIs400WithoutDataMutation" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.InvalidQueryIs400WithoutDataMutation(query: &quot;pageSize=101&quot;)" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="b7b120de-5e2e-c91a-6413-0fee31b0b481">
+      <Execution id="77498189-fbd6-4316-9c5c-8fdc49bd67fd" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="InvalidQueryIs400WithoutDataMutation" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;query=%27%20OR%201%3D1--&quot;, count: 0)" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="69240f7b-4d7f-36b7-df03-8e01ee9081b6">
+      <Execution id="439da7ba-fe32-4963-b984-5a00bc879ea4" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="SearchAndFiltersApplyToAllCurrentVersions" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;query=%25&quot;, count: 1)" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="e471c88d-4de7-3243-749d-97036b5cc7bb">
+      <Execution id="c01c554e-4bb8-408d-bd18-cf98de666789" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="SearchAndFiltersApplyToAllCurrentVersions" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;documentType=Drawing&quot;, count: 1)" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="795487b9-67a2-c345-eb14-e50b107cfed2">
+      <Execution id="5a308967-5fbe-4bec-bccf-1832e5a500e8" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="SearchAndFiltersApplyToAllCurrentVersions" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.InvalidQueryIs400WithoutDataMutation(query: &quot;documentType=Invalid&quot;)" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="81ba786d-0533-f9e9-1370-4b567198d9fc">
+      <Execution id="a824f47c-2abe-4c4e-b032-deb02d5087be" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="InvalidQueryIs400WithoutDataMutation" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;query=DWG-072&quot;, count: 1)" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="b67c7d1a-37f2-e952-46ee-d0f01680b45a">
+      <Execution id="de798833-ca7a-4399-b155-c7821cb8a4bb" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="SearchAndFiltersApplyToAllCurrentVersions" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.LegacyArrayAndBeyondLastPageAreExplicit" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="2e08426e-cddf-4ae3-03e7-e49a5d312f81">
+      <Execution id="b7baed74-2338-4401-9bbc-e44f38d69206" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="LegacyArrayAndBeyondLastPageAreExplicit" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.InvalidQueryIs400WithoutDataMutation(query: &quot;status=Invalid&quot;)" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="006ef7f4-8b81-fa81-9a63-7a968d6de2ee">
+      <Execution id="90524299-161c-4bfc-95a0-89b9629b0ddb" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="InvalidQueryIs400WithoutDataMutation" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;query=%E6%B8%AC%E8%A9%A6%E5%85%83%E4%BB%B672&quot;, count: 1)" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="d4a6c713-cf71-ecb5-9c4d-ad3963817e56">
+      <Execution id="91795445-f5e1-4e66-b35b-c7e212faf908" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="SearchAndFiltersApplyToAllCurrentVersions" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;integrity=Missing&quot;, count: 2)" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="f52d4cf7-ef13-1157-2821-2fbec14aedde">
+      <Execution id="d513acb2-4c2c-4b8c-aea1-673621d715a7" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="SearchAndFiltersApplyToAllCurrentVersions" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;integrity=Newer&quot;, count: 1)" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="bdaee311-22bd-fc28-31d1-27efd6b7bc7d">
+      <Execution id="7127f457-25aa-454a-b93d-57550d39414e" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="SearchAndFiltersApplyToAllCurrentVersions" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.InvalidQueryIs400WithoutDataMutation(query: &quot;page=0&quot;)" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="f7e79c86-b3c2-ab08-f9bf-fefd97e91993">
+      <Execution id="1381a63d-cc5c-4427-9e52-d3f3e3853eda" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="InvalidQueryIs400WithoutDataMutation" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;status=CheckedOut&quot;, count: 2)" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="659afce3-bee3-4b56-7528-6bf478cb532b">
+      <Execution id="4342f4e2-6084-4580-975f-bdca6839df27" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="SearchAndFiltersApplyToAllCurrentVersions" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.IntegrityUsesStoredEvidenceVirtualIsNotMissingAndNoServerPathEscapes" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="ca0ffdd8-143a-05db-0b16-c2ce36b8384e">
+      <Execution id="40e702fd-7ddd-4b3e-967c-85e6c4260003" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="IntegrityUsesStoredEvidenceVirtualIsNotMissingAndNoServerPathEscapes" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;query=CONFIG-ONLY&quot;, count: 1)" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="6791a90e-986e-43db-4a99-5de04baf5a29">
+      <Execution id="4d456c5a-1edb-40f1-9521-b63d8c760f7a" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="SearchAndFiltersApplyToAllCurrentVersions" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.MissingVersionAndMissingDocumentCannotBeReportedAsHealthy" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="611224a2-5e28-9f37-2258-5bcfb4d73653">
+      <Execution id="6ed31a3c-7cc2-4d4e-a58e-f6d686b6f48e" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="MissingVersionAndMissingDocumentCannotBeReportedAsHealthy" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.CompletePagingHasGlobalCountsStableOrderAndNoWrites" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="b638e2da-5818-029b-9a46-4ee63327682a">
+      <Execution id="1db5e3cb-1bbf-4e5b-999c-d66bba6d5e3f" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="CompletePagingHasGlobalCountsStableOrderAndNoWrites" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.InvalidQueryIs400WithoutDataMutation(query: &quot;integrity=Invalid&quot;)" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="0127d21f-c501-7639-a1cf-9775d52affdc">
+      <Execution id="9afdb1ec-a530-4793-b77c-1ec75468fb1b" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="InvalidQueryIs400WithoutDataMutation" />
+    </UnitTest>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: &quot;query=HISTORICAL-ONLY&quot;, count: 0)" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="07b1ed2e-c4b7-6b51-cb5b-5d8e792707cc">
+      <Execution id="25e3e077-abdb-4cff-8d36-99aa6a5b172e" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="SearchAndFiltersApplyToAllCurrentVersions" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="69240f7b-4d7f-36b7-df03-8e01ee9081b6" executionId="439da7ba-fe32-4963-b984-5a00bc879ea4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b7b120de-5e2e-c91a-6413-0fee31b0b481" executionId="77498189-fbd6-4316-9c5c-8fdc49bd67fd" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6791a90e-986e-43db-4a99-5de04baf5a29" executionId="4d456c5a-1edb-40f1-9521-b63d8c760f7a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b597a3d1-119c-65c5-8aa9-45e013d0c7c1" executionId="d634c9f1-b835-4fdc-8c76-813778df8ad1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="07b1ed2e-c4b7-6b51-cb5b-5d8e792707cc" executionId="25e3e077-abdb-4cff-8d36-99aa6a5b172e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d4a6c713-cf71-ecb5-9c4d-ad3963817e56" executionId="91795445-f5e1-4e66-b35b-c7e212faf908" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b67c7d1a-37f2-e952-46ee-d0f01680b45a" executionId="de798833-ca7a-4399-b155-c7821cb8a4bb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2e08426e-cddf-4ae3-03e7-e49a5d312f81" executionId="b7baed74-2338-4401-9bbc-e44f38d69206" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ca0ffdd8-143a-05db-0b16-c2ce36b8384e" executionId="40e702fd-7ddd-4b3e-967c-85e6c4260003" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f52d4cf7-ef13-1157-2821-2fbec14aedde" executionId="d513acb2-4c2c-4b8c-aea1-673621d715a7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="611224a2-5e28-9f37-2258-5bcfb4d73653" executionId="6ed31a3c-7cc2-4d4e-a58e-f6d686b6f48e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f7e79c86-b3c2-ab08-f9bf-fefd97e91993" executionId="1381a63d-cc5c-4427-9e52-d3f3e3853eda" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="81ba786d-0533-f9e9-1370-4b567198d9fc" executionId="a824f47c-2abe-4c4e-b032-deb02d5087be" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0127d21f-c501-7639-a1cf-9775d52affdc" executionId="9afdb1ec-a530-4793-b77c-1ec75468fb1b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="795487b9-67a2-c345-eb14-e50b107cfed2" executionId="5a308967-5fbe-4bec-bccf-1832e5a500e8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e471c88d-4de7-3243-749d-97036b5cc7bb" executionId="c01c554e-4bb8-408d-bd18-cf98de666789" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bdaee311-22bd-fc28-31d1-27efd6b7bc7d" executionId="7127f457-25aa-454a-b93d-57550d39414e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b638e2da-5818-029b-9a46-4ee63327682a" executionId="1db5e3cb-1bbf-4e5b-999c-d66bba6d5e3f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="659afce3-bee3-4b56-7528-6bf478cb532b" executionId="4342f4e2-6084-4580-975f-bdca6839df27" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="006ef7f4-8b81-fa81-9a63-7a968d6de2ee" executionId="90524299-161c-4bfc-95a0-89b9629b0ddb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="不在清單中的結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有載入的結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="20" executed="20" passed="6" failed="14" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 8.0.26)&#xD;
+[xUnit.net 00:00:02.32]   Discovering: SWPdm.ContractTests&#xD;
+[xUnit.net 00:00:02.52]   Discovered:  SWPdm.ContractTests&#xD;
+[xUnit.net 00:00:02.53]   Starting:    SWPdm.ContractTests&#xD;
+[xUnit.net 00:00:07.29]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:07.29]       ---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.&#xD;
+[xUnit.net 00:00:07.29]       Stack Trace:&#xD;
+[xUnit.net 00:00:07.29]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.29]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.29]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.29]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.29]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.29]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.29]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.29]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.29]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(127,0): at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext()&#xD;
+[xUnit.net 00:00:07.29]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:07.29]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs(249,0): at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action)&#xD;
+[xUnit.net 00:00:07.29]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(104,0): at SWPdm.ContractTests.VaultTests.Fixture()&#xD;
+[xUnit.net 00:00:07.29]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(42,0): at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count)&#xD;
+[xUnit.net 00:00:07.29]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:07.29]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:07.29]            at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+[xUnit.net 00:00:07.29]            at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+[xUnit.net 00:00:07.29]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+[xUnit.net 00:00:07.29]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.29]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.29]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.29]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.29]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.93]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:07.93]       ---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.&#xD;
+[xUnit.net 00:00:07.93]       Stack Trace:&#xD;
+[xUnit.net 00:00:07.93]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.93]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.93]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.93]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.93]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.93]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.93]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.93]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.93]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(127,0): at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext()&#xD;
+[xUnit.net 00:00:07.93]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:07.93]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs(249,0): at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action)&#xD;
+[xUnit.net 00:00:07.93]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(104,0): at SWPdm.ContractTests.VaultTests.Fixture()&#xD;
+[xUnit.net 00:00:07.93]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(42,0): at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count)&#xD;
+[xUnit.net 00:00:07.93]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:07.93]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:07.93]            at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+[xUnit.net 00:00:07.93]            at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+[xUnit.net 00:00:07.93]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+[xUnit.net 00:00:07.93]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.93]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.93]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.93]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:07.93]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:08.51]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:08.51]       ---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.&#xD;
+[xUnit.net 00:00:08.51]       Stack Trace:&#xD;
+[xUnit.net 00:00:08.51]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:08.51]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:08.51]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:08.51]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:08.51]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:08.51]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:08.51]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:08.51]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:08.51]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(127,0): at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext()&#xD;
+[xUnit.net 00:00:08.51]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:08.51]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs(249,0): at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action)&#xD;
+[xUnit.net 00:00:08.51]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(104,0): at SWPdm.ContractTests.VaultTests.Fixture()&#xD;
+[xUnit.net 00:00:08.51]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(42,0): at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count)&#xD;
+[xUnit.net 00:00:08.51]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:08.51]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:08.51]            at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+[xUnit.net 00:00:08.51]            at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+[xUnit.net 00:00:08.51]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+[xUnit.net 00:00:08.51]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:08.51]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:08.51]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:08.51]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:08.51]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:09.30]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:09.30]       ---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.&#xD;
+[xUnit.net 00:00:09.30]       Stack Trace:&#xD;
+[xUnit.net 00:00:09.30]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:09.30]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:09.30]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:09.30]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:09.30]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:09.30]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:09.30]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:09.30]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:09.30]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(127,0): at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext()&#xD;
+[xUnit.net 00:00:09.30]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:09.30]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs(249,0): at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action)&#xD;
+[xUnit.net 00:00:09.30]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(104,0): at SWPdm.ContractTests.VaultTests.Fixture()&#xD;
+[xUnit.net 00:00:09.30]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(42,0): at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count)&#xD;
+[xUnit.net 00:00:09.30]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:09.30]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:09.30]            at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+[xUnit.net 00:00:09.30]            at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+[xUnit.net 00:00:09.30]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+[xUnit.net 00:00:09.30]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:09.30]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:09.30]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:09.30]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:09.30]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:10.27]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:10.27]       ---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.&#xD;
+[xUnit.net 00:00:10.27]       Stack Trace:&#xD;
+[xUnit.net 00:00:10.27]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:10.27]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:10.27]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:10.27]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:10.27]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:10.27]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:10.27]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:10.27]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:10.27]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(127,0): at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext()&#xD;
+[xUnit.net 00:00:10.27]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:10.27]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs(249,0): at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action)&#xD;
+[xUnit.net 00:00:10.27]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(104,0): at SWPdm.ContractTests.VaultTests.Fixture()&#xD;
+[xUnit.net 00:00:10.27]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(42,0): at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count)&#xD;
+[xUnit.net 00:00:10.27]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:10.27]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:10.27]            at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+[xUnit.net 00:00:10.27]            at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+[xUnit.net 00:00:10.27]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+[xUnit.net 00:00:10.27]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:10.27]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:10.27]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:10.27]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:10.27]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.12]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:11.12]       ---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.&#xD;
+[xUnit.net 00:00:11.12]       Stack Trace:&#xD;
+[xUnit.net 00:00:11.12]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.12]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.12]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.12]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.12]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.12]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.12]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.12]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.12]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(127,0): at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext()&#xD;
+[xUnit.net 00:00:11.12]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:11.12]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs(249,0): at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action)&#xD;
+[xUnit.net 00:00:11.12]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(104,0): at SWPdm.ContractTests.VaultTests.Fixture()&#xD;
+[xUnit.net 00:00:11.12]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(42,0): at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count)&#xD;
+[xUnit.net 00:00:11.12]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:11.12]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:11.12]            at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+[xUnit.net 00:00:11.12]            at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+[xUnit.net 00:00:11.12]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+[xUnit.net 00:00:11.12]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.12]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.12]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.12]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.12]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.67]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:11.67]       ---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.&#xD;
+[xUnit.net 00:00:11.67]       Stack Trace:&#xD;
+[xUnit.net 00:00:11.67]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.67]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.67]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.67]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.67]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.67]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.67]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.67]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.67]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(127,0): at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext()&#xD;
+[xUnit.net 00:00:11.67]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:11.67]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs(249,0): at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action)&#xD;
+[xUnit.net 00:00:11.67]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(104,0): at SWPdm.ContractTests.VaultTests.Fixture()&#xD;
+[xUnit.net 00:00:11.67]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(42,0): at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count)&#xD;
+[xUnit.net 00:00:11.67]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:11.67]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:11.67]            at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+[xUnit.net 00:00:11.67]            at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+[xUnit.net 00:00:11.67]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+[xUnit.net 00:00:11.67]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.67]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.67]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.67]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:11.67]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.09]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:12.09]       ---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.&#xD;
+[xUnit.net 00:00:12.09]       Stack Trace:&#xD;
+[xUnit.net 00:00:12.09]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.09]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.09]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.09]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.09]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.09]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.09]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.09]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.09]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(127,0): at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext()&#xD;
+[xUnit.net 00:00:12.09]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:12.09]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs(249,0): at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action)&#xD;
+[xUnit.net 00:00:12.09]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(104,0): at SWPdm.ContractTests.VaultTests.Fixture()&#xD;
+[xUnit.net 00:00:12.09]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(42,0): at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count)&#xD;
+[xUnit.net 00:00:12.09]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:12.09]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:12.09]            at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+[xUnit.net 00:00:12.09]            at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+[xUnit.net 00:00:12.09]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+[xUnit.net 00:00:12.09]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.09]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.09]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.09]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.09]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.56]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:12.56]       ---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.&#xD;
+[xUnit.net 00:00:12.56]       Stack Trace:&#xD;
+[xUnit.net 00:00:12.56]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.56]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.56]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.56]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.56]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.56]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.57]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.57]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.57]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(127,0): at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext()&#xD;
+[xUnit.net 00:00:12.57]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:12.57]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs(249,0): at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action)&#xD;
+[xUnit.net 00:00:12.57]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(104,0): at SWPdm.ContractTests.VaultTests.Fixture()&#xD;
+[xUnit.net 00:00:12.57]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(42,0): at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count)&#xD;
+[xUnit.net 00:00:12.57]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:12.57]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:12.57]            at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+[xUnit.net 00:00:12.57]            at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+[xUnit.net 00:00:12.57]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+[xUnit.net 00:00:12.57]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.57]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.57]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.57]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:12.57]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:13.05]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:13.05]       ---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.&#xD;
+[xUnit.net 00:00:13.05]       Stack Trace:&#xD;
+[xUnit.net 00:00:13.05]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:13.05]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:13.05]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:13.05]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:13.05]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:13.05]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:13.05]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:13.05]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:13.05]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(127,0): at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext()&#xD;
+[xUnit.net 00:00:13.05]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:13.05]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs(249,0): at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action)&#xD;
+[xUnit.net 00:00:13.05]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(104,0): at SWPdm.ContractTests.VaultTests.Fixture()&#xD;
+[xUnit.net 00:00:13.05]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(42,0): at SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(String filter, Int32 count)&#xD;
+[xUnit.net 00:00:13.05]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:13.05]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:13.05]            at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+[xUnit.net 00:00:13.05]            at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+[xUnit.net 00:00:13.05]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+[xUnit.net 00:00:13.05]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:13.05]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:13.05]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:13.05]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:13.05]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.70]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:14.70]       ---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.&#xD;
+[xUnit.net 00:00:14.70]       Stack Trace:&#xD;
+[xUnit.net 00:00:14.70]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.70]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.70]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.70]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.70]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.70]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.70]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.70]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.70]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(127,0): at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext()&#xD;
+[xUnit.net 00:00:14.70]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:14.70]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs(249,0): at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action)&#xD;
+[xUnit.net 00:00:14.70]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(104,0): at SWPdm.ContractTests.VaultTests.Fixture()&#xD;
+[xUnit.net 00:00:14.70]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(74,0): at SWPdm.ContractTests.VaultTests.IntegrityUsesStoredEvidenceVirtualIsNotMissingAndNoServerPathEscapes()&#xD;
+[xUnit.net 00:00:14.70]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:14.70]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:14.70]            at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+[xUnit.net 00:00:14.70]            at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+[xUnit.net 00:00:14.70]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+[xUnit.net 00:00:14.70]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.70]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.70]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.70]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.94]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:14.94]       ---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.&#xD;
+[xUnit.net 00:00:14.94]       Stack Trace:&#xD;
+[xUnit.net 00:00:14.94]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.94]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.94]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.94]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.94]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.94]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.94]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.94]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.94]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(127,0): at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext()&#xD;
+[xUnit.net 00:00:14.94]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:14.94]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs(249,0): at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action)&#xD;
+[xUnit.net 00:00:14.94]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(104,0): at SWPdm.ContractTests.VaultTests.Fixture()&#xD;
+[xUnit.net 00:00:14.94]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(65,0): at SWPdm.ContractTests.VaultTests.LegacyArrayAndBeyondLastPageAreExplicit()&#xD;
+[xUnit.net 00:00:14.94]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:14.94]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:14.94]            at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+[xUnit.net 00:00:14.94]            at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+[xUnit.net 00:00:14.94]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+[xUnit.net 00:00:14.94]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.94]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.94]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:14.94]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.19]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:15.19]       ---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.&#xD;
+[xUnit.net 00:00:15.19]       Stack Trace:&#xD;
+[xUnit.net 00:00:15.19]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.19]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.19]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.19]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.20]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.20]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.20]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.20]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.20]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(127,0): at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext()&#xD;
+[xUnit.net 00:00:15.20]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:15.20]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs(249,0): at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action)&#xD;
+[xUnit.net 00:00:15.20]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(104,0): at SWPdm.ContractTests.VaultTests.Fixture()&#xD;
+[xUnit.net 00:00:15.20]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(89,0): at SWPdm.ContractTests.VaultTests.MissingVersionAndMissingDocumentCannotBeReportedAsHealthy()&#xD;
+[xUnit.net 00:00:15.20]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:15.20]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:15.20]            at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+[xUnit.net 00:00:15.20]            at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+[xUnit.net 00:00:15.20]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+[xUnit.net 00:00:15.20]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.20]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.20]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.20]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.52]       Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.&#xD;
+[xUnit.net 00:00:15.52]       ---- Microsoft.Data.Sqlite.SqliteException : SQLite Error 19: 'UNIQUE constraint failed: pdm_bom_occurrences.parent_version_id, pdm_bom_occurrences.occurrence_path'.&#xD;
+[xUnit.net 00:00:15.52]       Stack Trace:&#xD;
+[xUnit.net 00:00:15.52]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.52]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.52]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.52]            at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.52]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.52]            at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.52]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.52]            at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.52]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(127,0): at SWPdm.ContractTests.VaultTests.&lt;&gt;c.&lt;&lt;Fixture&gt;b__7_0&gt;d.MoveNext()&#xD;
+[xUnit.net 00:00:15.52]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:15.52]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\ContractTests.cs(249,0): at SWPdm.ContractTests.ContractHost.WithDb(Func`2 action)&#xD;
+[xUnit.net 00:00:15.52]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(104,0): at SWPdm.ContractTests.VaultTests.Fixture()&#xD;
+[xUnit.net 00:00:15.52]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(15,0): at SWPdm.ContractTests.VaultTests.CompletePagingHasGlobalCountsStableOrderAndNoWrites()&#xD;
+[xUnit.net 00:00:15.52]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:15.52]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:15.52]            at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)&#xD;
+[xUnit.net 00:00:15.52]            at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()&#xD;
+[xUnit.net 00:00:15.52]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)&#xD;
+[xUnit.net 00:00:15.52]            at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.52]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.52]            at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.52]            at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:15.54]   Finished:    SWPdm.ContractTests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="NB-RD" outcome="Error" timestamp="2026-10-26T12:15:04.8141279+08:00">
+        <Text>[xUnit.net 00:00:07.29]     SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: "integrity=Newer", count: 1) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="NB-RD" outcome="Error" timestamp="2026-10-26T12:15:05.4528293+08:00">
+        <Text>[xUnit.net 00:00:07.92]     SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: "integrity=Missing", count: 2) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="NB-RD" outcome="Error" timestamp="2026-10-26T12:15:06.0342520+08:00">
+        <Text>[xUnit.net 00:00:08.51]     SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: "documentType=Drawing", count: 1) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="NB-RD" outcome="Error" timestamp="2026-10-26T12:15:06.8244220+08:00">
+        <Text>[xUnit.net 00:00:09.30]     SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: "query=%27%20OR%201%3D1--", count: 0) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="NB-RD" outcome="Error" timestamp="2026-10-26T12:15:07.7976829+08:00">
+        <Text>[xUnit.net 00:00:10.27]     SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: "query=%E6%B8%AC%E8%A9%A6%E5%85%83%E4%BB%B672", count: 1) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="NB-RD" outcome="Error" timestamp="2026-10-26T12:15:08.6471280+08:00">
+        <Text>[xUnit.net 00:00:11.12]     SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: "status=CheckedOut", count: 2) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="NB-RD" outcome="Error" timestamp="2026-10-26T12:15:09.1955447+08:00">
+        <Text>[xUnit.net 00:00:11.67]     SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: "query=%25", count: 1) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="NB-RD" outcome="Error" timestamp="2026-10-26T12:15:09.6126277+08:00">
+        <Text>[xUnit.net 00:00:12.08]     SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: "query=CONFIG-ONLY", count: 1) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="NB-RD" outcome="Error" timestamp="2026-10-26T12:15:10.0912526+08:00">
+        <Text>[xUnit.net 00:00:12.56]     SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: "query=DWG-072", count: 1) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="NB-RD" outcome="Error" timestamp="2026-10-26T12:15:10.5764085+08:00">
+        <Text>[xUnit.net 00:00:13.05]     SWPdm.ContractTests.VaultTests.SearchAndFiltersApplyToAllCurrentVersions(filter: "query=HISTORICAL-ONLY", count: 0) [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="NB-RD" outcome="Error" timestamp="2026-10-26T12:15:12.2275201+08:00">
+        <Text>[xUnit.net 00:00:14.70]     SWPdm.ContractTests.VaultTests.IntegrityUsesStoredEvidenceVirtualIsNotMissingAndNoServerPathEscapes [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="NB-RD" outcome="Error" timestamp="2026-10-26T12:15:12.4673277+08:00">
+        <Text>[xUnit.net 00:00:14.94]     SWPdm.ContractTests.VaultTests.LegacyArrayAndBeyondLastPageAreExplicit [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="NB-RD" outcome="Error" timestamp="2026-10-26T12:15:12.7209369+08:00">
+        <Text>[xUnit.net 00:00:15.19]     SWPdm.ContractTests.VaultTests.MissingVersionAndMissingDocumentCannotBeReportedAsHealthy [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="NB-RD" outcome="Error" timestamp="2026-10-26T12:15:13.0490237+08:00">
+        <Text>[xUnit.net 00:00:15.52]     SWPdm.ContractTests.VaultTests.CompletePagingHasGlobalCountsStableOrderAndNoWrites [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

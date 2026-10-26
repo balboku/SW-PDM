@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Modal } from './ui';
 import { getCheckoutReferences, checkOutDocument } from '../lib/api';
-import { uniqueRelatedFiles } from '../lib/ui-model';
+import { checkoutTargets } from '../lib/vault-model';
 import { AlertCircle, CheckCircle2, FileText, Package, Layout, Loader2, Lock, Unlock } from 'lucide-react';
 
 interface CheckOutModalProps {
@@ -9,7 +9,7 @@ interface CheckOutModalProps {
   onClose: () => void;
   documentId: number;
   fileName: string;
-  onSuccess: (checkedOutBy: string) => void;
+  onSuccess: (checkedOutBy: string, result?: any) => void;
 }
 
 export const CheckOutModal: React.FC<CheckOutModalProps> = ({ 
@@ -28,7 +28,7 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
   const submitErrorPanel = useRef<HTMLDivElement>(null);
   const requestId = useRef(0);
 
-  const relatedFiles = data ? uniqueRelatedFiles(documentId, data) : [];
+  const relatedFiles = data ? checkoutTargets(documentId, data) : [];
   const normalizedUserName = userName.trim().toLowerCase();
   const blockingLocks = relatedFiles.filter((file: any) => (
     file.checkedOutBy &&
@@ -61,11 +61,14 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
       if (!res || !['whereUsed', 'references', 'drawings'].every(key => Array.isArray(res[key]))) {
         throw new Error('關聯預覽格式不正確，請確認服務版本後重新檢查。');
       }
+      if (![...res.references, ...res.drawings].every(file => Number.isSafeInteger(file.documentId) && file.documentId > 0 &&
+          typeof file.originalFileName === 'string' && (file.checkedOutBy == null || typeof file.checkedOutBy === 'string')))
+        throw new Error('關聯文件身分不完整，請重新檢查。');
       if (requestId.current === currentRequest) setData(res);
     } catch (err: any) {
       if (requestId.current !== currentRequest) return;
       const errorData = err.response?.data;
-      setError(typeof errorData === 'string' ? errorData : (errorData?.title || errorData?.detail || '無法載入關聯資料'));
+      setError(typeof errorData === 'string' ? errorData : (errorData?.title || errorData?.detail || err.message || '無法載入關聯資料'));
     } finally {
       if (requestId.current === currentRequest) setLoading(false);
     }
@@ -79,8 +82,8 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
     setSubmitting(true);
     setSubmitError('');
     try {
-      await checkOutDocument(documentId, userName.trim(), true);
-      onSuccess(userName.trim());
+      const result = await checkOutDocument(documentId, userName.trim(), true);
+      onSuccess(userName.trim(), result);
       onClose();
     } catch (err: any) {
       const errorData = err.response?.data;
@@ -126,6 +129,7 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
             本次範圍：本圖 1 份＋關聯檔 {relatedFiles.length} 份，共 {relatedFiles.length + 1} 份。
             {relatedFiles.some(file => file.checkedOutBy?.trim().toLowerCase() === normalizedUserName) && ' 您已持有的鎖會沿用，不重複出庫。'}
           </p>}
+          {!loading && !error && data?.whereUsed?.length > 0 && <p className="mt-2 text-xs text-blue-200">使用本文件的上層父文件僅供查閱，不會取得其鎖，也不計入這次批次。</p>}
         </div>
 
         <div>

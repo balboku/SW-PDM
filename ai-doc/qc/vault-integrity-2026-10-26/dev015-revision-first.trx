@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="c23f6921-bd57-4af7-8dec-33e027234176" name="user@NB-RD 2026-10-26 12:38:09" runUser="NB-RD\user" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-26T12:38:09.2139568+08:00" queuing="2026-10-26T12:38:09.2139571+08:00" start="2026-10-26T12:38:03.0980080+08:00" finish="2026-10-26T12:38:09.2251560+08:00" />
+  <TestSettings name="default" id="7cd86bc5-c9c7-4959-a16e-237f9d464afd">
+    <Deployment runDeploymentRoot="user_NB-RD_2026-10-26_12_38_09" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="5f766432-80b7-41cf-ad92-607593077dd4" testId="ce879c6d-9e84-e9df-f902-254bd5d96804" testName="SWPdm.ContractTests.VaultTests.RevisionPropertyFallbackPreservesLegacyDisplayWithoutGuessingConflicts" computerName="NB-RD" duration="00:00:03.7042918" startTime="2026-10-26T12:38:09.0899513+08:00" endTime="2026-10-26T12:38:09.0899896+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5f766432-80b7-41cf-ad92-607593077dd4">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Strings differ&#xD;
+           ↓ (pos 0)&#xD;
+Expected: "B"&#xD;
+Actual:   "D"&#xD;
+           ↑ (pos 0)</Message>
+          <StackTrace>   at SWPdm.ContractTests.VaultTests.RevisionPropertyFallbackPreservesLegacyDisplayWithoutGuessingConflicts() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 24&#xD;
+   at SWPdm.ContractTests.VaultTests.RevisionPropertyFallbackPreservesLegacyDisplayWithoutGuessingConflicts() in C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs:line 28&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="SWPdm.ContractTests.VaultTests.RevisionPropertyFallbackPreservesLegacyDisplayWithoutGuessingConflicts" storage="c:\users\user\.codex\worktrees\checkout-reused-contract-20261022\sw-pdm\tests\swpdm.contracttests\bin\release\net8.0\swpdm.contracttests.dll" id="ce879c6d-9e84-e9df-f902-254bd5d96804">
+      <Execution id="5f766432-80b7-41cf-ad92-607593077dd4" />
+      <TestMethod codeBase="C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\bin\Release\net8.0\SWPdm.ContractTests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SWPdm.ContractTests.VaultTests" name="RevisionPropertyFallbackPreservesLegacyDisplayWithoutGuessingConflicts" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="ce879c6d-9e84-e9df-f902-254bd5d96804" executionId="5f766432-80b7-41cf-ad92-607593077dd4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="不在清單中的結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有載入的結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="1" executed="1" passed="0" failed="1" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 8.0.26)&#xD;
+[xUnit.net 00:00:00.28]   Discovering: SWPdm.ContractTests&#xD;
+[xUnit.net 00:00:00.61]   Discovered:  SWPdm.ContractTests&#xD;
+[xUnit.net 00:00:00.63]   Starting:    SWPdm.ContractTests&#xD;
+[xUnit.net 00:00:04.55]       Assert.Equal() Failure: Strings differ&#xD;
+[xUnit.net 00:00:04.55]                  ↓ (pos 0)&#xD;
+[xUnit.net 00:00:04.55]       Expected: "B"&#xD;
+[xUnit.net 00:00:04.55]       Actual:   "D"&#xD;
+[xUnit.net 00:00:04.55]                  ↑ (pos 0)&#xD;
+[xUnit.net 00:00:04.55]       Stack Trace:&#xD;
+[xUnit.net 00:00:04.55]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(24,0): at SWPdm.ContractTests.VaultTests.RevisionPropertyFallbackPreservesLegacyDisplayWithoutGuessingConflicts()&#xD;
+[xUnit.net 00:00:04.56]         C:\Users\user\.codex\worktrees\checkout-reused-contract-20261022\SW-PDM\tests\SWPdm.ContractTests\VaultTests.cs(28,0): at SWPdm.ContractTests.VaultTests.RevisionPropertyFallbackPreservesLegacyDisplayWithoutGuessingConflicts()&#xD;
+[xUnit.net 00:00:04.56]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:04.56]   Finished:    SWPdm.ContractTests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="NB-RD" outcome="Error" timestamp="2026-10-26T12:38:09.0848911+08:00">
+        <Text>[xUnit.net 00:00:04.55]     SWPdm.ContractTests.VaultTests.RevisionPropertyFallbackPreservesLegacyDisplayWithoutGuessingConflicts [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

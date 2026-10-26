@@ -129,9 +129,9 @@ export const getVersionThumbnailUrl = (versionId: number) => {
   return `${API_BASE}/api/versions/${versionId}/thumbnail`;
 };
 
-export const searchDocuments = async (query: string = '', documentType: string = '', status: string = '', page = 1) => {
+export const searchDocuments = async (query: string = '', documentType: string = '', status: string = '', page = 1, integrity = 'All') => {
   const response = await api.get('/api/documents/search', {
-    params: { query, documentType, status, paged: true, page, pageSize: 50 }
+    params: { query, documentType, status, integrity, paged: true, page, pageSize: 50 }
   });
   return response.data;
 };
@@ -168,12 +168,18 @@ export const checkOutDocument = async (
   return response.data;
 };
 
-export interface CancelCheckoutRequest {
+export interface SingleCancelCheckoutRequest {
   actor: string;
   expectedLockTime: string;
   expectedVersionId: number;
   includeBatch: false;
 }
+
+export type CancelCheckoutRequest = SingleCancelCheckoutRequest | { actor: string; includeBatch: true; batchId: string };
+export const getDocumentIntegrity = async (id: number) => (await api.get(`/api/documents/${id}/integrity`)).data;
+export const getCheckoutBatches = async (id: number, actor: string) => (await api.get(`/api/documents/${id}/checkout-batches`, { params: { actor } })).data;
+export const getBatchCheckoutPreview = async (id: number, actor: string, batchId: string) =>
+  (await api.get(`/api/documents/${id}/undo-checkout-preview`, { params: { actor, batchId, includeBatch: true } })).data;
 
 export const getCancelCheckoutPreview = async (documentId: number, actor: string) => {
   const response = await api.get(`/api/documents/${documentId}/undo-checkout-preview`, { params: { actor } });

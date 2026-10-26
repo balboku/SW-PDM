@@ -17,114 +17,20 @@ public static class DocumentEndpoints
 {
     public static void MapDocumentEndpoints(this WebApplication app)
     {
-        // 階段 1：搜尋圖檔的 API
+        // Legacy callers keep an array; the Vault opts in to the complete paged contract.
         app.MapGet("/api/documents/search", async (
-            string? query,
-            string? documentType,
-            string? status,
-            PdmDbContext dbContext,
-            CancellationToken cancellationToken) =>
+            string? query, string? documentType, string? status, VaultQueryService vault,
+            CancellationToken ct, bool paged = false, int page = 1, int pageSize = 50, string? integrity = null) =>
         {
-            try
-            {
-                var queryable = dbContext.Documents
-                    .Include(d => d.CurrentVersion)
-                    .AsQueryable();
+            try { return Results.Ok(await vault.SearchAsync(query, documentType, status, integrity, paged, page, pageSize, ct)); }
+            catch (Exception ex) { return EndpointHelpers.ToProblem(ex); }
+        });
 
-                if (!string.IsNullOrWhiteSpace(query))
-                {
-                    string searchPattern = $"%{query}%";
-                    queryable = queryable.Where(d =>
-                        EF.Functions.ILike(d.FileName, searchPattern) ||
-                        (d.PartNumber != null && EF.Functions.ILike(d.PartNumber, searchPattern)) ||
-                        dbContext.CustomProperties.Any(p =>
-                            p.VersionId == d.CurrentVersionId &&
-                            p.ConfigurationName == string.Empty &&
-                            p.PropertyName == "圖號" &&
-                            p.PropertyValue != null &&
-                            EF.Functions.ILike(p.PropertyValue, searchPattern)));
-                }
-
-                if (!string.IsNullOrWhiteSpace(documentType) && documentType != "All")
-                {
-                    queryable = queryable.Where(d => d.DocumentType == documentType);
-                }
-
-                if (!string.IsNullOrWhiteSpace(status))
-                {
-                    if (status == "CheckedOut")
-                    {
-                        queryable = queryable.Where(d => d.CheckedOutBy != null);
-                    }
-                    else if (status == "Available")
-                    {
-                        queryable = queryable.Where(d => d.CheckedOutBy == null);
-                    }
-                }
-
-                var results = await queryable
-                    .OrderByDescending(d => d.UpdatedAt)
-                    .Take(50)
-                    .Select(d => new
-                    {
-                        d.DocumentId,
-                        d.FileName,
-                        DrawingNumber = d.CurrentVersion != null
-                            ? dbContext.CustomProperties
-                                .Where(p =>
-                                    p.VersionId == d.CurrentVersion.VersionId &&
-                                    p.ConfigurationName == string.Empty &&
-                                    p.PropertyName == "圖號")
-                                .Select(p => p.PropertyValue)
-                                .FirstOrDefault()
-                            : null,
-                        d.PartNumber,
-                        d.DocumentType,
-                        RevisionLabel = d.CurrentVersion != null
-                            ? d.CurrentVersion.RevisionLabel
-                              ?? dbContext.CustomProperties
-                                  .Where(p =>
-                                      p.VersionId == d.CurrentVersion.VersionId &&
-                                      (p.PropertyName == "Revision" ||
-                                       p.PropertyName == "Rev" ||
-                                       p.PropertyName == "版次"))
-                                  .Select(p => p.PropertyValue)
-                                  .FirstOrDefault()
-                              ?? d.RevisionLabel
-                            : d.RevisionLabel,
-                        d.Material,
-                        CurrentVersionNo = d.CurrentVersion != null ? d.CurrentVersion.VersionNo : (int?)null,
-                        CurrentVersionId = d.CurrentVersion != null ? d.CurrentVersion.VersionId : (long?)null,
-                        CurrentLifecycleState = d.CurrentVersion != null ? d.CurrentVersion.LifecycleState : null,
-                        ReferenceUpdateCount = dbContext.BomOccurrences
-                            .Where(x =>
-                                d.CurrentVersionId.HasValue &&
-                                x.ParentVersionId == d.CurrentVersionId.Value &&
-                                x.ChildVersionId.HasValue &&
-                                x.ChildVersion!.Document.CurrentVersion != null &&
-                                x.ChildVersion.Document.CurrentVersion.VersionNo > x.ChildVersion.VersionNo)
-                            .Select(x => x.ChildVersion!.DocumentId)
-                            .Distinct()
-                            .Count(),
-                        AffectedReferenceOccurrenceCount = dbContext.BomOccurrences
-                            .Count(x =>
-                                d.CurrentVersionId.HasValue &&
-                                x.ParentVersionId == d.CurrentVersionId.Value &&
-                                x.ChildVersionId.HasValue &&
-                                x.ChildVersion!.Document.CurrentVersion != null &&
-                                x.ChildVersion.Document.CurrentVersion.VersionNo > x.ChildVersion.VersionNo),
-                        d.UpdatedAt,
-                        d.CheckedOutBy,
-                        d.CheckedOutAt
-                    })
-                    .ToListAsync(cancellationToken);
-
-                return Results.Ok(results);
-            }
-            catch (Exception ex)
-            {
-                return EndpointHelpers.ToProblem(ex);
-            }
+        app.MapGet("/api/documents/{documentId:long}/integrity", async (
+            long documentId, VaultQueryService vault, CancellationToken ct) =>
+        {
+            try { return Results.Ok(await vault.IntegrityAsync(documentId, ct)); }
+            catch (Exception ex) { return EndpointHelpers.ToProblem(ex); }
         });
 
         app.MapGet("/api/documents/{documentId:long}", async (
@@ -719,7 +625,7 @@ public static class DocumentEndpoints
                 _logger.LogInformation("Found {Count} related drawings", relatedDrawingVersionIds.Count);
 
                 var drawingFiles = await dbContext.DocumentVersions
-                    .Where(v => relatedDrawingVersionIds.Contains(v.VersionId))
+                    .Where(v => relatedDrawingVersionIds.Contains(v.VersionId) && v.Document.CurrentVersionId == v.VersionId)
                     .Select(v => new PdmPackageFile(
                         v.DocumentId,
                         v.VersionId,
@@ -736,28 +642,29 @@ public static class DocumentEndpoints
                 var parents = await repository.GetWhereUsedAsync(document.CurrentVersionId.Value, cancellationToken);
 
                 // 4. 重組鎖定清單：只包含 Children 與 Drawings，排除 Parents (防止鎖定過多無關父組件)
-                var relationVersionIds = children.Select(x => x.VersionId)
-                    .Concat(relatedDrawingVersionIds)
+                var relationDocumentIds = children.Select(x => x.DocumentId)
+                    .Concat(drawingFiles.Select(x => x.DocumentId))
                     .Distinct()
                     .ToList();
 
                 var checkoutRows = await dbContext.Documents
                     .AsNoTracking()
-                    .Where(x => x.CurrentVersionId.HasValue && relationVersionIds.Contains(x.CurrentVersionId.Value))
+                    .Where(x => relationDocumentIds.Contains(x.DocumentId))
                     .Select(x => new
                     {
-                        VersionId = x.CurrentVersionId!.Value,
+                        x.DocumentId,
                         x.CheckedOutBy,
                         x.CheckedOutAt
                     })
                     .ToListAsync(cancellationToken);
 
-                var checkoutStates = checkoutRows.ToDictionary(x => x.VersionId);
+                var checkoutStates = checkoutRows.ToDictionary(x => x.DocumentId);
                 object ToRelationDto(PdmPackageFile file)
                 {
-                    checkoutStates.TryGetValue(file.VersionId, out var checkout);
+                    checkoutStates.TryGetValue(file.DocumentId, out var checkout);
                     return new
                     {
+                        file.DocumentId,
                         file.VersionId,
                         file.DocumentType,
                         file.StorageFileId,

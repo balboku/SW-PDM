@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronRight, ChevronDown, File, Archive, Loader2, Download } from 'lucide-react';
 import { getVersionChildren } from '../lib/api';
+import { referenceLabel } from '../lib/vault-model';
 
 interface BomNode {
   childVersionId?: number;
   childOriginalFileName?: string;
   packageRelativePath?: string;
+  sourceReferencePath?: string;
+  isVirtual?: boolean;
+  isSuppressed?: boolean;
   quantity: number;
   childDocumentType?: string; // 根據實際 API 回傳欄位
   referenceStatus?: string;
@@ -30,7 +34,7 @@ const BomTreeNode: React.FC<{
   const [error, setError] = useState(false);
 
   // 判斷是否為組合件 (透過附檔名或 API 欄位)
-  const displayFileName = node.childOriginalFileName || node.packageRelativePath || 'Unknown File';
+  const displayFileName = node.childOriginalFileName || node.packageRelativePath || node.sourceReferencePath?.replace(/\\/g, '/').split('/').pop() || '未記錄檔名';
   const isAssembly = displayFileName.toLowerCase().endsWith('.sldasm') || node.childDocumentType === 'Assembly';
 
   const toggleExpand = async () => {
@@ -65,9 +69,9 @@ const BomTreeNode: React.FC<{
       >
         <div className="min-w-5 shrink-0 flex justify-center items-center mr-1 text-gray-400">
           {!node.childVersionId ? (
-            <span title={node.referenceIssue || '請上傳完整資料夾，並在 SolidWorks 確認參照後重新入庫。'}
-              className="whitespace-nowrap text-red-300 text-[10px] bg-red-900/20 px-1 rounded border border-red-900/30">
-              {node.referenceStatus === 'Broken' ? '關聯待確認' : '缺少參照'}
+            <span title={node.isVirtual ? '內嵌於父檔，不需要獨立圖檔。' : node.referenceIssue || '請在 SolidWorks 確認參照與旗標後重新入庫。'}
+              className={'whitespace-nowrap text-[10px] px-1 rounded border ' + (node.isVirtual ? 'text-gray-300 border-gray-600' : 'text-red-300 bg-red-900/20 border-red-900/30')}>
+              {referenceLabel(node)}
             </span>
           ) : isAssembly ? (
             <button type="button" aria-label={`${isExpanded ? '收合' : '展開'} ${displayFileName}`} aria-expanded={isExpanded}
@@ -82,6 +86,7 @@ const BomTreeNode: React.FC<{
             <span className="w-3.5" /> // Empty space alignment
           )}
         </div>
+        {node.isSuppressed && node.childVersionId && <span className="mr-2 text-[10px] text-amber-300">抑制件</span>}
         
         <div className="mr-2 text-gray-400">
           {isAssembly ? <Archive size={16} className={node.childVersionId ? "text-yellow-500" : "text-gray-600"} /> : <File size={16} className={node.childVersionId ? "text-blue-400" : "text-gray-600"} />}

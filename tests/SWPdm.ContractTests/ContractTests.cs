@@ -224,6 +224,7 @@ internal sealed class ContractHost : IAsyncDisposable
         builder.Services.AddScoped<CancelCheckoutService>(); builder.Services.AddScoped<PdmIngestionService>();
         builder.Services.AddScoped<CheckoutBatchService>();
         builder.Services.AddScoped<CadPackageService>();
+        builder.Services.AddScoped<VaultQueryService>();
         builder.Services.AddSingleton<ICadPackageSessionFactory>(host.PackageCad);
         builder.Services.Configure<LocalStorageOptions>(_ => { });
         builder.Services.Configure<SolidWorksDocumentManagerOptions>(_ => { });
