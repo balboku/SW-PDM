@@ -1,0 +1,34 @@
+{
+  "DatabaseRows": [
+    "target|swpdm|5432|on",
+    "pdm_documents|0|d751713988987e9331980363e24189ce",
+    "pdm_document_versions|0|d751713988987e9331980363e24189ce",
+    "pdm_custom_properties|0|d751713988987e9331980363e24189ce",
+    "pdm_bom_occurrences|0|d751713988987e9331980363e24189ce",
+    "pdm_document_identity_changes|0|d751713988987e9331980363e24189ce",
+    "pdm_numbering_rules|0|d751713988987e9331980363e24189ce",
+    "pdm_number_sequences|0|d751713988987e9331980363e24189ce",
+    "pdm_checkout_batches|0|d751713988987e9331980363e24189ce",
+    "pdm_checkout_batch_items|0|d751713988987e9331980363e24189ce",
+    "history|9|eef960f638ec6682b52803f19d81e5c3",
+    "columns|81|1a6dfe39184b1e91e81739cfcb59fef7",
+    "constraints|23|b97d79d212f2830bb23088cd06abf6c6",
+    "indexes|26|0e93d344f91c9cf0769a1f68deefb39e",
+    "sequences|7|f78d00c1e95691a34f8b708b19204535",
+    "tables|__EFMigrationsHistory,pdm_bom_occurrences,pdm_checkout_batch_items,pdm_checkout_batches,pdm_custom_properties,pdm_document_identity_changes,pdm_document_versions,pdm_documents,pdm_number_sequences,pdm_numbering_rules"
+  ],
+  "Vault": {
+    "FileCount": 0,
+    "PathSizeContentSHA256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+  },
+  "ConfigHashes": [
+    {
+      "Name": "appsettings.json",
+      "SHA256": "E69D4651458971C90F77F60CE272ED4DBE029F660126DF5DF20973617F4258F2"
+    },
+    {
+      "Name": "appsettings.Development.json",
+      "SHA256": "E69D4651458971C90F77F60CE272ED4DBE029F660126DF5DF20973617F4258F2"
+    }
+  ]
+}

@@ -112,3 +112,9 @@ API／Sample／interop 在 API、ContractTests、NativePackageVerifier 三處的
 原 dirty checkout 仍 52 項，tracked diff `eb8bdd8fb2032a4a299f44bcc7696e57d216192f`、index `e69de29bb2d1d6434b8b29ae775ad8c2e48c5391` 不變。
 6 份已提交 TRX／JSON／TXT 的 Git blob 與原始位元組逐一相同；產品／測試原始碼不再修改，後續只提交本段與兩個文件入口的 Git 狀態。
 本次不連線目前業務資料庫、不讀寫既有業務資料／歷史 BOM／Vault 原檔，也不重啟或切換本機服務。完整 SolidWorks 幾何／跨實機與 DEV-015 限制維持不變。
+
+## 後續成套發布（2026-10-26）
+
+使用者另行明確要求DEV-014／015提交／push、合併與本機套用，產品來源14de0f5；已完成。上方限制僅指當時隔離／發布階段。
+固定成品SQLite／PG各134/134，並以同API／Sample DLL重跑11份私有CAD／4套件／22獨立重開／18參照通過；沒有沿用不同DLL冒稱同成品。
+目前資料、歷史BOM、schema／9筆migration／序號／Vault／設定指紋相同；沒有新migration或原檔修復。具體SHA、切換、回復與證據見[本次成套發布紀錄](../reports/local-package-vault-main-2026-10-26.md)。

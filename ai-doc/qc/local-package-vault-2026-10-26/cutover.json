@@ -1,0 +1,22 @@
+{
+  "Passed": true,
+  "SourceCommit": "14de0f58717cfa58c274efa9e72e6ca475c4e4da",
+  "TimeUtc": "2026-10-26T05:34:49.0051796+00:00",
+  "PreviousApiPid": 24072,
+  "PreviousWebPid": 27392,
+  "Api": {
+    "ProcessId": 24528,
+    "Port": 5000,
+    "Commit": "14de0f58717cfa58c274efa9e72e6ca475c4e4da",
+    "ReadOnlyActualDatabase": false,
+    "Isolated": false
+  },
+  "Web": {
+    "ProcessId": 3308,
+    "Port": 5174,
+    "SourceCommit": "14de0f58717cfa58c274efa9e72e6ca475c4e4da"
+  },
+  "ActualDocumentCount": 0,
+  "MigrationExecuted": false,
+  "RollbackInvoked": false
+}

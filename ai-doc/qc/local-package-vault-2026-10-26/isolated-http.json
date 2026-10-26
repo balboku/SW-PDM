@@ -1,0 +1,153 @@
+{
+  "Passed": true,
+  "SourceCommit": "14de0f58717cfa58c274efa9e72e6ca475c4e4da",
+  "Target": "127.0.0.1:5002 / 55433/release_http_20261026",
+  "PagedTotal": 4,
+  "PageSize": 2,
+  "EvidenceLevel": "StoredSnapshot",
+  "Checkout": {
+    "message": "Checked out successfully",
+    "checkedOutBy": "User",
+    "batchId": "97319b25-a93b-44ec-b69e-14fe8b99ae20",
+    "acquiredCount": 3,
+    "reusedLockCount": 1
+  },
+  "Preview": {
+    "scope": "CheckoutBatch",
+    "batchId": "97319b25-a93b-44ec-b69e-14fe8b99ae20",
+    "rootDocumentId": 1,
+    "actor": "User",
+    "canRestore": true,
+    "restorableCount": 3,
+    "items": [
+      {
+        "documentId": 1,
+        "versionId": 1,
+        "lockTime": "2026-10-26T13:33:18.739677+08:00",
+        "fileName": "synthetic-root.sldasm",
+        "canRestore": true,
+        "code": "Restorable",
+        "reason": "可解除這次批次取得的鎖。"
+      },
+      {
+        "documentId": 3,
+        "versionId": 3,
+        "lockTime": "2026-10-26T13:33:18.739677+08:00",
+        "fileName": "synthetic-child.sldprt",
+        "canRestore": true,
+        "code": "Restorable",
+        "reason": "可解除這次批次取得的鎖。"
+      },
+      {
+        "documentId": 4,
+        "versionId": 4,
+        "lockTime": "2026-10-26T13:33:18.739677+08:00",
+        "fileName": "synthetic-drawing.slddrw",
+        "canRestore": true,
+        "code": "Restorable",
+        "reason": "可解除這次批次取得的鎖。"
+      }
+    ]
+  },
+  "WrongActorStatus": 403,
+  "Undo": {
+    "scope": "CheckoutBatch",
+    "batchId": "97319b25-a93b-44ec-b69e-14fe8b99ae20",
+    "restoredCount": 3,
+    "restoredDocumentIds": [
+      1,
+      3,
+      4
+    ],
+    "skipped": []
+  },
+  "Repeat": {
+    "scope": "CheckoutBatch",
+    "batchId": "97319b25-a93b-44ec-b69e-14fe8b99ae20",
+    "restoredCount": 0,
+    "restoredDocumentIds": [],
+    "skipped": [
+      {
+        "documentId": 1,
+        "versionId": 1,
+        "lockTime": "2026-10-26T13:33:18.739677+08:00",
+        "fileName": "synthetic-root.sldasm",
+        "canRestore": false,
+        "code": "AlreadyRestored",
+        "reason": "此筆已復原，不會解除後續取得的新鎖。"
+      },
+      {
+        "documentId": 3,
+        "versionId": 3,
+        "lockTime": "2026-10-26T13:33:18.739677+08:00",
+        "fileName": "synthetic-child.sldprt",
+        "canRestore": false,
+        "code": "AlreadyRestored",
+        "reason": "此筆已復原，不會解除後續取得的新鎖。"
+      },
+      {
+        "documentId": 4,
+        "versionId": 4,
+        "lockTime": "2026-10-26T13:33:18.739677+08:00",
+        "fileName": "synthetic-drawing.slddrw",
+        "canRestore": false,
+        "code": "AlreadyRestored",
+        "reason": "此筆已復原，不會解除後續取得的新鎖。"
+      }
+    ]
+  },
+  "NextCheckout": {
+    "message": "Checked out successfully",
+    "checkedOutBy": "User",
+    "batchId": "830c9e3c-209a-40fa-bc0e-ef8bfaa9c57e",
+    "acquiredCount": 1,
+    "reusedLockCount": 0
+  },
+  "OldReplay": {
+    "scope": "CheckoutBatch",
+    "batchId": "97319b25-a93b-44ec-b69e-14fe8b99ae20",
+    "restoredCount": 0,
+    "restoredDocumentIds": [],
+    "skipped": [
+      {
+        "documentId": 1,
+        "versionId": 1,
+        "lockTime": "2026-10-26T13:33:18.739677+08:00",
+        "fileName": "synthetic-root.sldasm",
+        "canRestore": false,
+        "code": "AlreadyRestored",
+        "reason": "此筆已復原，不會解除後續取得的新鎖。"
+      },
+      {
+        "documentId": 3,
+        "versionId": 3,
+        "lockTime": "2026-10-26T13:33:18.739677+08:00",
+        "fileName": "synthetic-child.sldprt",
+        "canRestore": false,
+        "code": "AlreadyRestored",
+        "reason": "此筆已復原，不會解除後續取得的新鎖。"
+      },
+      {
+        "documentId": 4,
+        "versionId": 4,
+        "lockTime": "2026-10-26T13:33:18.739677+08:00",
+        "fileName": "synthetic-drawing.slddrw",
+        "canRestore": false,
+        "code": "AlreadyRestored",
+        "reason": "此筆已復原，不會解除後續取得的新鎖。"
+      }
+    ]
+  },
+  "SingleUndo": {
+    "restoredCount": 1,
+    "restoredDocumentIds": [
+      1
+    ],
+    "scope": "SingleDocument"
+  },
+  "PackageBlockedStatus": 409,
+  "PackageBlockedCode": "PACKAGE_CHECKSUM_MISSING",
+  "Before": null,
+  "After": null,
+  "VaultFileCount": 0
+}

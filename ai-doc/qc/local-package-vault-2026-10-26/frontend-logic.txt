@@ -1,0 +1,44 @@
+✔ explicit root Reused retains the no-op state (4.5949ms)
+✔ root file outcome supports pending legacy response shape (0.2787ms)
+✔ a reused child does not turn a created root into Reused (0.2448ms)
+✔ legacy successful API without outcome keeps existing behavior (0.2104ms)
+✔ unknown explicit outcome must not report success (0.2274ms)
+✔ explicit root outcome takes precedence over file entries (0.3066ms)
+✔ scope excludes the root and counts a related document once across categories (3.4744ms)
+✔ no related documents means only the root is affected (0.4726ms)
+✔ version IDs support legacy preview rows without document IDs (0.3395ms)
+✔ keeps the server-provided CAD extension (0.6214ms)
+✔ uses UTF-8 Chinese file names ahead of ASCII fallback (0.5179ms)
+✔ malformed encoded names fall back safely (0.3239ms)
+✔ download names cannot introduce directory separators (0.3024ms)
+✔ embedded virtual reference is not a missing file (4.3524ms)
+✔ suppressed unresolved reference remains visible for confirmation (0.578ms)
+✔ contradictory virtual flag is not silently treated as embedded (0.3362ms)
+✔ valid paged total is not confused with the page length (0.5845ms)
+✔ rejects invalid paged contract page=0 (0.5948ms)
+✔ rejects invalid paged contract page=3 (0.3477ms)
+✔ rejects invalid paged contract pageSize=101 (0.2495ms)
+✔ rejects invalid paged contract totalCount=-1 (0.3237ms)
+✔ rejects invalid paged contract totalPages=99 (0.3185ms)
+✔ rejects invalid paged contract checkedOutCount=4 (5.84ms)
+✔ rejects invalid paged contract missingReferenceDocumentCount=undefined (0.6672ms)
+✔ rejects incomplete or duplicate page items (0.6331ms)
+✔ empty is an explicit page 1/1, not a missing response (0.5653ms)
+✔ batch preview preserves exclusions and microsecond timestamps (1.3408ms)
+✔ batch confirmation blocks stale or inconsistent scope (0.9748ms)
+✔ batch confirmation blocks stale or inconsistent rootDocumentId (0.2663ms)
+✔ batch confirmation blocks stale or inconsistent actor (0.2674ms)
+✔ batch confirmation blocks stale or inconsistent batchId (0.1964ms)
+✔ batch confirmation blocks stale or inconsistent restorableCount (1.8711ms)
+✔ batch confirmation blocks stale or inconsistent canRestore (0.1512ms)
+✔ a batch needs a unique item list including the root (0.2814ms)
+✔ checkout excludes where-used parents and deduplicates actual targets (2.1835ms)
+✔ unchanged descendant choices do not become stale overrides after parent selection (0.4153ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1996.2628

@@ -1,0 +1,136 @@
+[
+  {
+    "name": "before-live-desktop",
+    "time": "2026-10-26T05:29:33.519Z",
+    "alerts": [],
+    "pageWidth": 1440,
+    "pagination": "共 0 份 · 第 1 / 1 頁 · 本頁 0 份\n上一頁\n下一頁",
+    "summary": "已載入（非全部）\n\n0\n\n缺失／待確認\n\n未檢測\n\n已出庫\n\n0\n\n有新版參照\n\n0",
+    "text": "SW PDM\n\nLOCAL STORAGE EDITION\n\n系統概覽\n首次匯入\n圖檔中心\n© 2026 SW PDM\n圖檔中心 (Vault)\n清單最多顯示 50 筆，請使用搜尋縮小範圍\n\n選取圖檔查看明細、下載或辦理出入庫。\n\n首次匯入 CAD\n\n已載入（非全部）\n\n0\n\n缺失／待確認\n\n未檢測\n\n已出庫\n\n0\n\n有新版參照\n\n0\n\n所有類型\n零件 (Part)\n組合件 (Asm)\n工程圖 (Drw)\n所有狀態\n可用 (Available)\n已出庫 (Locked)\n篩選\n\n圖庫尚無圖檔\n\n請先匯入 SolidWorks 圖檔，再回這裡搜尋與查看關聯。\n\n首次匯入 CAD\n檔名／參照狀況\t圖號\t料號\t類型\t版本／版次\t狀態\n共 0 份 · 第 1 / 1 頁 · 本頁 0 份\n上一頁\n下一頁",
+    "url": "http://127.0.0.1:5174/documents",
+    "viewport": {
+      "height": 900,
+      "width": 1440
+    }
+  },
+  {
+    "name": "after-live-desktop",
+    "time": "2026-10-26T05:35:19.495Z",
+    "alerts": [],
+    "pageWidth": 1440,
+    "pagination": "共 0 份 · 第 1 / 1 頁 · 本頁 0 份\n上一頁\n下一頁",
+    "summary": "全部結果\n\n0\n\n缺失／待確認\n\n0\n\n已出庫\n\n0\n\n有新版參照\n\n0",
+    "text": "SW PDM\n\nLOCAL STORAGE EDITION\n\n系統概覽\n首次匯入\n圖檔中心\n© 2026 SW PDM\n圖檔中心 (Vault)\n\n選取圖檔查看明細、下載或辦理出入庫。\n\n首次匯入 CAD\n\n全部結果\n\n0\n\n缺失／待確認\n\n0\n\n已出庫\n\n0\n\n有新版參照\n\n0\n\n所有類型\n零件 (Part)\n組合件 (Asm)\n工程圖 (Drw)\n所有狀態\n可用 (Available)\n已出庫 (Locked)\n所有參照狀態\n缺失／待確認\n有新版參照\n篩選\n\n圖庫尚無圖檔\n\n請先匯入 SolidWorks 圖檔，再回這裡搜尋與查看關聯。\n\n首次匯入 CAD\n檔名／參照狀況\t圖號\t料號\t類型\t版本／版次\t狀態\n共 0 份 · 第 1 / 1 頁 · 本頁 0 份\n上一頁\n下一頁",
+    "url": "http://127.0.0.1:5174/documents",
+    "viewport": {
+      "height": 900,
+      "width": 1440
+    }
+  },
+  {
+    "name": "after-live-search",
+    "time": "2026-10-26T05:35:19.930Z",
+    "alerts": [],
+    "pageWidth": 1440,
+    "pagination": "共 0 份 · 第 1 / 1 頁 · 本頁 0 份\n上一頁\n下一頁",
+    "summary": "全部結果\n\n0\n\n缺失／待確認\n\n0\n\n已出庫\n\n0\n\n有新版參照\n\n0",
+    "text": "SW PDM\n\nLOCAL STORAGE EDITION\n\n系統概覽\n首次匯入\n圖檔中心\n© 2026 SW PDM\n圖檔中心 (Vault)\n\n選取圖檔查看明細、下載或辦理出入庫。\n\n首次匯入 CAD\n\n全部結果\n\n0\n\n缺失／待確認\n\n0\n\n已出庫\n\n0\n\n有新版參照\n\n0\n\n所有類型\n零件 (Part)\n組合件 (Asm)\n工程圖 (Drw)\n所有狀態\n可用 (Available)\n已出庫 (Locked)\n所有參照狀態\n缺失／待確認\n有新版參照\n篩選\n\n找不到符合條件的圖檔\n\n請清除搜尋條件或換個關鍵字，不需要重新匯入。\n\n清除搜尋條件\n檔名／參照狀況\t圖號\t料號\t類型\t版本／版次\t狀態\n共 0 份 · 第 1 / 1 頁 · 本頁 0 份\n上一頁\n下一頁",
+    "url": "http://127.0.0.1:5174/documents",
+    "viewport": {
+      "height": 900,
+      "width": 1440
+    }
+  },
+  {
+    "name": "after-live-tablet-landscape",
+    "time": "2026-10-26T05:35:20.354Z",
+    "alerts": [],
+    "pageWidth": 1024,
+    "pagination": "共 0 份 · 第 1 / 1 頁 · 本頁 0 份\n上一頁\n下一頁",
+    "summary": "全部結果\n\n0\n\n缺失／待確認\n\n0\n\n已出庫\n\n0\n\n有新版參照\n\n0",
+    "text": "SW PDM\n\nLOCAL STORAGE EDITION\n\n系統概覽\n首次匯入\n圖檔中心\n© 2026 SW PDM\n圖檔中心 (Vault)\n\n選取圖檔查看明細、下載或辦理出入庫。\n\n首次匯入 CAD\n\n全部結果\n\n0\n\n缺失／待確認\n\n0\n\n已出庫\n\n0\n\n有新版參照\n\n0\n\n所有類型\n零件 (Part)\n組合件 (Asm)\n工程圖 (Drw)\n所有狀態\n可用 (Available)\n已出庫 (Locked)\n所有參照狀態\n缺失／待確認\n有新版參照\n篩選\n\n圖庫尚無圖檔\n\n請先匯入 SolidWorks 圖檔，再回這裡搜尋與查看關聯。\n\n首次匯入 CAD\n檔名／參照狀況\t圖號\t料號\t版本／版次\t狀態\n共 0 份 · 第 1 / 1 頁 · 本頁 0 份\n上一頁\n下一頁",
+    "url": "http://127.0.0.1:5174/documents",
+    "viewport": {
+      "height": 768,
+      "width": 1024
+    }
+  },
+  {
+    "name": "after-live-tablet-portrait",
+    "time": "2026-10-26T05:35:20.445Z",
+    "alerts": [],
+    "pageWidth": 768,
+    "pagination": "共 0 份 · 第 1 / 1 頁 · 本頁 0 份\n上一頁\n下一頁",
+    "summary": "全部結果\n\n0\n\n缺失／待確認\n\n0\n\n已出庫\n\n0\n\n有新版參照\n\n0",
+    "text": "SW PDM\n\nLOCAL STORAGE EDITION\n\n系統概覽\n首次匯入\n圖檔中心\n© 2026 SW PDM\n圖檔中心 (Vault)\n\n選取圖檔查看明細、下載或辦理出入庫。\n\n首次匯入 CAD\n\n全部結果\n\n0\n\n缺失／待確認\n\n0\n\n已出庫\n\n0\n\n有新版參照\n\n0\n\n所有類型\n零件 (Part)\n組合件 (Asm)\n工程圖 (Drw)\n所有狀態\n可用 (Available)\n已出庫 (Locked)\n所有參照狀態\n缺失／待確認\n有新版參照\n篩選\n\n圖庫尚無圖檔\n\n請先匯入 SolidWorks 圖檔，再回這裡搜尋與查看關聯。\n\n首次匯入 CAD\n共 0 份 · 第 1 / 1 頁 · 本頁 0 份\n上一頁\n下一頁",
+    "url": "http://127.0.0.1:5174/documents",
+    "viewport": {
+      "height": 1024,
+      "width": 768
+    }
+  },
+  {
+    "name": "after-live-mobile",
+    "time": "2026-10-26T05:35:20.565Z",
+    "alerts": [],
+    "pageWidth": 390,
+    "pagination": "共 0 份 · 第 1 / 1 頁 · 本頁 0 份\n上一頁\n下一頁",
+    "summary": "全部結果\n\n0\n\n缺失／待確認\n\n0\n\n已出庫\n\n0\n\n有新版參照\n\n0",
+    "text": "SW PDM\n系統概覽\n首次匯入\n圖檔中心\n圖檔中心 (Vault)\n\n選取圖檔查看明細、下載或辦理出入庫。\n\n首次匯入 CAD\n\n全部結果\n\n0\n\n缺失／待確認\n\n0\n\n已出庫\n\n0\n\n有新版參照\n\n0\n\n所有類型\n零件 (Part)\n組合件 (Asm)\n工程圖 (Drw)\n所有狀態\n可用 (Available)\n已出庫 (Locked)\n所有參照狀態\n缺失／待確認\n有新版參照\n篩選\n\n圖庫尚無圖檔\n\n請先匯入 SolidWorks 圖檔，再回這裡搜尋與查看關聯。\n\n首次匯入 CAD\n共 0 份 · 第 1 / 1 頁 · 本頁 0 份\n上一頁\n下一頁",
+    "url": "http://127.0.0.1:5174/documents",
+    "viewport": {
+      "height": 844,
+      "width": 390
+    }
+  },
+  {
+    "name": "after-live-ingest-readonly",
+    "time": "2026-10-26T05:35:39.880Z",
+    "alerts": [],
+    "pageWidth": 1440,
+    "text": "SW PDM\n\nLOCAL STORAGE EDITION\n\n系統概覽\n首次匯入\n圖檔中心\n© 2026 SW PDM\n首次匯入 CAD\n\n新圖檔由此匯入；已出庫修改的圖檔，請回原文件進行「修改後入庫」。\n\n前往圖檔中心選取原文件\n匯入前檢查：CAD 必須填寫品號\n單檔入庫\n資料夾／多檔\n上傳/入庫人員\n拖曳 CAD 檔案到這裡，或點擊選擇\n\n僅支援 .SLDPRT、.SLDASM、.SLDDRW",
+    "url": "http://127.0.0.1:5174/ingest",
+    "viewport": {
+      "height": 900,
+      "width": 1440
+    }
+  },
+  {
+    "name": "after-live-overview",
+    "time": "2026-10-26T05:35:40.106Z",
+    "alerts": [],
+    "pageWidth": 1440,
+    "text": "SW PDM\n\nLOCAL STORAGE EDITION\n\n系統概覽\n首次匯入\n圖檔中心\n© 2026 SW PDM\n系統概覽\n重新檢查\n開始管理圖檔\n\n新圖檔請先匯入；已出庫修改的圖檔，請回圖檔中心選取原文件再入庫。\n\n開啟圖檔中心\n首次匯入 CAD\n\n正在檢查系統狀態，請稍候…",
+    "url": "http://127.0.0.1:5174/",
+    "viewport": {
+      "height": 900,
+      "width": 1440
+    }
+  },
+  {
+    "name": "after-live-overview-settled",
+    "time": "2026-10-26T05:37:01.646Z",
+    "alerts": [],
+    "pageWidth": 1440,
+    "text": "SW PDM\n\nLOCAL STORAGE EDITION\n\n系統概覽\n首次匯入\n圖檔中心\n© 2026 SW PDM\n系統概覽\n重新檢查\n開始管理圖檔\n\n新圖檔請先匯入；已出庫修改的圖檔，請回圖檔中心選取原文件再入庫。\n\n開啟圖檔中心\n首次匯入 CAD\n資料庫連線\n連線檢測通過\n\n本次已實際測試資料庫連線。\n\nProvider: PostgreSql\n本機儲存 (Vault)\n儲存路徑已設定\n\n此狀態不代表圖檔可讀寫。\n\n檢視儲存路徑\nSolidWorks 解析\n解析金鑰已設定\n\n實際解析結果請在匯入時確認。",
+    "url": "http://127.0.0.1:5174/",
+    "viewport": {
+      "height": 900,
+      "width": 1440
+    }
+  },
+  {
+    "name": "after-live-final-vault",
+    "time": "2026-10-26T05:37:01.863Z",
+    "alerts": [],
+    "pageWidth": 1440,
+    "pagination": "共 0 份 · 第 1 / 1 頁 · 本頁 0 份\n上一頁\n下一頁",
+    "summary": "全部結果\n\n0\n\n缺失／待確認\n\n0\n\n已出庫\n\n0\n\n有新版參照\n\n0",
+    "text": "SW PDM\n\nLOCAL STORAGE EDITION\n\n系統概覽\n首次匯入\n圖檔中心\n© 2026 SW PDM\n圖檔中心 (Vault)\n\n選取圖檔查看明細、下載或辦理出入庫。\n\n首次匯入 CAD\n\n全部結果\n\n0\n\n缺失／待確認\n\n0\n\n已出庫\n\n0\n\n有新版參照\n\n0\n\n所有類型\n零件 (Part)\n組合件 (Asm)\n工程圖 (Drw)\n所有狀態\n可用 (Available)\n已出庫 (Locked)\n所有參照狀態\n缺失／待確認\n有新版參照\n篩選\n\n圖庫尚無圖檔\n\n請先匯入 SolidWorks 圖檔，再回這裡搜尋與查看關聯。\n\n首次匯入 CAD\n檔名／參照狀況\t圖號\t料號\t類型\t版本／版次\t狀態\n共 0 份 · 第 1 / 1 頁 · 本頁 0 份\n上一頁\n下一頁",
+    "url": "http://127.0.0.1:5174/documents",
+    "viewport": {
+      "height": 900,
+      "width": 1440
+    }
+  }
+]

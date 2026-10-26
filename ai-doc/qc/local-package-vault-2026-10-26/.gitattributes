@@ -2,3 +2,8 @@
 *.json -text whitespace=cr-at-eol
 *.txt -text whitespace=cr-at-eol
 *.jpg binary
+*.ps1 -text whitespace=cr-at-eol
+*.sql -text whitespace=cr-at-eol
+.gitattributes -text whitespace=cr-at-eol
+.gitignore -text whitespace=cr-at-eol
+evidence.sha256 -text whitespace=cr-at-eol

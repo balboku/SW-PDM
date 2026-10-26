@@ -1,0 +1,283 @@
+{
+  "SourceCommit": "14de0f58717cfa58c274efa9e72e6ca475c4e4da",
+  "ApiFiles": [
+    {
+      "Name": "Azure.Core.dll",
+      "SHA256": "7F73A7723EDEBAFCE83E9FFF428EC478C93CB0D36857B3BF9FE6D5A95857D359"
+    },
+    {
+      "Name": "Azure.Identity.dll",
+      "SHA256": "0E3CF5C43E12C0F319AB58592FD6C438B0A5FEDA166CC540231DFA75C439D681"
+    },
+    {
+      "Name": "Google.Apis.Auth.dll",
+      "SHA256": "722A709B1C457A53A6B4BDEDFA570807E5050F0BD816C48F18EEBF3AD79DEF40"
+    },
+    {
+      "Name": "Google.Apis.Core.dll",
+      "SHA256": "54C270290118B5B52462E7AB710AB732E68A24D792BCACF1A7F1C4FF0E9E6988"
+    },
+    {
+      "Name": "Google.Apis.dll",
+      "SHA256": "DFC6444D83AD0926B11A6B140A3AA2927B19FBFC0E1684359BF01D994EA1A9E4"
+    },
+    {
+      "Name": "Google.Apis.Drive.v3.dll",
+      "SHA256": "15C468ADF9D205EE0A540D5896DDB805EB78D764C0EC4E3D0D2A677C691898B2"
+    },
+    {
+      "Name": "Microsoft.Bcl.AsyncInterfaces.dll",
+      "SHA256": "5705D245072D3EB78400547B32147DBB6E2C8B02BA8BDA76729798F5EFDEAECB"
+    },
+    {
+      "Name": "Microsoft.Data.SqlClient.dll",
+      "SHA256": "61C03F4831F69AA72E51493FAB6056D4448F1ABF189CECF426026170464EC74E"
+    },
+    {
+      "Name": "Microsoft.EntityFrameworkCore.Abstractions.dll",
+      "SHA256": "F27CC0C68B0AC9A458263D24613E5FABB483C333A70ACD2696A65495CE572484"
+    },
+    {
+      "Name": "Microsoft.EntityFrameworkCore.dll",
+      "SHA256": "A54A559C5B4C5569E6C6BF8A6E6CB3001651E188EB0FEAE6F3B73A281DDE1B0F"
+    },
+    {
+      "Name": "Microsoft.EntityFrameworkCore.Relational.dll",
+      "SHA256": "EF8C53753B7853B37054A7FF5855CC7B3D36692810AC303BB0639BD063C80BB0"
+    },
+    {
+      "Name": "Microsoft.EntityFrameworkCore.SqlServer.dll",
+      "SHA256": "08B708FD6FE5AE351E52AB66219327684AF013B391F0E8B92232D9A0291AAF91"
+    },
+    {
+      "Name": "Microsoft.Extensions.Caching.Memory.dll",
+      "SHA256": "A6BC869C530A2ED7573575DD61E40F0A1079EF6074251AFE9701F927C5355CA8"
+    },
+    {
+      "Name": "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+      "SHA256": "67FA4325000DB017DC0C35829B416F024F042D24EFB868BCF17A895EE6500A93"
+    },
+    {
+      "Name": "Microsoft.Extensions.DependencyInjection.dll",
+      "SHA256": "158761CE778E799949F3A3060C461B1055BB35F1F5A65EFF0E42397849F09ECD"
+    },
+    {
+      "Name": "Microsoft.Extensions.Logging.Abstractions.dll",
+      "SHA256": "45C22524218541717E4A0ADE36847C1CDA4921F5945B4975A1C78DDFE023D0B1"
+    },
+    {
+      "Name": "Microsoft.Extensions.Logging.dll",
+      "SHA256": "B2CFBA2E05EE89A91E9BC9CF112468A5F4FA05D1A77EA81C131EA656F3D133C2"
+    },
+    {
+      "Name": "Microsoft.Extensions.Options.dll",
+      "SHA256": "5E01894CBC0661BACB8CA8F485A40D5EE4E02F28FEF58007668A0276431B4693"
+    },
+    {
+      "Name": "Microsoft.Identity.Client.dll",
+      "SHA256": "01133B9431BF6B4DD061020BF7866E1F1E116760450907E05D18E167FF8A5BCF"
+    },
+    {
+      "Name": "Microsoft.Identity.Client.Extensions.Msal.dll",
+      "SHA256": "D318486A4C742574F014E8C3AC85D0FC6D8ED330C23F1B3516AB7A092861315B"
+    },
+    {
+      "Name": "Microsoft.IdentityModel.Abstractions.dll",
+      "SHA256": "F4694D23F05CC0263ABBCB536D132E243BC9C175AE642387FA98652B880A4BE0"
+    },
+    {
+      "Name": "Microsoft.IdentityModel.JsonWebTokens.dll",
+      "SHA256": "58277455122589B39C20E94F403FCA7D3ABCF5488BD9D8702AC75D03770F49F8"
+    },
+    {
+      "Name": "Microsoft.IdentityModel.Logging.dll",
+      "SHA256": "5DE12F537FA96EC3D47E1DABCF348807DA1400F0E0F5654C4B6903310D691C9A"
+    },
+    {
+      "Name": "Microsoft.IdentityModel.Protocols.dll",
+      "SHA256": "AC1F9879B7077A6FA9893DAB92CD7AF7B20F2F761A983941D2D184912B826908"
+    },
+    {
+      "Name": "Microsoft.IdentityModel.Protocols.OpenIdConnect.dll",
+      "SHA256": "034F43FEC9CA10FF7D29640B2DA7DD218850585827EDAABD9737FAE4AF582520"
+    },
+    {
+      "Name": "Microsoft.IdentityModel.Tokens.dll",
+      "SHA256": "929DD15F4A58930F21EC9EB95600775348EE63A059F6547A748607EDE7521A4C"
+    },
+    {
+      "Name": "Microsoft.SqlServer.Server.dll",
+      "SHA256": "A9DCA1B42BC875F966B78B2C0880E62B838F0ED6567166D7F1F07AE4B76EC4BF"
+    },
+    {
+      "Name": "Microsoft.Win32.SystemEvents.dll",
+      "SHA256": "CA495BF6C86B7F092D624928101985A941532D149DCD8ACFEA170F8A53BE8850"
+    },
+    {
+      "Name": "Newtonsoft.Json.dll",
+      "SHA256": "22C649F75FCE5BE7C7CCDA8880473B634EF69ECF33F5D1AB8AD892CAF47D5A07"
+    },
+    {
+      "Name": "Npgsql.dll",
+      "SHA256": "65278CBA2673C5ED0088049D883F81E365C438E1CED19D02439EFBEEB0B7EDAC"
+    },
+    {
+      "Name": "Npgsql.EntityFrameworkCore.PostgreSQL.dll",
+      "SHA256": "B6891AF13A0BBD6058D7579B1555165B29813316EB71D44777A78D6371C46C3D"
+    },
+    {
+      "Name": "runtimes/unix/lib/net6.0/Microsoft.Data.SqlClient.dll",
+      "SHA256": "22721854B6B91E848B994DE842CFEECB3017827EC7C0867DD0633F7EC515A8C8"
+    },
+    {
+      "Name": "runtimes/unix/lib/net6.0/System.Drawing.Common.dll",
+      "SHA256": "89EA595CCB1FD1384480C1E30BD487C92AF5D06D3B06F295323EFF601ACD9019"
+    },
+    {
+      "Name": "runtimes/win-arm/native/Microsoft.Data.SqlClient.SNI.dll",
+      "SHA256": "8BFA7BB0ABF2CD25B09FC28839C7265F66F29C5D9CE8DED61C27500C471A2056"
+    },
+    {
+      "Name": "runtimes/win-arm64/native/Microsoft.Data.SqlClient.SNI.dll",
+      "SHA256": "2740424B9217B5FB95F76F658E3F5B0D8A8B511608F21E89E7E871A97D0C333A"
+    },
+    {
+      "Name": "runtimes/win-x64/native/Microsoft.Data.SqlClient.SNI.dll",
+      "SHA256": "57ADB08FDE97D32A68D30C37E5C68B8CDD19B52EB4100043DFFD16ACDC1495DE"
+    },
+    {
+      "Name": "runtimes/win-x86/native/Microsoft.Data.SqlClient.SNI.dll",
+      "SHA256": "06EF300BF9F164019ABD930F03064E2E380CE9BA25FFDDE35C64C6B54DAACCB5"
+    },
+    {
+      "Name": "runtimes/win/lib/net6.0/Microsoft.Data.SqlClient.dll",
+      "SHA256": "AB7D52D448349FCF579733CD93E2502650063F5ACDA204EBE24B422056841B08"
+    },
+    {
+      "Name": "runtimes/win/lib/net6.0/Microsoft.Win32.SystemEvents.dll",
+      "SHA256": "142CCE4ED8AC9DA22D69C38A6F22738ABFB22090DC9313E8B58E6F91978E89AF"
+    },
+    {
+      "Name": "runtimes/win/lib/net6.0/System.Drawing.Common.dll",
+      "SHA256": "4D3001697DF50CCA54F32ED2DBBD1F3F415B48D5D756B1BF9500A43AE9B68DA0"
+    },
+    {
+      "Name": "runtimes/win/lib/net6.0/System.Runtime.Caching.dll",
+      "SHA256": "2CA88A05EA536C3B9507F52378AAA69B2E67DD3C4DAD2FA36426245818F6CC77"
+    },
+    {
+      "Name": "runtimes/win/lib/net6.0/System.Security.Cryptography.ProtectedData.dll",
+      "SHA256": "104CDC6D20406A144ABD373ED297EF803217C15012A0F22CACF6C676421D53EE"
+    },
+    {
+      "Name": "runtimes/win/lib/net6.0/System.Windows.Extensions.dll",
+      "SHA256": "E72863F75A5ADB5697158F16B00369AD3A95710235647626675A5C070F10ECD9"
+    },
+    {
+      "Name": "runtimes/win/lib/net7.0/System.Management.dll",
+      "SHA256": "979FEE559E30CC0FC4AF6F34548A225B6F08CAE0A6C61D24A3E389B3F22DC9D1"
+    },
+    {
+      "Name": "SolidWorks.Interop.swdocumentmgr.dll",
+      "SHA256": "F2DD975C978041E84C719EF5B522BB06F156A42A185EC619513779F816EAAF6F"
+    },
+    {
+      "Name": "SWPdm.Api.deps.json",
+      "SHA256": "9B296AF8E4F12747E48D2CE620ECC98A4068ACC3DC98CAD88C15431A42321095"
+    },
+    {
+      "Name": "SWPdm.Api.dll",
+      "SHA256": "531CA31C1912F724A85B30B0922183D64A8874B5EBF52E7C522FB11F261A3117"
+    },
+    {
+      "Name": "SWPdm.Api.exe",
+      "SHA256": "D79D86CD2D700CEBFB26B9DAEF61D7E7919820B5FEF13A38DCA3A4F9C8EA379D"
+    },
+    {
+      "Name": "SWPdm.Api.pdb",
+      "SHA256": "F2F338BC07409636FAF24D9C198201D7E2C658D0262FB5F9DDB80086CBF966F9"
+    },
+    {
+      "Name": "SWPdm.Api.runtimeconfig.json",
+      "SHA256": "BFCD9777228F00CE830A77B9EE3D2D735AFEC5E998DEF17C549C6B004DD354CF"
+    },
+    {
+      "Name": "SWPdm.Sample.dll",
+      "SHA256": "03E07B9118243626DFD46CB1927FE011C997D28F212A18A3F33C0E8C8CF27B67"
+    },
+    {
+      "Name": "SWPdm.Sample.pdb",
+      "SHA256": "A689B2108A0ADBD884E2934907E4E44E40BD027AE846BBFACCDA21E76A93F9CF"
+    },
+    {
+      "Name": "System.ClientModel.dll",
+      "SHA256": "A06523028979F420ABC209BE62A06B3038289932A9942B1AD3CEE52AF2CDBC0A"
+    },
+    {
+      "Name": "System.CodeDom.dll",
+      "SHA256": "4D33E2986A84D4460853E2B98D3A1BA9F8AA2950F7FA12FF6AD2E15A4BCCFD18"
+    },
+    {
+      "Name": "System.Configuration.ConfigurationManager.dll",
+      "SHA256": "D274BDD71F75F5005FCAEC028921F71D89CB6D622022D74D2E07897A3A1D141A"
+    },
+    {
+      "Name": "System.Drawing.Common.dll",
+      "SHA256": "98D07E6B1E7D3641A8608A360B3DC273FE8A0F78926B6E1E5F679A7A074D491F"
+    },
+    {
+      "Name": "System.IdentityModel.Tokens.Jwt.dll",
+      "SHA256": "177D4C2D2A5891EF834C46990AA76B81ED7A198F70D78229F7374C0706BA0166"
+    },
+    {
+      "Name": "System.Management.dll",
+      "SHA256": "36056B240F488B7DA63720585D84F93183CF7BD05DA68D5340151EBDD85E4D88"
+    },
+    {
+      "Name": "System.Memory.Data.dll",
+      "SHA256": "293CA5D86358FB2CE00DA02C63EEFCB344689FC0C636B61C97C3F1B15A80AA51"
+    },
+    {
+      "Name": "System.Runtime.Caching.dll",
+      "SHA256": "77C77CE3B1FC7D098765AF31F19195522E2C675F63248B699F64441D299F3EAD"
+    },
+    {
+      "Name": "System.Security.Cryptography.ProtectedData.dll",
+      "SHA256": "D186453EEBBA21E19A90E4FEA16C11C3DF59ED9610201C5A3C6D636B9864D840"
+    },
+    {
+      "Name": "System.Security.Permissions.dll",
+      "SHA256": "62068C0F6BFFB0EB4EC1C6A45A16784CAEE7565F6C5404D8342089F4FF4B3712"
+    },
+    {
+      "Name": "System.Windows.Extensions.dll",
+      "SHA256": "810E8767D02D70AF173BC33CC1048FF31A7DF015FD46CF423A309CC89C50DC69"
+    },
+    {
+      "Name": "web.config",
+      "SHA256": "C7CB9DB22B433198864DED747C668D3A65306E712A6194E5FAB1FE95409061E4"
+    }
+  ],
+  "WebFiles": [
+    {
+      "Name": "assets/index-CZ0ICJjr.css",
+      "SHA256": "8A9B2B5AF91A0876898673143583C15B47CD532850B15CC486B1DEB8D4FD8F59"
+    },
+    {
+      "Name": "assets/index-tPhSW7r-.js",
+      "SHA256": "3DD2AF6FE4D66BE54F293203A6470087821217DBFE6C416FF08FC591BD0B2E34"
+    },
+    {
+      "Name": "favicon.svg",
+      "SHA256": "61BC9A161DE58248288E6905425D7180F0624C2865007B97D763FDAC12043A66"
+    },
+    {
+      "Name": "icons.svg",
+      "SHA256": "7CA2D67C9C3AEBF50CDC8709EE8AACF8CDB8CC7EA6325EA94939CAEF5DA1C53D"
+    },
+    {
+      "Name": "index.html",
+      "SHA256": "E4DD94B94B0A244A9657A06F8C776942CD86C4E60BF5F5BA7A8C3D488EAA14E9"
+    }
+  ]
+}
